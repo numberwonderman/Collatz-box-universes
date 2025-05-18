@@ -11,7 +11,7 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\var sequance=function (num, x, y, z, max.js"
+            "program": "${workspaceFolder}\\box-universes-collatz.js"
         }
     ]
 }
