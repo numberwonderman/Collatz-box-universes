@@ -69,8 +69,12 @@ var printUniverseData = function (data) {
 
 printUniverseData(universe);
 
-var visualizer = function (universe) {
+var visualizer_computer = function (universe) {
     var carpenter = function (coordinates) { /*makes boxes*/};
     var Genesis = function (sequences) {/*graphes sequances*/ };
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
+
+var nine_net= function (universe){ /*makes a 9 by 9 net for a cube for the classic collatz sequance i seee this as a grid within my larger coordinate framework located at 23i
+    I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
+    linear progression*/};
