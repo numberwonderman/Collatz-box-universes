@@ -75,7 +75,8 @@ var visualizer_computer = function (universe) {
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-var nine_net= function (universe){   let gridSize = 9;
+function nine_net(universe) {
+    let gridSize = 9;
     let grid = [];
 
     // Create the 9x9 grid (2D array)
@@ -98,28 +99,42 @@ var nine_net= function (universe){   let gridSize = 9;
     let sequenceData = sequence(1, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
     let sequence = sequenceData.sequence;
 
-    // 3. Populate the grid with 'x' and 'o' based on the sequence
-    let row = 0;
-    let col = 0;
-    if (sequence && sequence.length > 0) {  // Check if the sequence is valid and not empty
+    // 3. Populate the grid with 'x' and 'o' based on the sequence, in the correct net layout
+    let row = 3; // Starting row for the central part of the net
+    let col = 1; // Starting column
+    if (sequence && sequence.length > 0) {
         for (let number of sequence) {
             grid[row][col] = (number % 2 === 0) ? 'x' : 'o';
             col++;
-            if (col >= gridSize) {
-                col = 0;
+            if (col > 3) { // Move to the next row after 3 numbers
+                col = 1;
                 row++;
             }
-            if (row >= gridSize) break; // Stop if the grid is full
+            if (row > 6) break; // Stop after 4 rows of the sequence
         }
     } else {
         console.error("Error: Could not generate Collatz sequence for the 9x9 grid.");
-        // Handle the error appropriately, e.g., fill the grid with error markers
+        // Handle the error: fill the grid with error markers
         for (let i = 1; i < gridSize - 1; i++) {
             for (let j = 1; j < gridSize - 1; j++) {
-                grid[i][j] = '!'; // Fill the inner grid with '!' to indicate an error
+                grid[i][j] = '!';
             }
         }
     }
+
+    // Manually set the positions for the other two faces of the cube net
+    grid[2][1] = sequence && sequence.length > 4 ? (sequence[4] % 2 === 0 ? 'x' : 'o') : ' '; //one before
+    grid[2][3] = sequence && sequence.length > 5 ? (sequence[5] % 2 === 0 ? 'x' : 'o') : ' '; //one after
+
+    // 4. Add tabs for assembly.  The 'T' character represents a tab.
+    grid[2][0] = 'T'; // Tab on the left of the top face
+    grid[2][4] = 'T'; // Tab on the right of the top face
+    grid[3][0] = 'T'; // Tab on the left of the middle-left face
+    grid[3][4] = 'T'; // Tab on the right of the middle-right face
+    grid[4][0] = 'T'; // Tab on the left of the bottom face
+    grid[4][4] = 'T'; // Tab on the right of the bottom face
+    grid[5][1] = 'T'; // Tab on the top of the bottom face
+    grid[1][1] = 'T'; // Tab on the top of the top face
 
     // Convert the grid to a string for output
     let netString = "";
@@ -129,7 +144,9 @@ var nine_net= function (universe){   let gridSize = 9;
         }
         netString += "\n"; // Add a newline after each row
     }
-    return netString;};
+    return netString;
+}
+
 /*makes a 9 by 9 net for a cube for the classic collatz sequence i seee this as a grid within my larger coordinate framework located at 231
     I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
     linear progression*/
