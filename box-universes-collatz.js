@@ -75,7 +75,7 @@ var visualizer_computer = function (universe) {
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-function nine_net() {
+function nine_net(startnum=1) {
     let gridSize = 9;
     let grid = [];
 
@@ -96,7 +96,7 @@ function nine_net() {
     }
 
     // 2. Get the classic Collatz sequence using your sequence function
-    let sequenceData = sequence(1, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
+    let sequenceData = sequence(startnum, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
     let sequence = sequenceData.sequence;
 
     // 3. Populate the grid with 'x' and 'o' based on the sequence, in the correct net layout
