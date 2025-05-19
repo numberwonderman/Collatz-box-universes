@@ -70,7 +70,7 @@ var printUniverseData = function (data) {
 printUniverseData(universe);
 
 var visualizer = function (universe) {
-    var carpenter = function (coordinates) { };
-    var Genesis = function (sequences) { };
-    var postmaster = function (coordinates, sequences) { };
+    var carpenter = function (coordinates) { /*makes boxes*/};
+    var Genesis = function (sequences) {/*graphes sequances*/ };
+    var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
