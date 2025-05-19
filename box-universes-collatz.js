@@ -75,7 +75,7 @@ var visualizer_computer = function (universe) {
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-function nine_net(universe) {
+function nine_net() {
     let gridSize = 9;
     let grid = [];
 
