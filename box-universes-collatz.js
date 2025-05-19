@@ -1,4 +1,4 @@
-var sequance = function (num, x, y, z, maxiterations) {
+var sequence = function (num, x, y, z, maxiterations) {
     if (x === 0) {
         console.log("Error: The value of x cannot be zero.");
         return { sequence: [], type: "error" }; // Return an error object
@@ -39,7 +39,7 @@ var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zS
         for (var y = yStart; y <= yEnd; y++) {
             var zDimensionData = [];
             for (var z = zStart; z <= zEnd; z++) {
-                var result = sequance(startNum, x, y, z, maxIterations); // Call the modified sequance function
+                var result = sequence(startNum, x, y, z, maxIterations); // Call the modified sequence function
                 zDimensionData.push({ coordinates: [x, y, z], result: result }); // Store the entire result object
             }
             yDimensionData.push(zDimensionData);
@@ -71,10 +71,65 @@ printUniverseData(universe);
 
 var visualizer_computer = function (universe) {
     var carpenter = function (coordinates) { /*makes boxes*/};
-    var Genesis = function (sequences) {/*graphes sequances*/ };
+    var Genesis = function (sequences) {/*graphs sequences*/ };
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-var nine_net= function (universe){ /*makes a 9 by 9 net for a cube for the classic collatz sequance i seee this as a grid within my larger coordinate framework located at 23i
+var nine_net= function (universe){   let gridSize = 9;
+    let grid = [];
+
+    // Create the 9x9 grid (2D array)
+    for (let i = 0; i < gridSize; i++) {
+        grid[i] = [];
+        for (let j = 0; j < gridSize; j++) {
+            grid[i][j] = ' '; // Initialize the grid with spaces
+        }
+    }
+
+    // 1. Create the basic structure of the net with '+' borders
+    for (let i = 0; i < gridSize; i++) {
+        grid[0][i] = '+';
+        grid[gridSize - 1][i] = '+';
+        grid[i][0] = '+';
+        grid[i][gridSize - 1] = '+';
+    }
+
+    // 2. Get the classic Collatz sequence using your sequence function
+    let sequenceData = sequence(1, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
+    let sequence = sequenceData.sequence;
+
+    // 3. Populate the grid with 'x' and 'o' based on the sequence
+    let row = 0;
+    let col = 0;
+    if (sequence && sequence.length > 0) {  // Check if the sequence is valid and not empty
+        for (let number of sequence) {
+            grid[row][col] = (number % 2 === 0) ? 'x' : 'o';
+            col++;
+            if (col >= gridSize) {
+                col = 0;
+                row++;
+            }
+            if (row >= gridSize) break; // Stop if the grid is full
+        }
+    } else {
+        console.error("Error: Could not generate Collatz sequence for the 9x9 grid.");
+        // Handle the error appropriately, e.g., fill the grid with error markers
+        for (let i = 1; i < gridSize - 1; i++) {
+            for (let j = 1; j < gridSize - 1; j++) {
+                grid[i][j] = '!'; // Fill the inner grid with '!' to indicate an error
+            }
+        }
+    }
+
+    // Convert the grid to a string for output
+    let netString = "";
+    for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < gridSize; j++) {
+            netString += grid[i][j];
+        }
+        netString += "\n"; // Add a newline after each row
+    }
+    return netString;};
+/*makes a 9 by 9 net for a cube for the classic collatz sequence i seee this as a grid within my larger coordinate framework located at 231
     I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
-    linear progression*/};
+    linear progression*/
