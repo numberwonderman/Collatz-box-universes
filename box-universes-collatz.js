@@ -146,6 +146,13 @@ function nine_net(startnum=1) {
     }
     return netString;
 }
+let startingNumbers=[1,2,3,5,7,10,20,50,100]; //arrar of starting numbers to test
+for(let i=0;i<startingNumbers.length;i++){
+    let startnum=startingNumbers[i];
+    console.log('\n--- Collatz Cube with StartNum=${startNum} ---\n');
+    let cubeNet=nine_net(startNum);
+    console.log(cubeNet);
+}
 
 /*makes a 9 by 9 net for a cube for the classic collatz sequence i seee this as a grid within my larger coordinate framework located at 231
     I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
