@@ -67,7 +67,7 @@ var printUniverseData = function (data) {
     }
 };
 
-printUniverseData(universe);
+//printUniverseData(universe);
 
 var visualizer_computer = function (universe) {
     var carpenter = function (coordinates) { /*makes boxes*/};
