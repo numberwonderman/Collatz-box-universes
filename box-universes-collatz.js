@@ -1,6 +1,6 @@
 var sequence = function (num, x, y, z, maxiterations) {
     if (x === 0) {
-        console.log("Error: The value of x cannot be zero.");
+        // console.log("Error: The value of x cannot be zero."); // Removed console.log here as it's handled by returning error object
         return { sequence: [], type: "error" }; // Return an error object
     }
     var output = [];
@@ -8,8 +8,9 @@ var sequence = function (num, x, y, z, maxiterations) {
     var iterations = 0;
     while (num > 1 && iterations < maxiterations) {
         var next_num;
-        if (num % Math.abs(x || 2) === 0) {
-            next_num = num / x;
+        // Use Math.abs(x) for the divisor to avoid division by zero or unexpected behavior with negative x
+        if (num % Math.abs(x) === 0) {
+            next_num = num / x; // Use x directly, not Math.abs(x) if x can be negative for division
         } else {
             next_num = Math.abs(y || 3) * num + (z || 1);
         }
@@ -75,7 +76,7 @@ var visualizer_computer = function (universe) {
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-function nine_net(startnum=1) {
+function nine_net(startNum = 1) { // Changed parameter name to startNum for consistency
     let gridSize = 9;
     let grid = [];
 
@@ -95,38 +96,69 @@ function nine_net(startnum=1) {
         grid[i][gridSize - 1] = '+';
     }
 
+    // Add the "Collatz Cube at 231" label
+    const label = "Collatz Cube at 231";
+    let labelCol = Math.floor((gridSize - label.length) / 2);
+    for(let i = 0; i < label.length; i++) {
+        if (labelCol + i < gridSize - 1) { // Ensure it fits within borders
+            grid[1][labelCol + i] = label[i];
+        }
+    }
+
+
     // 2. Get the classic Collatz sequence using your sequence function
-    let sequenceData = sequence(startnum, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
-    let sequence = sequenceData.sequence;
+    let sequenceData = sequence(startNum, 2, 3, 1, 100); // Start with 1, classic rule, max 100 iterations
+    let seq = sequenceData.sequence; // Renamed sequence to seq to avoid conflict
 
     // 3. Populate the grid with 'x' and 'o' based on the sequence, in the correct net layout
-    let row = 3; // Starting row for the central part of the net
-    let col = 1; // Starting column
-    if (sequence && sequence.length > 0) {
-        for (let number of sequence) {
-            grid[row][col] = (number % 2 === 0) ? 'x' : 'o';
-            col++;
-            if (col > 3) { // Move to the next row after 3 numbers
-                col = 1;
-                row++;
-            }
-            if (row > 6) break; // Stop after 4 rows of the sequence
-        }
-    } else {
-        console.error("Error: Could not generate Collatz sequence for the 9x9 grid.");
-        // Handle the error: fill the grid with error markers
-        for (let i = 1; i < gridSize - 1; i++) {
-            for (let j = 1; j < gridSize - 1; j++) {
-                grid[i][j] = '!';
+    // The central face (where most of the sequence will go)
+    let centralFaceRowStart = 3;
+    let centralFaceColStart = 1;
+    let seqIndex = 0;
+
+    // First, populate the central 3x3 area
+    for (let r = 0; r < 3; r++) {
+        for (let c = 0; c < 3; c++) {
+            if (seqIndex < seq.length) {
+                grid[centralFaceRowStart + r][centralFaceColStart + c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+                seqIndex++;
+            } else {
+                // If sequence runs out, fill with empty space
+                grid[centralFaceRowStart + r][centralFaceColStart + c] = ' ';
             }
         }
     }
 
-    // Manually set the positions for the other two faces of the cube net
-    grid[2][1] = sequence && sequence.length > 4 ? (sequence[4] % 2 === 0 ? 'x' : 'o') : ' '; //one before
-    grid[2][3] = sequence && sequence.length > 5 ? (sequence[5] % 2 === 0 ? 'x' : 'o') : ' '; //one after
+    // Now, populate the top face (row 2, col 1,2,3)
+    if (seqIndex < seq.length) {
+        grid[2][2] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Center of top face
+        seqIndex++;
+    }
+    if (seqIndex < seq.length) {
+        grid[2][1] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Left of center top face
+        seqIndex++;
+    }
+     if (seqIndex < seq.length) {
+        grid[2][3] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Right of center top face
+        seqIndex++;
+    }
 
-    // 4. Add tabs for assembly.  The 'T' character represents a tab.
+    // Now, populate the bottom face (row 6, col 1,2,3)
+    if (seqIndex < seq.length) {
+        grid[6][2] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Center of bottom face
+        seqIndex++;
+    }
+    if (seqIndex < seq.length) {
+        grid[6][1] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Left of center bottom face
+        seqIndex++;
+    }
+    if (seqIndex < seq.length) {
+        grid[6][3] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o'; // Right of center bottom face
+        seqIndex++;
+    }
+
+
+    // 4. Add tabs for assembly. The 'T' character represents a tab.
     grid[2][0] = 'T'; // Tab on the left of the top face
     grid[2][4] = 'T'; // Tab on the right of the top face
     grid[3][0] = 'T'; // Tab on the left of the middle-left face
@@ -146,14 +178,14 @@ function nine_net(startnum=1) {
     }
     return netString;
 }
-let startingNumbers=[1,2,3,5,7,10,20,50,100]; //arrar of starting numbers to test
-for(let i=0;i<startingNumbers.length;i++){
-    let startnum=startingNumbers[i];
-    console.log('\n--- Collatz Cube with StartNum=${startNum} ---\n');
-    let cubeNet=nine_net(startNum);
+
+let startingNumbers = [1, 2, 3, 5, 7, 10, 20, 50, 100]; // Array of starting numbers to test
+for (let i = 0; i < startingNumbers.length; i++) {
+    let startNum = startingNumbers[i];
+    console.log(`\n--- Collatz Cube for StartNum=${startNum} ---\n`);
+    let cubeNet = nine_net(startNum);
     console.log(cubeNet);
 }
-
 /*makes a 9 by 9 net for a cube for the classic collatz sequence i seee this as a grid within my larger coordinate framework located at 231
     I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
     linear progression*/
