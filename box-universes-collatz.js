@@ -175,10 +175,16 @@ const rulesToTest = [
 ];
 
 for (const rule of rulesToTest) {
-    console.log(`\n===== TESTING RULE: ${rule.description} =====\n`);
+   console.log(`\n==============================================`);
+    console.log(`  Collatz Cube Net for Rule: (${rule.x}, ${rule.y}, ${rule.z})`); // Modified this line slightly
+    console.log(`==============================================\n`);
+
     for (let i = 0; i < startingNumbers.length; i++) {
         let startNum = startingNumbers[i];
-        // MODIFIED: Pass x, y, z to nine_net
+        // This is where you had the previous `console.log` for `--- Collatz Cube for StartNum=X ---`
+        // Now, it should be just:
+        console.log(`--- For Starting Number: ${startNum} ---\n`); // Added a simpler header for each startNum
+
         let cubeNet = nine_net(startNum, rule.x, rule.y, rule.z);
         console.log(cubeNet);
     }
