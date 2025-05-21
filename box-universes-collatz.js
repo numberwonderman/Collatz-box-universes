@@ -93,12 +93,13 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
 
     // --- Define Face Regions (3x3 blocks) ---
     // Top-left corner of each 3x3 face block
+    // Adjusted these slightly for better visual alignment within the 15x15 grid
     const faces = {
         top: { r: 3, c: 6 },
         left: { r: 6, c: 3 },
-        centerLeft: { r: 6, c: 6 }, // Central cross part
-        center: { r: 6, c: 9 },   // Central cross part
-        centerRight: { r: 6, c: 12 }, // Central cross part
+        centerLeft: { r: 6, c: 6 },
+        center: { r: 6, c: 9 },
+        centerRight: { r: 6, c: 12 },
         bottom: { r: 9, c: 6 }
     };
 
@@ -109,13 +110,13 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     const fillFaceRegion = (startR, startC) => {
         for (let r = startR; r < startR + 3; r++) {
             for (let c = startC; c < startC + 3; c++) {
-                // Ensure we don't overwrite existing labels or borders (though with this placement, we shouldn't)
+                // Only fill if it's an empty space, avoiding overwriting labels/borders
                 if (grid[r][c] === ' ') {
                     if (seqIndex < seq.length) {
                         grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
                         seqIndex++;
                     } else {
-                        grid[r][c] = '+';
+                        grid[r][c] = '+'; // Fill with '+' if sequence runs out
                     }
                 }
             }
@@ -129,71 +130,54 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     fillFaceRegion(faces.centerRight.r, faces.centerRight.c);
     fillFaceRegion(faces.bottom.r, faces.bottom.c);
 
-    // --- Tab Placement ---
-    // Now, explicitly define tab regions around the 3x3 faces.
-    // These should only fill ' ' (empty) spaces.
+    // --- Tab Placement (explicitly defined and only fills empty spaces) ---
+    // This part defines the precise areas for the tabs.
 
-    // Top Face (faces.top: r:3, c:6)
-    for (let c = faces.top.c; c < faces.top.c + 3; c++) { // Top edge tabs
-        if (grid[faces.top.r - 1][c] === ' ') grid[faces.top.r - 1][c] = 'T';
-    }
-    if (grid[faces.top.r][faces.top.c - 1] === ' ') grid[faces.top.r][faces.top.c - 1] = 'T'; // Left edge tab
-    if (grid[faces.top.r + 1][faces.top.c - 1] === ' ') grid[faces.top.r + 1][faces.top.c - 1] = 'T';
-    if (grid[faces.top.r + 2][faces.top.c - 1] === ' ') grid[faces.top.r + 2][faces.top.c - 1] = 'T';
+    // Helper to attempt placing a 'T' only if the spot is an empty space
+    const placeTab = (r, c) => {
+        if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ') {
+            grid[r][c] = 'T';
+        }
+    };
 
-    if (grid[faces.top.r][faces.top.c + 3] === ' ') grid[faces.top.r][faces.top.c + 3] = 'T'; // Right edge tab
-    if (grid[faces.top.r + 1][faces.top.c + 3] === ' ') grid[faces.top.r + 1][faces.top.c + 3] = 'T';
-    if (grid[faces.top.r + 2][faces.top.c + 3] === ' ') grid[faces.top.r + 2][faces.top.c + 3] = 'T';
+    // Tabs for Top Face (r:3, c:6)
+    for (let c = faces.top.c; c < faces.top.c + 3; c++) placeTab(faces.top.r - 1, c); // Top edge
+    placeTab(faces.top.r, faces.top.c - 1); // Left edge vertical strip
+    placeTab(faces.top.r + 1, faces.top.c - 1);
+    placeTab(faces.top.r + 2, faces.top.c - 1);
+    placeTab(faces.top.r, faces.top.c + 3); // Right edge vertical strip
+    placeTab(faces.top.r + 1, faces.top.c + 3);
+    placeTab(faces.top.r + 2, faces.top.c + 3);
 
-    // Left Face (faces.left: r:6, c:3)
-    for (let r = faces.left.r; r < faces.left.r + 3; r++) { // Left edge tabs
-        if (grid[r][faces.left.c - 1] === ' ') grid[r][faces.left.c - 1] = 'T';
-    }
-    for (let c = faces.left.c; c < faces.left.c + 3; c++) { // Top edge tabs
-        if (grid[faces.left.r - 1][c] === ' ') grid[faces.left.r - 1][c] = 'T';
-    }
 
-    // Center-Left Face (faces.centerLeft: r:6, c:6) - only needs bottom/right tabs for external
-    // Top connection to Top Face is internal.
-    // Left side connects to 'left' face.
-    for (let r = faces.centerLeft.r; r < faces.centerLeft.r + 3; r++) { // Right edge tabs
-        if (grid[r][faces.centerLeft.c + 3] === ' ') grid[r][faces.centerLeft.c + 3] = 'T';
-    }
-    for (let c = faces.centerLeft.c; c < faces.centerLeft.c + 3; c++) { // Bottom edge tabs
-        if (grid[faces.centerLeft.r + 3][c] === ' ') grid[faces.centerLeft.r + 3][c] = 'T';
-    }
+    // Tabs for Left Face (r:6, c:3)
+    for (let r = faces.left.r; r < faces.left.r + 3; r++) placeTab(r, faces.left.c - 1); // Left edge
+    for (let c = faces.left.c; c < faces.left.c + 3; c++) placeTab(faces.left.r - 1, c); // Top edge
 
-    // Center Face (faces.center: r:6, c:9) - only needs top/bottom/right for external
-    for (let r = faces.center.r; r < faces.center.r + 3; r++) { // Right edge tabs
-        if (grid[r][faces.center.c + 3] === ' ') grid[r][faces.center.c + 3] = 'T';
-    }
-    for (let c = faces.center.c; c < faces.center.c + 3; c++) { // Bottom edge tabs
-        if (grid[faces.center.r + 3][c] === ' ') grid[faces.center.r + 3][c] = 'T';
-    }
 
-    // Center-Right Face (faces.centerRight: r:6, c:12) - far right of horizontal strip
-    for (let r = faces.centerRight.r; r < faces.centerRight.r + 3; r++) { // Right edge tabs
-        if (grid[r][faces.centerRight.c + 3] === ' ') grid[r][faces.centerRight.c + 3] = 'T';
-    }
-    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) { // Top edge tabs
-        if (grid[faces.centerRight.r - 1][c] === ' ') grid[faces.centerRight.r - 1][c] = 'T';
-    }
-    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) { // Bottom edge tabs
-        if (grid[faces.centerRight.r + 3][c] === ' ') grid[faces.centerRight.r + 3][c] = 'T';
-    }
+    // Tabs for Center-Left Face (r:6, c:6) - external tabs only on bottom and right
+    for (let c = faces.centerLeft.c; c < faces.centerLeft.c + 3; c++) placeTab(faces.centerLeft.r + 3, c); // Bottom edge
+    for (let r = faces.centerLeft.r; r < faces.centerLeft.r + 3; r++) placeTab(r, faces.centerLeft.c + 3); // Right edge
 
-    // Bottom Face (faces.bottom: r:9, c:6)
-    for (let c = faces.bottom.c; c < faces.bottom.c + 3; c++) { // Bottom edge tabs
-        if (grid[faces.bottom.r + 3][c] === ' ') grid[faces.bottom.r + 3][c] = 'T';
-    }
-    if (grid[faces.bottom.r][faces.bottom.c - 1] === ' ') grid[faces.bottom.r][faces.bottom.c - 1] = 'T'; // Left edge tab
-    if (grid[faces.bottom.r + 1][faces.bottom.c - 1] === ' ') grid[faces.bottom.r + 1][faces.bottom.c - 1] = 'T';
-    if (grid[faces.bottom.r + 2][faces.bottom.c - 1] === ' ') grid[faces.bottom.r + 2][faces.bottom.c - 1] = 'T';
 
-    if (grid[faces.bottom.r][faces.bottom.c + 3] === ' ') grid[faces.bottom.r][faces.bottom.c + 3] = 'T'; // Right edge tab
-    if (grid[faces.bottom.r + 1][faces.bottom.c + 3] === ' ') grid[faces.bottom.r + 1][faces.bottom.c + 3] = 'T';
-    if (grid[faces.bottom.r + 2][faces.bottom.c + 3] === ' ') grid[faces.bottom.r + 2][faces.bottom.c + 3] = 'T';
+    // Tabs for Center Face (r:6, c:9) - external tabs only on top, bottom, and right
+    for (let c = faces.center.c; c < faces.center.c + 3; c++) placeTab(faces.center.r - 1, c); // Top edge
+    for (let c = faces.center.c; c < faces.center.c + 3; c++) placeTab(faces.center.r + 3, c); // Bottom edge
+    for (let r = faces.center.r; r < faces.center.r + 3; r++) placeTab(r, faces.center.c + 3); // Right edge
 
+    // Tabs for Center-Right Face (r:6, c:12) - far right of horizontal strip
+    for (let r = faces.centerRight.r; r < faces.centerRight.r + 3; r++) placeTab(r, faces.centerRight.c + 3); // Right edge
+    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) placeTab(faces.centerRight.r - 1, c); // Top edge
+    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) placeTab(faces.centerRight.r + 3, c); // Bottom edge
+
+    // Tabs for Bottom Face (r:9, c:6)
+    for (let c = faces.bottom.c; c < faces.bottom.c + 3; c++) placeTab(faces.bottom.r + 3, c); // Bottom edge
+    placeTab(faces.bottom.r, faces.bottom.c - 1); // Left edge vertical strip
+    placeTab(faces.bottom.r + 1, faces.bottom.c - 1);
+    placeTab(faces.bottom.r + 2, faces.bottom.c - 1);
+    placeTab(faces.bottom.r, faces.bottom.c + 3); // Right edge vertical strip
+    placeTab(faces.bottom.r + 1, faces.bottom.c + 3);
+    placeTab(faces.bottom.r + 2, faces.bottom.c + 3);
 
     // Final grid string assembly
     let netString = "";
