@@ -57,7 +57,7 @@ var visualizer_computer = function (universe) {
 
 
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
-    let gridSize = 15; // Still 15x15
+    let gridSize = 15;
     let grid = [];
 
     // Initialize with spaces
@@ -91,113 +91,92 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
 
     // --- Define Face Regions (3x3 blocks) ---
-    // Store both their top-left corner and a list of all their cells for precise collision.
-    const faceDefinitions = {
-        top: { r: 3, c: 6, cells: [] },
-        left: { r: 6, c: 3, cells: [] },
-        centerLeft: { r: 6, c: 6, cells: [] },
-        center: { r: 6, c: 9, cells: [] },
-        centerRight: { r: 6, c: 12, cells: [] },
-        bottom: { r: 9, c: 6, cells: [] }
+    // These define the top-left corner of each 3x3 face
+    const faceCoords = {
+        top: { r: 3, c: 6 },
+        left: { r: 6, c: 3 },
+        centerLeft: { r: 6, c: 6 },
+        center: { r: 6, c: 9 },
+        centerRight: { r: 6, c: 12 },
+        bottom: { r: 9, c: 6 }
     };
 
-    // Populate the 'cells' array for each face
-    for (const key in faceDefinitions) {
-        const face = faceDefinitions[key];
-        for (let r = face.r; r < face.r + 3; r++) {
-            for (let c = face.c; c < face.c + 3; c++) {
-                face.cells.push({ r: r, c: c });
-            }
-        }
-    }
-
-    // --- Fill Face Regions ---
+    // --- Fill Face Regions with sequence data ---
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
-    // A helper to fill a face cell
-    const setFaceCell = (r, c) => {
-        if (seqIndex < seq.length) {
-            grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
-            seqIndex++;
-        } else {
-            grid[r][c] = '+'; // Fill with '+' if sequence runs out
+    const fillFace = (startR, startC) => {
+        for (let r = startR; r < startR + 3; r++) {
+            for (let c = startC; c < startC + 3; c++) {
+                if (grid[r][c] === ' ') { // Only fill if it's currently a blank space
+                    if (seqIndex < seq.length) {
+                        grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+                        seqIndex++;
+                    } else {
+                        grid[r][c] = '+'; // Fill with '+' if sequence runs out
+                    }
+                }
+            }
         }
     };
 
-    // Fill each defined face region
-    for (const key in faceDefinitions) {
-        const face = faceDefinitions[key];
-        face.cells.forEach(cell => {
-            if (grid[cell.r][cell.c] === ' ') { // Only fill if it's currently empty
-                setFaceCell(cell.r, cell.c);
-            }
-        });
-    }
+    fillFace(faceCoords.top.r, faceCoords.top.c);
+    fillFace(faceCoords.left.r, faceCoords.left.c);
+    fillFace(faceCoords.centerLeft.r, faceCoords.centerLeft.c);
+    fillFace(faceCoords.center.r, faceCoords.center.c);
+    fillFace(faceCoords.centerRight.r, faceCoords.centerRight.c);
+    fillFace(faceCoords.bottom.r, faceCoords.bottom.c);
 
-    // --- Tab Placement (explicitly defined and only fills empty spaces that are not face cells) ---
+    // --- Tab Placement ---
+    // Now, explicitly place 'T's into the *empty* cells around the faces.
+    // The previous issue was that `+` within a face could block a 'T'.
+    // By strictly defining T locations *after* faces are filled, we ensure they don't overlap.
 
-    // Helper to check if a coordinate is part of ANY face
-    const isAnyFaceCell = (checkR, checkC) => {
-        for (const key in faceDefinitions) {
-            const face = faceDefinitions[key];
-            // Check if the coordinates match any cell within this face
-            if (face.cells.some(cell => cell.r === checkR && cell.c === checkC)) {
-                return true;
-            }
-        }
-        return false;
-    };
-
-    // Helper to attempt placing a 'T' only if the spot is an empty space AND not a face cell
-    const placeTab = (r, c) => {
-        // Ensure within grid bounds and not a border character
+    const placeTabChar = (r, c) => {
+        // Only place a 'T' if the spot is currently a ' ' (empty) and within bounds
         if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ') {
-            // Crucial: Check if it's NOT a cell belonging to any face
-            if (!isAnyFaceCell(r, c)) {
-                grid[r][c] = 'T';
-            }
+            grid[r][c] = 'T';
         }
     };
 
-    // Tabs for Top Face (faceDefinitions.top: r:3, c:6)
-    for (let c = faceDefinitions.top.c; c < faceDefinitions.top.c + 3; c++) placeTab(faceDefinitions.top.r - 1, c); // Top edge (horizontal strip)
-    placeTab(faceDefinitions.top.r, faceDefinitions.top.c - 1); // Left edge vertical strip
-    placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c - 1);
-    placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c - 1);
-    placeTab(faceDefinitions.top.r, faceDefinitions.top.c + 3); // Right edge vertical strip
-    placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c + 3);
-    placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c + 3);
+    // Tabs for Top Face (faceCoords.top: r:3, c:6)
+    for (let c = faceCoords.top.c; c < faceCoords.top.c + 3; c++) placeTabChar(faceCoords.top.r - 1, c); // Top edge (horizontal strip)
+    placeTabChar(faceCoords.top.r, faceCoords.top.c - 1); // Left edge vertical strip
+    placeTabChar(faceCoords.top.r + 1, faceCoords.top.c - 1);
+    placeTabChar(faceCoords.top.r + 2, faceCoords.top.c - 1);
+    placeTabChar(faceCoords.top.r, faceCoords.top.c + 3); // Right edge vertical strip
+    placeTabChar(faceCoords.top.r + 1, faceCoords.top.c + 3);
+    placeTabChar(faceCoords.top.r + 2, faceCoords.top.c + 3);
 
 
-    // Tabs for Left Face (faceDefinitions.left: r:6, c:3)
-    for (let r = faceDefinitions.left.r; r < faceDefinitions.left.r + 3; r++) placeTab(r, faceDefinitions.left.c - 1); // Left edge (vertical strip)
-    for (let c = faceDefinitions.left.c; c < faceDefinitions.left.c + 3; c++) placeTab(faceDefinitions.left.r - 1, c); // Top edge (horizontal strip)
+    // Tabs for Left Face (faceCoords.left: r:6, c:3)
+    for (let r = faceCoords.left.r; r < faceCoords.left.r + 3; r++) placeTabChar(r, faceCoords.left.c - 1); // Left edge (vertical strip)
+    for (let c = faceCoords.left.c; c < faceCoords.left.c + 3; c++) placeTabChar(faceCoords.left.r - 1, c); // Top edge (horizontal strip)
 
 
-    // Tabs for Center-Left Face (faceDefinitions.centerLeft: r:6, c:6) - external tabs only on bottom and right
-    for (let c = faceDefinitions.centerLeft.c; c < faceDefinitions.centerLeft.c + 3; c++) placeTab(faceDefinitions.centerLeft.r + 3, c); // Bottom edge
-    for (let r = faceDefinitions.centerLeft.r; r < faceDefinitions.centerLeft.r + 3; r++) placeTab(r, faceDefinitions.centerLeft.c + 3); // Right edge
+    // Tabs for Center-Left Face (faceCoords.centerLeft: r:6, c:6) - external tabs only on bottom and right
+    for (let c = faceCoords.centerLeft.c; c < faceCoords.centerLeft.c + 3; c++) placeTabChar(faceCoords.centerLeft.r + 3, c); // Bottom edge
+    for (let r = faceCoords.centerLeft.r; r < faceCoords.centerLeft.r + 3; r++) placeTabChar(r, faceCoords.centerLeft.c + 3); // Right edge
 
 
-    // Tabs for Center Face (faceDefinitions.center: r:6, c:9) - external tabs only on top, bottom, and right
-    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r - 1, c); // Top edge
-    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r + 3, c); // Bottom edge
-    for (let r = faceDefinitions.center.r; r < faceDefinitions.center.r + 3; r++) placeTab(r, faceDefinitions.center.c + 3); // Right edge
+    // Tabs for Center Face (faceCoords.center: r:6, c:9) - external tabs only on top, bottom, and right
+    for (let c = faceCoords.center.c; c < faceCoords.center.c + 3; c++) placeTabChar(faceCoords.center.r - 1, c); // Top edge
+    for (let c = faceCoords.center.c; c < faceCoords.center.c + 3; c++) placeTabChar(faceCoords.center.r + 3, c); // Bottom edge
+    for (let r = faceCoords.center.r; r < faceCoords.center.r + 3; r++) placeTabChar(r, faceCoords.center.c + 3); // Right edge
 
-    // Tabs for Center-Right Face (faceDefinitions.centerRight: r:6, c:12) - far right of horizontal strip
-    for (let r = faceDefinitions.centerRight.r; r < faceDefinitions.centerRight.r + 3; r++) placeTab(r, faceDefinitions.centerRight.c + 3); // Right edge
-    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r - 1, c); // Top edge
-    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r + 3, c); // Bottom edge
+    // Tabs for Center-Right Face (faceCoords.centerRight: r:6, c:12) - far right of horizontal strip
+    for (let r = faceCoords.centerRight.r; r < faceCoords.centerRight.r + 3; r++) placeTabChar(r, faceCoords.centerRight.c + 3); // Right edge
+    for (let c = faceCoords.centerRight.c; c < faceCoords.centerRight.c + 3; c++) placeTabChar(faceCoords.centerRight.r - 1, c); // Top edge
+    for (let c = faceCoords.centerRight.c; c < faceCoords.centerRight.c + 3; c++) placeTabChar(faceCoords.centerRight.r + 3, c); // Bottom edge
 
-    // Tabs for Bottom Face (faceDefinitions.bottom: r:9, c:6)
-    for (let c = faceDefinitions.bottom.c; c < faceDefinitions.bottom.c + 3; c++) placeTab(faceDefinitions.bottom.r + 3, c); // Bottom edge
-    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c - 1); // Left edge vertical strip
-    placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c - 1);
-    placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c - 1);
-    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c + 3); // Right edge vertical strip
-    placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c + 3);
-    placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c + 3);
+    // Tabs for Bottom Face (faceCoords.bottom: r:9, c:6)
+    for (let c = faceCoords.bottom.c; c < faceCoords.bottom.c + 3; c++) placeTabChar(faceCoords.bottom.r + 3, c); // Bottom edge
+    placeTabChar(faceCoords.bottom.r, faceCoords.bottom.c - 1); // Left edge vertical strip
+    placeTabChar(faceCoords.bottom.r + 1, faceCoords.bottom.c - 1);
+    placeTabChar(faceCoords.bottom.r + 2, faceCoords.bottom.c - 1);
+    placeTabChar(faceCoords.bottom.r, faceCoords.bottom.c + 3); // Right edge vertical strip
+    placeTabChar(faceCoords.bottom.r + 1, faceCoords.bottom.c + 3);
+    placeTabChar(faceCoords.bottom.r + 2, faceCoords.bottom.c + 3);
 
 
     // Final grid string assembly
