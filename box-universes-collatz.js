@@ -7,12 +7,10 @@ var sequence = function (num, x, y, z, maxiterations) {
     var iterations = 0;
     while (num > 1 && iterations < maxiterations) {
         var next_num;
-        // Use Math.abs(x) for the modulo, but x directly for division
         if (num % Math.abs(x) === 0) {
-            next_num = num / x; // Use x directly to preserve sign if x is negative
+            next_num = num / x;
         } else {
-            // Ensure y and z are treated as numbers, with defaults
-            next_num = (Math.abs(y) || 3) * num + (z || 1); // Use Math.abs(y) for the multiplier, z directly
+            next_num = (Math.abs(y) || 3) * num + (z || 1);
         }
 
         if (output.includes(next_num)) {
@@ -34,37 +32,21 @@ var sequence = function (num, x, y, z, maxiterations) {
 
 var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zStart, zEnd, maxIterations) {
     var universeData = [];
+    const xOffset = xStart;
+    const yOffset = yStart;
+    const zOffset = zStart;
 
-    for (var x = xStart; x <= xEnd; x++) {
-        var yDimensionData = [];
-        for (var y = yStart; y <= yEnd; y++) {
-            var zDimensionData = [];
-            for (var z = zStart; z <= zEnd; z++) {
+    for (let x = xStart; x <= xEnd; x++) {
+        universeData[x - xOffset] = [];
+        for (let y = yStart; y <= yEnd; y++) {
+            universeData[x - xOffset][y - yOffset] = [];
+            for (let z = zStart; z <= zEnd; z++) {
                 var result = sequence(startNum, x, y, z, maxIterations);
-                zDimensionData.push({ coordinates: [x, y, z], result: result });
-            }
-            yDimensionData.push(zDimensionData);
-        }
-        universeData.push(yDimensionData);
-    }
-    return universeData;
-};
-
-
-var universe = generateBoxUniverseData(5, 1, 2, 1, 2, 1, 2, 10);
-
-var printUniverseData = function (data) {
-    for (var i = 0; i < data.length; i++) {
-        for (var j = 0; j < data[i].length; j++) {
-            for (var k = 0; k < data[i][j].length; k++) {
-                var box = data[i][j][k];
-                console.log("Coordinates: [" + box.coordinates[0] + ", " + box.coordinates[1] + ", " + box.coordinates[2] + "]");
-                console.log("Result Type: " + box.result.type);
-                console.log("Sequence: " + box.result.sequence);
-                console.log("---");
+                universeData[x - xOffset][y - yOffset][z - zOffset] = { coordinates: [x, y, z], result: result };
             }
         }
     }
+    return { data: universeData, xStart, yStart, zStart, xEnd, yEnd, zEnd };
 };
 
 var visualizer_computer = function (universe) {
@@ -73,7 +55,7 @@ var visualizer_computer = function (universe) {
     var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
 };
 
-// MODIFIED: Added xVal, yVal, zVal parameters
+
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     let gridSize = 9;
     let grid = [];
@@ -81,77 +63,86 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     for (let i = 0; i < gridSize; i++) {
         grid[i] = [];
         for (let j = 0; j < gridSize; j++) {
-            grid[i][j] = ' ';
+            grid[i][j] = ' '; // Initialize with spaces
         }
     }
 
+    // 1. Create the basic structure of the net with '+' borders
+    // All outer rows/cols are borders.
+    // This creates a central 7x7 usable area
     for (let i = 0; i < gridSize; i++) {
-        grid[0][i] = '+';
-        grid[gridSize - 1][i] = '+';
-        grid[i][0] = '+';
-        grid[i][gridSize - 1] = '+';
+        grid[0][i] = '+'; // Top border
+        grid[gridSize - 1][i] = '+'; // Bottom border
+        grid[i][0] = '+'; // Left border
+        grid[i][gridSize - 1] = '+'; // Right border
     }
 
-    // Label now includes the rule (x, y, z)
-    const label = `Collatz Cube at ${xVal}${yVal}${zVal} for ${startNum}`;
-    let labelCol = Math.floor((gridSize - label.length) / 2);
-    for(let i = 0; i < label.length; i++) {
-        if (labelCol + i > 0 && labelCol + i < gridSize - 1) { // Ensure it fits within borders
-            grid[1][labelCol + i] = label[i];
+    // --- Revised Label Placement ---
+    // Make the label compact, e.g., "S:1 R:231"
+    const internalLabel = `S:${startNum} R:${xVal}${yVal}${zVal}`;
+    // Max width for label within the border is gridSize - 2 = 7 characters if centered
+    // We'll try to center it in the top central face, which starts from col 2 (index 1)
+    // Label will be placed in row 1, covering some of the original border, or more typically
+    // in row 1 inside the usable grid area. Let's make it just the StartNum for simplicity.
+    const numLabel = `S:${startNum}`;
+    const labelRow = 1; // Row for the label
+    const labelColStart = 1; // Start from col 1 (index 1)
+    for (let i = 0; i < numLabel.length; i++) {
+        if (labelColStart + i < gridSize - 1) { // Ensure within bounds
+            grid[labelRow][labelColStart + i] = numLabel[i];
         }
     }
 
-    // MODIFIED: Use the passed xVal, yVal, zVal for the sequence
-    let sequenceData = sequence(startNum, xVal, yVal, zVal, 100);
-    let seq = sequenceData.sequence;
+    // --- Core Net Layout (Standard Cross/T-Shape) ---
+    // Let's visualize the 6 faces. Each face will be 1x1 cell for this purpose,
+    // as a 9x9 grid doesn't allow 3x3 faces for a full net.
+    // If we want 3x3 faces, the grid needs to be larger (e.g., 9x12 for a T-net)
 
-    // Populate the grid with 'x' and 'o' based on the sequence
-    let centralFaceRowStart = 3;
-    let centralFaceColStart = 1;
+    // Let's define the center of the middle horizontal strip as [4][4] (row 4, col 4)
+    // This is the common layout:
+    //      [ ][X][ ]
+    //   [X][X][X][X]
+    //      [ ][X][ ]
+
+    let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
-    // Central 3x3 area
-    for (let r = 0; r < 3; r++) {
-        for (let c = 0; c < 3; c++) {
-            if (seqIndex < seq.length) {
-                grid[centralFaceRowStart + r][centralFaceColStart + c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
-                seqIndex++;
-            } else {
-                grid[centralFaceRowStart + r][centralFaceColStart + c] = ' ';
-            }
-        }
-    }
-
-    // Top face (row 2, col 1,2,3)
-    // Populate left to right for linear progression within the row
-    const topFaceRow = 2;
-    for (let c = 1; c <= 3; c++) {
+    const fillCell = (r, c) => {
         if (seqIndex < seq.length) {
-            grid[topFaceRow][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+            grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
             seqIndex++;
+        } else {
+            grid[r][c] = ' '; // Fill with space if sequence runs out
         }
-    }
+    };
 
-    // Bottom face (row 6, col 1,2,3)
-    // Populate left to right for linear progression within the row
-    const bottomFaceRow = 6;
-    for (let c = 1; c <= 3; c++) {
-        if (seqIndex < seq.length) {
-            grid[bottomFaceRow][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
-            seqIndex++;
-        }
-    }
+    // Central horizontal strip (4 faces)
+    // E.g., [4][2], [4][3], [4][4], [4][5]
+    fillCell(4, 2); // Left-center face
+    fillCell(4, 3); // Center face
+    fillCell(4, 4); // Right-center face
+    fillCell(4, 5); // Far right face
+
+    // Top face (above the 3rd cell of the horizontal strip)
+    // E.g., [3][4]
+    fillCell(3, 4);
+
+    // Bottom face (below the 3rd cell of the horizontal strip)
+    // E.g., [5][4]
+    fillCell(5, 4);
 
 
-    // Add tabs for assembly. The 'T' character represents a tab.
-    grid[2][0] = 'T';
-    grid[2][4] = 'T';
-    grid[3][0] = 'T';
-    grid[3][4] = 'T';
-    grid[4][0] = 'T';
-    grid[4][4] = 'T';
-    grid[5][1] = 'T';
-    grid[1][1] = 'T';
+    // Add tabs for assembly (these will need to be re-positioned for the new net shape)
+    // This is a basic example of placing tabs around the new "cells"
+    grid[3][3] = 'T'; // Tab on top-left of central-center face
+    grid[3][5] = 'T'; // Tab on top-right of far-right face
+    grid[5][3] = 'T'; // Tab on bottom-left of central-center face
+    grid[5][5] = 'T'; // Tab on bottom-right of far-right face
+    grid[4][1] = 'T'; // Tab on left of left-center face
+    grid[4][6] = 'T'; // Tab on right of far-right face
+    grid[2][4] = 'T'; // Tab above top face
+    grid[6][4] = 'T'; // Tab below bottom face
+
 
     let netString = "";
     for (let i = 0; i < gridSize; i++) {
@@ -163,10 +154,8 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     return netString;
 }
 
-// Example Usage:
-let startingNumbers = [1, 2, 3, 5, 7, 10]; // Smaller array for demonstration
-
-// Test different rules
+// --- Main Execution (unchanged from previous) ---
+let startingNumbers = [1, 2, 3, 5, 7, 10];
 const rulesToTest = [
     { x: 2, y: 3, z: 1, description: "Classic Collatz (2,3,1)" },
     { x: 2, y: 5, z: 1, description: "Modified Collatz (2,5,1)" },
@@ -174,21 +163,33 @@ const rulesToTest = [
     { x: 3, y: 4, z: 2, description: "Custom Rule (3,4,2)"}
 ];
 
+// Define your universe bounds for generating data
+const universeXStart = 1;
+const universeXEnd = 2;
+const universeYStart = 1;
+const universeYEnd = 2;
+const universeZStart = 1;
+const universeZEnd = 2;
+
 for (const rule of rulesToTest) {
-   console.log(`\n==============================================`);
-    console.log(`  Collatz Cube Net for Rule: (${rule.x}, ${rule.y}, ${rule.z})`); // Modified this line slightly
+    console.log(`\n==============================================`);
+    console.log(`  Collatz Cube Net for Rule: (${rule.x}, ${rule.y}, ${rule.z})`);
     console.log(`==============================================\n`);
 
     for (let i = 0; i < startingNumbers.length; i++) {
         let startNum = startingNumbers[i];
-        // This is where you had the previous `console.log` for `--- Collatz Cube for StartNum=X ---`
-        // Now, it should be just:
-        console.log(`--- For Starting Number: ${startNum} ---\n`); // Added a simpler header for each startNum
+        console.log(`--- For Starting Number: ${startNum} ---\n`);
 
+        const currentUniverse = generateBoxUniverseData(
+            startNum,
+            universeXStart, universeXEnd,
+            universeYStart, universeYEnd,
+            universeZStart, universeZEnd,
+            100
+        );
+
+        // Call nine_net directly for individual output as before
         let cubeNet = nine_net(startNum, rule.x, rule.y, rule.z);
         console.log(cubeNet);
     }
 }
-/*makes a 9 by 9 net for a cube for the classic collatz sequence i seee this as a grid within my larger coordinate framework located at 231
-    I would like that location listed on the cube too and i will call it the collatz cube the boaders will be made of pus signs and the evens will be xs the odds will be os and the style wll be 
-    linear progression*/
