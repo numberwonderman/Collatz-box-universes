@@ -141,6 +141,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     const isAnyFaceCell = (checkR, checkC) => {
         for (const key in faceDefinitions) {
             const face = faceDefinitions[key];
+            // Check if the coordinates match any cell within this face
             if (face.cells.some(cell => cell.r === checkR && cell.c === checkC)) {
                 return true;
             }
@@ -159,44 +160,44 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         }
     };
 
-    // Tabs for Top Face (r:3, c:6)
-    for (let c = faces.top.c; c < faces.top.c + 3; c++) placeTab(faces.top.r - 1, c); // Top edge (horizontal strip)
-    placeTab(faces.top.r, faces.top.c - 1); // Left edge vertical strip
-    placeTab(faces.top.r + 1, faces.top.c - 1);
-    placeTab(faces.top.r + 2, faces.top.c - 1);
-    placeTab(faces.top.r, faces.top.c + 3); // Right edge vertical strip
-    placeTab(faces.top.r + 1, faces.top.c + 3);
-    placeTab(faces.top.r + 2, faces.top.c + 3);
+    // Tabs for Top Face (faceDefinitions.top: r:3, c:6)
+    for (let c = faceDefinitions.top.c; c < faceDefinitions.top.c + 3; c++) placeTab(faceDefinitions.top.r - 1, c); // Top edge (horizontal strip)
+    placeTab(faceDefinitions.top.r, faceDefinitions.top.c - 1); // Left edge vertical strip
+    placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c - 1);
+    placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c - 1);
+    placeTab(faceDefinitions.top.r, faceDefinitions.top.c + 3); // Right edge vertical strip
+    placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c + 3);
+    placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c + 3);
 
 
-    // Tabs for Left Face (r:6, c:3)
-    for (let r = faces.left.r; r < faces.left.r + 3; r++) placeTab(r, faces.left.c - 1); // Left edge (vertical strip)
-    for (let c = faces.left.c; c < faces.left.c + 3; c++) placeTab(faces.left.r - 1, c); // Top edge (horizontal strip)
+    // Tabs for Left Face (faceDefinitions.left: r:6, c:3)
+    for (let r = faceDefinitions.left.r; r < faceDefinitions.left.r + 3; r++) placeTab(r, faceDefinitions.left.c - 1); // Left edge (vertical strip)
+    for (let c = faceDefinitions.left.c; c < faceDefinitions.left.c + 3; c++) placeTab(faceDefinitions.left.r - 1, c); // Top edge (horizontal strip)
 
 
-    // Tabs for Center-Left Face (r:6, c:6) - external tabs only on bottom and right
-    for (let c = faces.centerLeft.c; c < faces.centerLeft.c + 3; c++) placeTab(faces.centerLeft.r + 3, c); // Bottom edge
-    for (let r = faces.centerLeft.r; r < faces.centerLeft.r + 3; r++) placeTab(r, faces.centerLeft.c + 3); // Right edge
+    // Tabs for Center-Left Face (faceDefinitions.centerLeft: r:6, c:6) - external tabs only on bottom and right
+    for (let c = faceDefinitions.centerLeft.c; c < faceDefinitions.centerLeft.c + 3; c++) placeTab(faceDefinitions.centerLeft.r + 3, c); // Bottom edge
+    for (let r = faceDefinitions.centerLeft.r; r < faceDefinitions.centerLeft.r + 3; r++) placeTab(r, faceDefinitions.centerLeft.c + 3); // Right edge
 
 
-    // Tabs for Center Face (r:6, c:9) - external tabs only on top, bottom, and right
-    for (let c = faces.center.c; c < faces.center.c + 3; c++) placeTab(faces.center.r - 1, c); // Top edge
-    for (let c = faces.center.c; c < faces.center.c + 3; c++) placeTab(faces.center.r + 3, c); // Bottom edge
-    for (let r = faces.center.r; r < faces.center.r + 3; r++) placeTab(r, faces.center.c + 3); // Right edge
+    // Tabs for Center Face (faceDefinitions.center: r:6, c:9) - external tabs only on top, bottom, and right
+    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r - 1, c); // Top edge
+    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r + 3, c); // Bottom edge
+    for (let r = faceDefinitions.center.r; r < faceDefinitions.center.r + 3; r++) placeTab(r, faceDefinitions.center.c + 3); // Right edge
 
-    // Tabs for Center-Right Face (r:6, c:12) - far right of horizontal strip
-    for (let r = faces.centerRight.r; r < faces.centerRight.r + 3; r++) placeTab(r, faces.centerRight.c + 3); // Right edge
-    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) placeTab(faces.centerRight.r - 1, c); // Top edge
-    for (let c = faces.centerRight.c; c < faces.centerRight.c + 3; c++) placeTab(faces.centerRight.r + 3, c); // Bottom edge
+    // Tabs for Center-Right Face (faceDefinitions.centerRight: r:6, c:12) - far right of horizontal strip
+    for (let r = faceDefinitions.centerRight.r; r < faceDefinitions.centerRight.r + 3; r++) placeTab(r, faceDefinitions.centerRight.c + 3); // Right edge
+    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r - 1, c); // Top edge
+    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r + 3, c); // Bottom edge
 
-    // Tabs for Bottom Face (r:9, c:6)
-    for (let c = faces.bottom.c; c < faces.bottom.c + 3; c++) placeTab(faces.bottom.r + 3, c); // Bottom edge
-    placeTab(faces.bottom.r, faces.bottom.c - 1); // Left edge vertical strip
-    placeTab(faces.bottom.r + 1, faces.bottom.c - 1);
-    placeTab(faces.bottom.r + 2, faces.bottom.c - 1);
-    placeTab(faces.bottom.r, faces.bottom.c + 3); // Right edge vertical strip
-    placeTab(faces.bottom.r + 1, faces.bottom.c + 3);
-    placeTab(faces.bottom.r + 2, faces.bottom.c + 3);
+    // Tabs for Bottom Face (faceDefinitions.bottom: r:9, c:6)
+    for (let c = faceDefinitions.bottom.c; c < faceDefinitions.bottom.c + 3; c++) placeTab(faceDefinitions.bottom.r + 3, c); // Bottom edge
+    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c - 1); // Left edge vertical strip
+    placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c - 1);
+    placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c - 1);
+    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c + 3); // Right edge vertical strip
+    placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c + 3);
+    placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c + 3);
 
 
     // Final grid string assembly
