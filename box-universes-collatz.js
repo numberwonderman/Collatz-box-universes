@@ -57,7 +57,7 @@ var visualizer_computer = function (universe) {
 
 
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
-    let gridSize = 9;
+    let gridSize = 13; // <-- INCREASED GRID SIZE HERE!
     let grid = [];
 
     for (let i = 0; i < gridSize; i++) {
@@ -68,6 +68,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
 
     // 1. Create the basic structure of the net with '+' borders
+    // Now borders will be on rows/cols 0 and gridSize-1 (12)
     for (let i = 0; i < gridSize; i++) {
         grid[0][i] = '+'; // Top border
         grid[gridSize - 1][i] = '+'; // Bottom border
@@ -75,17 +76,24 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         grid[i][gridSize - 1] = '+'; // Right border
     }
 
-    // --- Revised Label Placement ---
-    const numLabel = `S:${startNum}`;
-    const labelRow = 1; // Row for the label
-    const labelColStart = 1; // Start from col 1 (index 1)
+    // --- Revised Label Placement (adjusted for 13x13) ---
+    // Label will still be in row 1, but centered for the wider grid.
+    const numLabel = `S:${startNum} R:${xVal}${yVal}${zVal}`; // Let's put more info in the label
+    const labelRow = 1;
+    // Calculate start column to center it in the middle of the new, wider grid
+    const labelColStart = Math.floor((gridSize - numLabel.length) / 2);
     for (let i = 0; i < numLabel.length; i++) {
-        if (labelColStart + i < gridSize - 1) { // Ensure within bounds
+        if (labelColStart + i >= 1 && labelColStart + i <= gridSize - 2) { // Ensure within bounds
             grid[labelRow][labelColStart + i] = numLabel[i];
         }
     }
 
-    // --- Core Net Layout (Standard Cross/T-Shape) ---
+
+    // --- Core Net Layout (Standard Cross/T-Shape - adjusted for 13x13) ---
+    // The "center" of the horizontal strip will now be roughly grid[6][6]
+    // Each 'face' (x/o) will be placed in a conceptual 3x3 block, but we'll still use one char for simplicity.
+    // We'll place the 'x'/'o' character in the center of its conceptual 3x3 face.
+
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
@@ -98,163 +106,62 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         }
     };
 
-    // Define the positions for the 6 faces on the 9x9 grid
-    // This forms a 'plus' shape where each 'x' or 'o' represents a full face
-    // Center point of the horizontal strip: roughly grid[4][4]
+    // The central face of the net will be around row 6, col 6
+    // Let's make the "faces" be at these central points:
     //
-    //      [ ][ ][ ][T][ ][ ][ ]
-    //      [ ][ ][ ][T][ ][ ][ ]
-    //      [ ][ ][ ][F][ ][ ][ ]  <- Top Face (F = filled cell)
-    //   [T][ ][ ][T][ ][ ][T][ ]
-    //   [F][ ][ ][F][ ][ ][F][F]  <- Horizontal strip of 4 faces
-    //   [T][ ][ ][T][ ][ ][T][ ]
-    //      [ ][ ][ ][F][ ][ ][ ]  <- Bottom Face
-    //      [ ][ ][ ][T][ ][ ][ ]
-    //      [ ][ ][ ][T][ ][ ][ ]
+    //              [F]   <- Top Face (e.g., at [3][6])
+    //         [F][F][F][F] <- Horizontal Strip (e.g., [6][3] to [6][9])
+    //              [F]   <- Bottom Face (e.g., at [9][6])
+    //
+    // Conceptual 3x3 cells (each containing one x/o for now)
+    // Row/Col ranges for the "plus" shape:
+    // Rows: 3, 4, 5, 6, 7, 8, 9
+    // Cols: 3, 4, 5, 6, 7, 8, 9
 
     // Central horizontal strip (4 faces)
-    fillCell(4, 2); // Face 1 (Left)
-    fillCell(4, 3); // Face 2
-    fillCell(4, 4); // Face 3 (Center for top/bottom connection)
-    fillCell(4, 5); // Face 4 (Right)
+    // These will be in row 6, at columns 3, 5, 7, 9 (separated by spaces for clarity)
+    fillCell(6, 3); // Face 1 (Left)
+    fillCell(6, 5); // Face 2
+    fillCell(6, 7); // Face 3 (Center for top/bottom connection)
+    fillCell(6, 9); // Face 4 (Right)
 
     // Top face (connected to Face 3)
-    fillCell(3, 4);
+    fillCell(3, 7); // Row 3, Col 7 (aligned with Face 3's center)
 
     // Bottom face (connected to Face 3)
-    fillCell(5, 4);
+    fillCell(9, 7); // Row 9, Col 7 (aligned with Face 3's center)
 
-    // --- Revised Tab Placement (on the borders '+' characters) ---
-    // These need to be placed carefully to align with the faces
+    // --- Tab Placement (clearly outside the plus sign) ---
+    // Now we have plenty of room for tabs! These will be on the border or in the empty space.
 
-    // Tabs for Left Face (4,2)
-    grid[4][1] = 'T'; // Left of face
-    grid[3][2] = 'T'; // Top of face
-    grid[5][2] = 'T'; // Bottom of face
+    // Tabs for Top Face (at 3,7)
+    grid[2][7] = 'T'; // Above
+    grid[3][6] = 'T'; // Left
+    grid[3][8] = 'T'; // Right
 
-    // Tabs for Face 2 (4,3)
-    grid[3][3] = 'T'; // Top of face
-    grid[5][3] = 'T'; // Bottom of face
+    // Tabs for Left-most Face (at 6,3)
+    grid[6][2] = 'T'; // Left
+    grid[5][3] = 'T'; // Above
+    grid[7][3] = 'T'; // Below
 
-    // Tabs for Face 3 (4,4)
-    grid[3][4] = 'T'; // Already filled by top face, will be overwritten by a tab
-                     // If you want a tab here, the top face needs to move, or this tab is just for the side.
-                     // Let's assume this tab will be below the top face, connecting to central.
-    grid[5][4] = 'T'; // Already filled by bottom face
-    // Let's refine the tab strategy. Tabs should be on the *borders* of the faces.
-    // The previous fillCell() fills a single character for the face.
-    // Tabs should be adjacent to the *edges* of those characters.
+    // Tabs for Face 2 (at 6,5)
+    grid[5][5] = 'T'; // Above
+    grid[7][5] = 'T'; // Below
 
-    // Let's redefine tab placement based on cell coordinates to avoid conflicts with face data.
-    // This requires adding tabs to the '+' border or empty space.
-    // Assuming 9x9 grid, border is 0 and 8. Faces are 2-6.
-    //
-    // Central Horizontal Strip: (4,2), (4,3), (4,4), (4,5)
-    // Left Face (4,2) tabs:
-    grid[4][1] = 'T'; // Left border
-    grid[3][2] = 'T'; // Top border
-    grid[5][2] = 'T'; // Bottom border
+    // Tabs for Face 3 (at 6,7) - This is the central connection point
+    // We'll primarily add tabs connecting it to Face 4 and the Top/Bottom faces
+    grid[5][7] = 'T'; // Above (to top face)
+    grid[7][7] = 'T'; // Below (to bottom face)
 
-    // Face 2 (4,3) tabs:
-    grid[3][3] = 'T'; // Top border
-    grid[5][3] = 'T'; // Bottom border
+    // Tabs for Face 4 (Right - at 6,9)
+    grid[6][10] = 'T'; // Right
+    grid[5][9] = 'T';  // Above
+    grid[7][9] = 'T';  // Below
 
-    // Face 3 (4,4) tabs:
-    // This face connects to Top (3,4) and Bottom (5,4)
-    grid[3][5] = 'T'; // Top right of face 3
-    grid[5][5] = 'T'; // Bottom right of face 3
-
-    // Face 4 (Right - 4,5) tabs:
-    grid[4][6] = 'T'; // Right border
-    grid[3][6] = 'T'; // Top border
-    grid[5][6] = 'T'; // Bottom border
-
-
-    // Top Face (3,4) tabs:
-    grid[2][4] = 'T'; // Top border
-    grid[3][3] = 'T'; // Left border (overlaps with face 2 tab, need to be careful)
-    grid[3][5] = 'T'; // Right border (overlaps with face 3 tab)
-
-    // Bottom Face (5,4) tabs:
-    grid[6][4] = 'T'; // Bottom border
-    grid[5][3] = 'T'; // Left border (overlaps with face 2 tab)
-    grid[5][5] = 'T'; // Right border (overlaps with face 3 tab)
-
-    // Let's simplify the tab placement to avoid overlaps with each other or sequence cells
-    // This needs to be carefully chosen to avoid overwriting sequence, but be on the border.
-    // Let's try placing tabs at coordinates that are guaranteed to be borders or empty space.
-    // Coordinates like [r][0], [r][8], [0][c], [8][c] are borders.
-    // Also internal spaces like [1][c], [7][c], [r][1], [r][7] might be border-like.
-
-    // Redefining Tab Placement for clarity and avoiding overwrites on sequence (x/o) cells.
-    // Tabs will be placed on the '+' border lines where they would naturally connect.
-    // Based on the 'plus' shape:
-    //      [ ][ ][ ][F][ ][ ][ ]
-    //   [F][ ][ ][F][ ][ ][F][F]
-    //      [ ][ ][ ][F][ ][ ][ ]
-
-    // Tabs for Top Face (3,4) - connect upwards and sideways
-    grid[2][4] = 'T'; // Above top face
-    grid[3][3] = 'T'; // Left of top face (connects to 4,3's right)
-    grid[3][5] = 'T'; // Right of top face (connects to 4,5's left)
-
-    // Tabs for Left-most Face (4,2) - connect leftwards, top and bottom
-    grid[4][1] = 'T'; // Left of face
-    grid[3][2] = 'T'; // Top of face
-    grid[5][2] = 'T'; // Bottom of face
-
-    // Tabs for Face 2 (4,3) - connect top and bottom
-    grid[3][3] = 'T'; // Top of face (might overlap with a tab from Top Face)
-    grid[5][3] = 'T'; // Bottom of face
-
-    // Tabs for Face 3 (4,4) - already covered by top/bottom connection, maybe not needed on its top/bottom
-    // We need tabs for the 'right' connection of face 3 to face 4.
-    grid[4][5] = 'T'; // Right of Face 3 (this is actually where Face 4 goes) -> error in concept.
-
-    // Let's simplify. Tabs should be on the *perimeter* of the unfolded net.
-    // These are the "+" characters you drew.
-
-    // Top face tabs (connected to central Face 3)
-    grid[2][3] = 'T'; // Top Left corner tab
-    grid[2][4] = 'T'; // Top Middle tab
-    grid[2][5] = 'T'; // Top Right corner tab
-    grid[3][2] = 'T'; // Left side tab
-    grid[3][6] = 'T'; // Right side tab
-
-    // Left face tabs (connected to central Face 1)
-    grid[4][1] = 'T'; // Left side tab
-    grid[3][1] = 'T'; // Top Left
-    grid[5][1] = 'T'; // Bottom Left
-
-    // Right face tabs (connected to central Face 4)
-    grid[4][7] = 'T'; // Right side tab
-    grid[3][7] = 'T'; // Top Right
-    grid[5][7] = 'T'; // Bottom Right
-
-    // Bottom face tabs (connected to central Face 3)
-    grid[6][3] = 'T'; // Bottom Left
-    grid[6][4] = 'T'; // Bottom Middle
-    grid[6][5] = 'T'; // Bottom Right
-    grid[5][2] = 'T'; // Left side tab
-    grid[5][6] = 'T'; // Right side tab
-
-
-    // The current tab placement strategy is messy and causes overwrites/unwanted visuals.
-    // The previous simple tab placement was actually less visually disruptive,
-    // though not strictly accurate for folding.
-
-    // Let's try a very minimal set of tabs that are clearly on the border and near the connections.
-    // This will avoid overwriting the sequence or other tabs.
-    grid[1][4] = 'T'; // Topmost part of top face column
-    grid[7][4] = 'T'; // Bottommost part of bottom face column
-    grid[4][1] = 'T'; // Leftmost part of horizontal strip
-    grid[4][7] = 'T'; // Rightmost part of horizontal strip
-
-    // Also some tabs at the inner corners where faces meet
-    grid[3][3] = 'T'; // Between top and left of central strip
-    grid[3][5] = 'T'; // Between top and right of central strip
-    grid[5][3] = 'T'; // Between bottom and left of central strip
-    grid[5][5] = 'T'; // Between bottom and right of central strip
+    // Tabs for Bottom Face (at 9,7)
+    grid[10][7] = 'T'; // Below
+    grid[9][6] = 'T';  // Left
+    grid[9][8] = 'T';  // Right
 
 
     let netString = "";
@@ -267,7 +174,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     return netString;
 }
 
-// --- Main Execution (unchanged from previous) ---
+// --- Main Execution (unchanged) ---
 let startingNumbers = [1, 2, 3, 5, 7, 10];
 const rulesToTest = [
     { x: 2, y: 3, z: 1, description: "Classic Collatz (2,3,1)" },
