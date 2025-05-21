@@ -57,7 +57,7 @@ var visualizer_computer = function (universe) {
 
 
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
-    let gridSize = 15; // Increased grid size for more space for tabs
+    let gridSize = 15; // Still 15x15
     let grid = [];
 
     // Initialize with spaces
@@ -78,10 +78,10 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
 
     // --- Label Placement ---
     const numLabel = `S:${startNum}`;
-    const ruleLabel = `R:${xVal}${yVal}${zVal}`; // Including rule in label
+    const ruleLabel = `R:${xVal}${yVal}${zVal}`;
     const labelRow = 1;
-    const labelColStartNum = 2; // Fixed position for S:X
-    const labelColStartRule = gridSize - ruleLabel.length - 2; // Fixed position for R:XYZ
+    const labelColStartNum = 2;
+    const labelColStartRule = gridSize - ruleLabel.length - 2;
 
     for (let i = 0; i < numLabel.length; i++) {
         grid[labelRow][labelColStartNum + i] = numLabel[i];
@@ -90,58 +90,77 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         grid[labelRow][labelColStartRule + i] = ruleLabel[i];
     }
 
-
     // --- Define Face Regions (3x3 blocks) ---
-    // Top-left corner of each 3x3 face block
-    // Adjusted these slightly for better visual alignment within the 15x15 grid
-    const faces = {
-        top: { r: 3, c: 6 },
-        left: { r: 6, c: 3 },
-        centerLeft: { r: 6, c: 6 },
-        center: { r: 6, c: 9 },
-        centerRight: { r: 6, c: 12 },
-        bottom: { r: 9, c: 6 }
+    // Store both their top-left corner and a list of all their cells for precise collision.
+    const faceDefinitions = {
+        top: { r: 3, c: 6, cells: [] },
+        left: { r: 6, c: 3, cells: [] },
+        centerLeft: { r: 6, c: 6, cells: [] },
+        center: { r: 6, c: 9, cells: [] },
+        centerRight: { r: 6, c: 12, cells: [] },
+        bottom: { r: 9, c: 6, cells: [] }
     };
+
+    // Populate the 'cells' array for each face
+    for (const key in faceDefinitions) {
+        const face = faceDefinitions[key];
+        for (let r = face.r; r < face.r + 3; r++) {
+            for (let c = face.c; c < face.c + 3; c++) {
+                face.cells.push({ r: r, c: c });
+            }
+        }
+    }
 
     // --- Fill Face Regions ---
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
-    const fillFaceRegion = (startR, startC) => {
-        for (let r = startR; r < startR + 3; r++) {
-            for (let c = startC; c < startC + 3; c++) {
-                // Only fill if it's an empty space, avoiding overwriting labels/borders
-                if (grid[r][c] === ' ') {
-                    if (seqIndex < seq.length) {
-                        grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
-                        seqIndex++;
-                    } else {
-                        grid[r][c] = '+'; // Fill with '+' if sequence runs out
-                    }
-                }
+    // A helper to fill a face cell
+    const setFaceCell = (r, c) => {
+        if (seqIndex < seq.length) {
+            grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+            seqIndex++;
+        } else {
+            grid[r][c] = '+'; // Fill with '+' if sequence runs out
+        }
+    };
+
+    // Fill each defined face region
+    for (const key in faceDefinitions) {
+        const face = faceDefinitions[key];
+        face.cells.forEach(cell => {
+            if (grid[cell.r][cell.c] === ' ') { // Only fill if it's currently empty
+                setFaceCell(cell.r, cell.c);
+            }
+        });
+    }
+
+    // --- Tab Placement (explicitly defined and only fills empty spaces that are not face cells) ---
+
+    // Helper to check if a coordinate is part of ANY face
+    const isAnyFaceCell = (checkR, checkC) => {
+        for (const key in faceDefinitions) {
+            const face = faceDefinitions[key];
+            if (face.cells.some(cell => cell.r === checkR && cell.c === checkC)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Helper to attempt placing a 'T' only if the spot is an empty space AND not a face cell
+    const placeTab = (r, c) => {
+        // Ensure within grid bounds and not a border character
+        if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ') {
+            // Crucial: Check if it's NOT a cell belonging to any face
+            if (!isAnyFaceCell(r, c)) {
+                grid[r][c] = 'T';
             }
         }
     };
 
-    fillFaceRegion(faces.top.r, faces.top.c);
-    fillFaceRegion(faces.left.r, faces.left.c);
-    fillFaceRegion(faces.centerLeft.r, faces.centerLeft.c);
-    fillFaceRegion(faces.center.r, faces.center.c);
-    fillFaceRegion(faces.centerRight.r, faces.centerRight.c);
-    fillFaceRegion(faces.bottom.r, faces.bottom.c);
-
-    // --- Tab Placement (explicitly defined and only fills empty spaces) ---
-    // This part defines the precise areas for the tabs.
-
-    // Helper to attempt placing a 'T' only if the spot is an empty space
-    const placeTab = (r, c) => {
-        if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ') {
-            grid[r][c] = 'T';
-        }
-    };
-
     // Tabs for Top Face (r:3, c:6)
-    for (let c = faces.top.c; c < faces.top.c + 3; c++) placeTab(faces.top.r - 1, c); // Top edge
+    for (let c = faces.top.c; c < faces.top.c + 3; c++) placeTab(faces.top.r - 1, c); // Top edge (horizontal strip)
     placeTab(faces.top.r, faces.top.c - 1); // Left edge vertical strip
     placeTab(faces.top.r + 1, faces.top.c - 1);
     placeTab(faces.top.r + 2, faces.top.c - 1);
@@ -151,8 +170,8 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
 
 
     // Tabs for Left Face (r:6, c:3)
-    for (let r = faces.left.r; r < faces.left.r + 3; r++) placeTab(r, faces.left.c - 1); // Left edge
-    for (let c = faces.left.c; c < faces.left.c + 3; c++) placeTab(faces.left.r - 1, c); // Top edge
+    for (let r = faces.left.r; r < faces.left.r + 3; r++) placeTab(r, faces.left.c - 1); // Left edge (vertical strip)
+    for (let c = faces.left.c; c < faces.left.c + 3; c++) placeTab(faces.left.r - 1, c); // Top edge (horizontal strip)
 
 
     // Tabs for Center-Left Face (r:6, c:6) - external tabs only on bottom and right
@@ -178,6 +197,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     placeTab(faces.bottom.r, faces.bottom.c + 3); // Right edge vertical strip
     placeTab(faces.bottom.r + 1, faces.bottom.c + 3);
     placeTab(faces.bottom.r + 2, faces.bottom.c + 3);
+
 
     // Final grid string assembly
     let netString = "";
