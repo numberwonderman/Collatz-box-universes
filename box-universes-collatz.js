@@ -101,6 +101,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     };
 
     // --- Array to hold ALL coordinates belonging to any face ---
+    // This array will be used to check if a cell is part of a face.
     const allFaceCells = [];
     for (const key in faceDefinitions) {
         const face = faceDefinitions[key];
@@ -111,33 +112,36 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         }
     }
 
-    // --- Fill Face Regions with sequence data (x/o) ---
+    // Helper to check if a given (checkR, checkC) is one of the designated face cells
+    const isDesignatedFaceCell = (checkR, checkC) => {
+        return allFaceCells.some(cell => cell.r === checkR && cell.c === checkC);
+    };
+
+
+    // --- Phase 1: Fill Face Regions with sequence data (x/o) and '+' if sequence runs out ---
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
-    // First pass: fill with sequence characters 'x'/'o'
-    for (const cell of allFaceCells) {
-        if (seqIndex < seq.length) {
-            grid[cell.r][cell.c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
-            seqIndex++;
+    for (const key in faceDefinitions) {
+        const face = faceDefinitions[key];
+        for (let r = face.r; r < face.r + 3; r++) {
+            for (let c = face.c; c < face.c + 3; c++) {
+                if (seqIndex < seq.length) {
+                    grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+                    seqIndex++;
+                } else {
+                    grid[r][c] = '+'; // Fill with '+' if sequence runs out
+                }
+            }
         }
     }
 
-    // Second pass: fill any remaining empty face cells with '+'
-    for (const cell of allFaceCells) {
-        if (grid[cell.r][cell.c] === ' ') {
-            grid[cell.r][cell.c] = '+';
-        }
-    }
-
-    // --- Define Tab Locations and Place 'T's ---
-    // This is the explicit and robust part. We know exactly where tabs should go.
-    // Each tab location is specifically checked against the overall grid bounds.
-
+    // --- Phase 2: Place 'T's in designated tab areas, ensuring no overlap with faces ---
+    // The `placeTab` helper will now be more strict.
     const placeTab = (r, c) => {
-        // Only place a 'T' if the spot is within bounds and currently a space.
-        // Importantly, because faces are already filled, this means it must be outside them.
-        if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ') {
+        // Only place a 'T' if the spot is within grid bounds, currently a space,
+        // AND *not* a coordinate designated as part of any face.
+        if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ' && !isDesignatedFaceCell(r, c)) {
             grid[r][c] = 'T';
         }
     };
@@ -210,7 +214,7 @@ const universeZStart = 1;
 const universeZEnd = 2;
 
 for (const rule of rulesToTest) {
-    console.log(`\n==============================================`);
+    console.log(`==============================================`);
     console.log(`  Collatz Cube Net for Rule: (${rule.x}, ${rule.y}, ${rule.z})`);
     console.log(`==============================================\n`);
 
