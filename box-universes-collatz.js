@@ -56,6 +56,8 @@ var visualizer_computer = function (universe) {
 };
 
 
+// You DO NOT need to change the 'sequence' function from its last version.
+
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     let gridSize = 15;
     let grid = [];
@@ -101,7 +103,6 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     };
 
     // --- Array to hold ALL coordinates belonging to any face ---
-    // This array will be used to check if a cell is part of a face.
     const allFaceCells = [];
     for (const key in faceDefinitions) {
         const face = faceDefinitions[key];
@@ -118,7 +119,8 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     };
 
 
-    // --- Phase 1: Fill Face Regions with sequence data (x/o) and '+' if sequence runs out ---
+    // --- Phase 1: Fill Face Regions with sequence data (D/M) and '+' if sequence runs out ---
+    // 'sequence' function still returns array of numbers: [num1, num2, ...]
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
@@ -127,7 +129,13 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         for (let r = face.r; r < face.r + 3; r++) {
             for (let c = face.c; c < face.c + 3; c++) {
                 if (seqIndex < seq.length) {
-                    grid[r][c] = (seq[seqIndex] % 2 === 0) ? 'x' : 'o';
+                    const currentNumInSequence = seq[seqIndex];
+                    // Here's the key change: checking divisibility by rule.x
+                    if (currentNumInSequence % Math.abs(xVal) === 0) {
+                        grid[r][c] = 'D'; // 'D' for Divisible by rule.x
+                    } else {
+                        grid[r][c] = 'M'; // 'M' for Multiply/Add rule
+                    }
                     seqIndex++;
                 } else {
                     grid[r][c] = '+'; // Fill with '+' if sequence runs out
@@ -137,10 +145,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
 
     // --- Phase 2: Place 'T's in designated tab areas, ensuring no overlap with faces ---
-    // The `placeTab` helper will now be more strict.
     const placeTab = (r, c) => {
-        // Only place a 'T' if the spot is within grid bounds, currently a space,
-        // AND *not* a coordinate designated as part of any face.
         if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ' && !isDesignatedFaceCell(r, c)) {
             grid[r][c] = 'T';
         }
@@ -196,41 +201,5 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
     return netString;
 }
-
-// --- Main Execution (unchanged) ---
-let startingNumbers = [1, 2, 3, 5, 7, 10];
-const rulesToTest = [
-    { x: 2, y: 3, z: 1, description: "Classic Collatz (2,3,1)" },
-    { x: 2, y: 5, z: 1, description: "Modified Collatz (2,5,1)" },
-    { x: -2, y: 3, z: 1, description: "Negative Division ( -2,3,1)"},
-    { x: 3, y: 4, z: 2, description: "Custom Rule (3,4,2)"}
-];
-
-const universeXStart = 1;
-const universeXEnd = 2;
-const universeYStart = 1;
-const universeYEnd = 2;
-const universeZStart = 1;
-const universeZEnd = 2;
-
-for (const rule of rulesToTest) {
-    console.log(`==============================================`);
-    console.log(`  Collatz Cube Net for Rule: (${rule.x}, ${rule.y}, ${rule.z})`);
-    console.log(`==============================================\n`);
-
-    for (let i = 0; i < startingNumbers.length; i++) {
-        let startNum = startingNumbers[i];
-        console.log(`--- For Starting Number: ${startNum} ---\n`);
-
-        const currentUniverse = generateBoxUniverseData(
-            startNum,
-            universeXStart, universeXEnd,
-            universeYStart, universeYEnd,
-            universeZStart, universeZEnd,
-            100
-        );
-
-        let cubeNet = nine_net(startNum, rule.x, rule.y, rule.z);
-        console.log(cubeNet);
     }
 }
