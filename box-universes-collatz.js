@@ -48,12 +48,13 @@ var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zS
     }
     return { data: universeData, xStart, yStart, zStart, xEnd, yEnd, zEnd };
 };
-
+/*
 var visualizer_computer = function (universe) {
-    var carpenter = function (coordinates) { /*makes boxes*/};
-    var Genesis = function (sequences) {/*graphs sequences*/ };
-    var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes*/};
+    var carpenter = function (coordinates) { /*makes boxes};
+    var Genesis = function (sequences) {/*graphs sequences };
+    var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes};
 };
+*/
 
 
 // You DO NOT need to change the 'sequence' function from its last version.
@@ -201,6 +202,6 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
     return netString;
 }
-    }
-}// This code was developed with iterative assistance from Google's Gemini AI.
+console.log(nine_net());
+// This code was developed with iterative assistance from Google's Gemini AI.
 // Specifically, for debugging spatial layout and refining character representation.
