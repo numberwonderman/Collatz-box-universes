@@ -129,160 +129,48 @@
             }
         };
 
-        // === YOUR ORIGINAL NINE_NET ASCII VISUALIZER FUNCTION ===
-        // This function creates ASCII art for a 'foldable box' net,
-        // marking faces with 'D' (divisible) or 'M' (multiply/add) based on sequence.
-        const nine_net = (startNum, xVal, yVal, zVal) => {
-            if (xVal === 0) {
-                return "ASCII net not available for X=0.";
-            }
+      function drawNineNetCanvas(canvas, sequence, xVal) {
+    const ctx = canvas.getContext("2d");
+    const faceSize = 30;
+    const padding = 10;
+    const stepSize = 3;
 
-            let gridSize = 15;
-            let grid = [];
+    const layout = {
+        top: { r: 0, c: 1 },
+        left: { r: 1, c: 0 },
+        centerLeft: { r: 1, c: 1 },
+        center: { r: 1, c: 2 },
+        centerRight: { r: 1, c: 3 },
+        bottom: { r: 2, c: 1 }
+    };
 
-            // Initialize with spaces
-            for (let i = 0; i < gridSize; i++) {
-                grid[i] = [];
-                for (let j = 0; j < gridSize; j++) {
-                    grid[i][j] = ' ';
-                }
-            }
+    const stepRects = [];
 
-            // Outer border
-            for (let i = 0; i < gridSize; i++) {
-                grid[0][i] = '+';
-                grid[gridSize - 1][i] = '+';
-                grid[i][0] = '+';
-                grid[i][gridSize - 1] = '+';
-            }
+    let index = 0;
+    for (const key in layout) {
+        const pos = layout[key];
+        for (let i = 0; i < stepSize; i++) {
+            for (let j = 0; j < stepSize; j++) {
+                const x = padding + (pos.c * stepSize + j) * faceSize;
+                const y = padding + (pos.r * stepSize + i) * faceSize;
+                let color = "#444"; // Default for 'no data' or placeholder
 
-            // --- Label Placement ---
-            const numLabel = `S:${startNum}`;
-            const ruleLabel = `R:${xVal}${yVal}${zVal}`;
-            const labelRow = 1;
-            const labelColStartNum = 2;
-            const labelColStartRule = gridSize - ruleLabel.length - 2;
-
-            for (let i = 0; i < numLabel.length; i++) {
-                if (labelColStartNum + i < gridSize -1) grid[labelRow][labelColStartNum + i] = numLabel[i];
-            }
-            for (let i = 0; i < ruleLabel.length; i++) {
-                if (labelColStartRule + i < gridSize -1) grid[labelRow][labelColStartRule + i] = ruleLabel[i];
-            }
-
-            // --- Define Face Regions (3x3 blocks) by their top-left corner ---
-            const faceDefinitions = {
-                top: { r: 3, c: 6 },
-                left: { r: 6, c: 3 },
-                centerLeft: { r: 6, c: 6 },
-                center: { r: 6, c: 9 },
-                centerRight: { r: 6, c: 12 },
-                bottom: { r: 9, c: 6 }
-            };
-
-            // --- Array to hold ALL coordinates belonging to any face ---
-            const allFaceCells = [];
-            for (const key in faceDefinitions) {
-                const face = faceDefinitions[key];
-                for (let r = face.r; r < face.r + 3; r++) {
-                    for (let c = face.c; c < face.c + 3; c++) {
-                        allFaceCells.push({ r: r, c: c });
+                if (index < sequence.length) {
+                    const val = sequence[index];
+                    if (val % Math.abs(xVal) === 0) {
+                        color = "#34d399"; // green for D (Divisible)
+                    } else {
+                        color = "#fb923c"; // orange for M (Multiply/Add)
                     }
                 }
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
+                index++;
             }
-
-            // Helper to check if a given (checkR, checkC) is one of the designated face cells
-            const isDesignatedFaceCell = (checkR, checkC) => {
-                return allFaceCells.some(cell => cell.r === checkR && cell.c === checkC);
-            };
-
-            // --- Phase 1: Fill Face Regions with sequence data (D/M) and '+' if sequence runs out ---
-            let seqResult = sequence(startNum, xVal, yVal, zVal, 9 * 3 * 3);
-            let seq = [];
-
-            if (seqResult && Array.isArray(seqResult.sequence)) {
-                seq = seqResult.sequence;
-            } else {
-                console.warn("Sequence function returned an unexpected result for nine_net:", seqResult);
-            }
-
-            let seqIndex = 0;
-
-            for (const key in faceDefinitions) {
-                const face = faceDefinitions[key];
-                for (let r = face.r; r < face.r + 3; r++) {
-                    for (let c = face.c; c < face.c + 3; c++) {
-                        if (seqIndex < seq.length) {
-                            const currentNumInSequence = seq[seqIndex];
-                            if (typeof currentNumInSequence !== 'number' || !Number.isFinite(currentNumInSequence)) {
-                                grid[r][c] = '?';
-                            } else if (currentNumInSequence % Math.abs(xVal) === 0) {
-                                grid[r][c] = 'D';
-                            } else {
-                                grid[r][c] = 'M';
-                            }
-                            seqIndex++;
-                        } else {
-                            grid[r][c] = '+';
-                        }
-                    }
-                }
-            }
-
-            // --- Phase 2: Place 'T's in designated tab areas, ensuring no overlap with faces ---
-            const placeTab = (r, c) => {
-                if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 &&
-                    grid[r][c] === ' ' && !isDesignatedFaceCell(r, c)) {
-                    grid[r][c] = 'T';
-                }
-            };
-
-            // Tabs for Top Face (origin: r:3, c:6)
-            for (let c = faceDefinitions.top.c; c < faceDefinitions.top.c + 3; c++) placeTab(faceDefinitions.top.r - 1, c);
-            placeTab(faceDefinitions.top.r, faceDefinitions.top.c - 1);
-            placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c - 1);
-            placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c - 1);
-            placeTab(faceDefinitions.top.r, faceDefinitions.top.c + 3);
-            placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c + 3);
-            placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c + 3);
-
-            // Tabs for Left Face (origin: r:6, c:3)
-            for (let r = faceDefinitions.left.r; r < faceDefinitions.left.r + 3; r++) placeTab(r, faceDefinitions.left.c - 1);
-            for (let c = faceDefinitions.left.c; c < faceDefinitions.left.c + 3; c++) placeTab(faceDefinitions.left.r - 1, c);
-
-            // Tabs for Center-Left Face (origin: r:6, c:6) - external tabs only on bottom and right
-            for (let c = faceDefinitions.centerLeft.c; c < faceDefinitions.centerLeft.c + 3; c++) placeTab(faceDefinitions.centerLeft.r + 3, c);
-            for (let r = faceDefinitions.centerLeft.r; r < faceDefinitions.centerLeft.r + 3; r++) placeTab(r, faceDefinitions.centerLeft.c + 3);
-
-            // Tabs for Center Face (origin: r:6, c:9) - external tabs on top, bottom, and right
-            for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r - 1, c);
-            for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r + 3, c);
-            for (let r = faceDefinitions.center.r; r < faceDefinitions.center.r + 3; r++) placeTab(r, faceDefinitions.center.c + 3);
-
-            // Tabs for Center-Right Face (origin: r:6, c:12) - far right of horizontal strip
-            for (let r = faceDefinitions.centerRight.r; r < faceDefinitions.centerRight.r + 3; r++) placeTab(r, faceDefinitions.centerRight.c + 3);
-            for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r - 1, c);
-            for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r + 3, c);
-
-            // Tabs for Bottom Face (origin: r:9, c:6)
-            for (let c = faceDefinitions.bottom.c; c < faceDefinitions.bottom.c + 3; c++) placeTab(faceDefinitions.bottom.r + 3, c);
-            placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c - 1);
-            placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c - 1);
-            placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c - 1);
-            placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c + 3);
-            placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c + 3);
-            placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c + 3);
-
-            // Final grid string assembly
-            let netString = "";
-            for (let i = 0; i < gridSize; i++) {
-                for (let j = 0; j < gridSize; j++) {
-                    netString += grid[i][j];
-                }
-                netString += "\n";
-            }
-            return netString;
-        };
+        }
+    }
+}
 
         let calculatedRuns = []; // Global array to store runs
 
@@ -335,17 +223,12 @@
                 sequenceDiv.textContent = Array.isArray(run.sequence) ? run.sequence.join(' → ') : 'Invalid sequence data';
                 runDiv.appendChild(sequenceDiv);
 
-                // Re-integrate ASCII net display
-                if (run.asciiNet) {
-                    const asciiNetDiv = document.createElement('div');
-                    asciiNetDiv.className = 'bg-gray-900 bg-opacity-70 rounded-md p-3 font-mono text-green-300 overflow-x-auto text-sm';
-                    const pre = document.createElement('pre');
-                    pre.className = 'whitespace-pre';
-                    pre.textContent = run.asciiNet;
-                    asciiNetDiv.appendChild(pre);
-                    runDiv.appendChild(asciiNetDiv);
-                }
-
+              const canvas = document.createElement('canvas');
+canvas.width = 300;
+canvas.height = 300;
+canvas.className = 'rounded-md border border-blue-700 mt-2';
+runDiv.appendChild(canvas);
+drawNineNetCanvas(canvas, run.sequence, run.X);
                 runsHistoryDiv.appendChild(runDiv);
             });
         };
