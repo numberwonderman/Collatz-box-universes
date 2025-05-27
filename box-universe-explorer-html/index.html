@@ -82,11 +82,7 @@
             class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
             Generate Box Universe (Bulk)
         </button>
-        <button id="generateBulk"
-        class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
-        Generate Box Universe (Bulk)
-    </button>
-
+       
     <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
         <div class="flex items-center space-x-2 text-white">
             <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
@@ -101,19 +97,15 @@
     </div>
     <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
-    <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-        </div>
 
-    ```
+<p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
+<div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+    <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
+    <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+    </div>
+</div>
 
-        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
-
-        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
-            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
-                </div>
-        </div>
     </div>
 
     <script>
