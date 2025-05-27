@@ -1,0 +1,391 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Universe Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom scrollbar for history div */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
+
+    <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
+        <h1 class="text-4xl font-extrabold text-center text-white mb-6 drop-shadow-lg">
+            Box Universe Explorer
+        </h1>
+
+        <div class="mb-8 text-white text-lg leading-relaxed text-center">
+            <p class="mb-3">
+                Explore your generalized Collatz sequence where the rules are defined by X, Y, and Z coordinates.
+            </p>
+            <p class="font-semibold text-xl mb-4">
+                Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
+            </p>
+            <p class="text-sm text-blue-200">
+                (Standard Collatz uses X=2, Y=3, Z=1)
+            </p>
+        </div>
+
+        <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+        </div>
+
+        <button id="calculateSingle"
+            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-8">
+            Calculate Single Sequence
+        </button>
+
+        <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <input type="number" id="xStart" value="1" placeholder="X Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="xEnd" value="3" placeholder="X End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="yStart" value="1" placeholder="Y Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="yEnd" value="3" placeholder="Y End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="zStart" value="1" placeholder="Z Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="zEnd" value="1" placeholder="Z End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+        </div>
+
+        <button id="generateBulk"
+            class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
+            Generate Box Universe (Bulk)
+        </button>
+
+        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
+
+        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
+            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // === YOUR ORIGINAL SEQUENCE FUNCTION ===
+        // This function calculates the generalized Collatz sequence.
+        // It includes error handling for X=0, cycle detection, and max iteration limit.
+        const sequence = (num, x, y, z, maxiterations) => {
+            if (x === 0) {
+                return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
+            }
+            const output = [];
+            output.push(num);
+            let iterations = 0;
+            while (num !== 1 && iterations < maxiterations) {
+                let next_num;
+                if (num % Math.abs(x) === 0) { // Using Math.abs(x) for the modulo check
+                    next_num = num / x;
+                } else {
+                    next_num = (Math.abs(y) || 3) * num + (z || 1); // Using Math.abs(y)
+                }
+
+                // Cycle detection
+                if (output.includes(next_num)) {
+                    output.push(next_num);
+                    return { sequence: output, type: "cycle", steps: iterations + 1 };
+                }
+
+                num = next_num;
+                output.push(num);
+                iterations++;
+            }
+
+            if (num === 1) {
+                return { sequence: output, type: "converges_to_1", steps: iterations };
+            } else {
+                return { sequence: output, type: "reached_max_iterations", steps: iterations };
+            }
+        };
+
+      function drawNineNetCanvas(canvas, sequence, xVal) {
+    const ctx = canvas.getContext("2d");
+    const faceSize = 30;
+    const padding = 10;
+    const stepSize = 3;
+
+    const layout = {
+        top: { r: 0, c: 1 },
+        left: { r: 1, c: 0 },
+        centerLeft: { r: 1, c: 1 },
+        center: { r: 1, c: 2 },
+        centerRight: { r: 1, c: 3 },
+        bottom: { r: 2, c: 1 }
+    };
+
+    const stepRects = [];
+
+    let index = 0;
+    for (const key in layout) {
+        const pos = layout[key];
+        for (let i = 0; i < stepSize; i++) {
+            for (let j = 0; j < stepSize; j++) {
+                const x = padding + (pos.c * stepSize + j) * faceSize;
+                const y = padding + (pos.r * stepSize + i) * faceSize;
+                let color = "#444"; // Default for 'no data' or placeholder
+
+                if (index < sequence.length) {
+                    const val = sequence[index];
+                    if (val % Math.abs(xVal) === 0) {
+                        color = "#34d399"; // green for D (Divisible)
+                    } else {
+                        color = "#fb923c"; // orange for M (Multiply/Add)
+                    }
+                }
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
+                index++;
+            }
+        }
+    }
+}
+
+        let calculatedRuns = []; // Global array to store runs
+
+        /**
+         * Helper function to validate a single number input.
+         */
+        const validateNumberInput = (value, name, allowZero = false) => {
+            const num = parseInt(value, 10);
+            if (isNaN(num) || (!allowZero && num === 0) || !Number.isInteger(num)) {
+                return `${name} must be a valid integer${allowZero ? '' : ' (non-zero)'}.`;
+            }
+            return null; // No error
+        };
+
+        /**
+         * Renders the calculated runs into the history display.
+         */
+        const renderHistory = () => {
+            const runsHistoryDiv = document.getElementById('runsHistory');
+            runsHistoryDiv.innerHTML = ''; // Clear previous history
+            const historyContainer = document.getElementById('historyContainer');
+
+            if (calculatedRuns.length === 0) {
+                historyContainer.classList.add('hidden');
+                return;
+            } else {
+                historyContainer.classList.remove('hidden');
+            }
+
+            calculatedRuns.forEach((run, index) => {
+                const runDiv = document.createElement('div');
+                runDiv.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-blue-600 last:mb-0';
+
+                const title = document.createElement('h3');
+                title.className = 'text-xl font-bold text-blue-200 mb-2';
+                title.textContent = `Run ${calculatedRuns.length - index}: N=${run.startNum}, X=${run.X}, Y=${run.Y}, Z=${run.Z}`;
+                runDiv.appendChild(title);
+
+                const stepsInfo = document.createElement('p');
+                stepsInfo.className = 'text-blue-300 mb-2';
+                let typeText = run.type.replace(/_/g, ' ');
+                if (run.type === "reached_max_iterations") {
+                    typeText += ` - Ended at ${run.sequence[run.sequence.length - 1]}`;
+                }
+                stepsInfo.textContent = `Steps: ${run.steps} (Type: ${typeText})`;
+                runDiv.appendChild(stepsInfo);
+
+                const sequenceDiv = document.createElement('div');
+                sequenceDiv.className = 'bg-blue-900 bg-opacity-60 rounded-md p-3 max-h-32 overflow-y-auto text-blue-100 text-sm break-words mb-4';
+                sequenceDiv.textContent = Array.isArray(run.sequence) ? run.sequence.join(' → ') : 'Invalid sequence data';
+                runDiv.appendChild(sequenceDiv);
+
+              const canvas = document.createElement('canvas');
+canvas.width = 300;
+canvas.height = 300;
+canvas.className = 'rounded-md border border-blue-700 mt-2';
+runDiv.appendChild(canvas);
+drawNineNetCanvas(canvas, run.sequence, run.X);
+                runsHistoryDiv.appendChild(runDiv);
+            });
+        };
+
+        /**
+         * Handles the calculation logic for a single sequence.
+         */
+        document.getElementById('calculateSingle').addEventListener('click', () => {
+            const startNumberInput = document.getElementById('startNumber');
+            const xValueInput = document.getElementById('xValue');
+            const yValueInput = document.getElementById('yValue');
+            const zValueInput = document.getElementById('zValue');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const num = parseInt(startNumberInput.value, 10);
+            const X = parseInt(xValueInput.value, 10);
+            const Y = parseInt(yValueInput.value, 10);
+            const Z = parseInt(zValueInput.value, 10);
+
+            let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
+            if (err) { errorMessage.textContent = err; return; }
+            err = validateNumberInput(xValueInput.value, 'X (Divisor)', false);
+            if (err) { errorMessage.textContent = err; return; }
+            err = validateNumberInput(yValueInput.value, 'Y (Multiplier)', true);
+            if (err) { errorMessage.textContent = err; return; }
+            err = validateNumberInput(zValueInput.value, 'Z (Additive Constant)', true);
+            if (err) { errorMessage.textContent = err; return; }
+
+            errorMessage.textContent = ''; // Clear previous errors
+
+            const maxStepsForCalculation = 10000;
+            const result = sequence(num, X, Y, Z, maxStepsForCalculation);
+
+            if (result.type === "error") {
+                errorMessage.textContent = result.message;
+                return;
+            }
+
+            let generatedAsciiNet = "";
+            try {
+                generatedAsciiNet = nine_net(num, X, Y, Z);
+            } catch (asciiError) {
+                console.error("Error generating ASCII net:", asciiError);
+                generatedAsciiNet = "Error generating ASCII net: " + asciiError.message;
+            }
+
+            const newRun = {
+                id: Date.now(),
+                startNum: num,
+                X: X,
+                Y: Y,
+                Z: Z,
+                sequence: result.sequence,
+                steps: result.steps,
+                type: result.type,
+                asciiNet: generatedAsciiNet
+            };
+
+            calculatedRuns.unshift(newRun); // Add to the beginning of the array
+            renderHistory();
+
+            if (newRun.type === "reached_max_iterations") {
+                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.sequence[newRun.sequence.length - 1]} after ${newRun.steps} steps.`;
+            } else if (newRun.type === "cycle") {
+                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} entered a cycle.`;
+            }
+        });
+
+        /**
+         * Handles the bulk generation logic.
+         */
+        document.getElementById('generateBulk').addEventListener('click', () => {
+            const startNumberInput = document.getElementById('startNumber');
+            const xStartInput = document.getElementById('xStart');
+            const xEndInput = document.getElementById('xEnd');
+            const yStartInput = document.getElementById('yStart');
+            const yEndInput = document.getElementById('yEnd');
+            const zStartInput = document.getElementById('zStart');
+            const zEndInput = document.getElementById('zEnd');
+            const errorMessage = document.getElementById('errorMessage');
+
+            const num = parseInt(startNumberInput.value, 10);
+            let tempNewRuns = [];
+            const maxStepsForCalculation = 10000;
+
+            let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
+            if (err) { errorMessage.textContent = err; return; }
+
+            const parsedXStart = parseInt(xStartInput.value, 10);
+            const parsedXEnd = parseInt(xEndInput.value, 10);
+            const parsedYStart = parseInt(yStartInput.value, 10);
+            const parsedYEnd = parseInt(yEndInput.value, 10);
+            const parsedZStart = parseInt(zStartInput.value, 10);
+            const parsedZEnd = parseInt(zEndInput.value, 10);
+
+            if (isNaN(parsedXStart) || isNaN(parsedXEnd) || parsedXStart > parsedXEnd || !Number.isInteger(parsedXStart) || !Number.isInteger(parsedXEnd)) {
+              errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
+            }
+            if (isNaN(parsedYStart) || isNaN(parsedYEnd) || parsedYStart > parsedYEnd || !Number.isInteger(parsedYStart) || !Number.isInteger(parsedYEnd)) {
+              errorMessage.textContent = 'Y range must be valid integers (Y Start <= Y End).'; return;
+            }
+            if (isNaN(parsedZStart) || isNaN(parsedZEnd) || parsedZStart > parsedZEnd || !Number.isInteger(parsedZStart) || !Number.isInteger(parsedZEnd)) {
+              errorMessage.textContent = 'Z range must be valid integers (Z Start <= Z End).'; return;
+            }
+
+            errorMessage.textContent = ''; // Clear previous errors
+
+            let idCounter = 0;
+
+            for (let x = parsedXStart; x <= parsedXEnd; x++) {
+              if (x === 0) continue; // Skip X=0 for bulk generation
+
+              for (let y = parsedYStart; y <= parsedYEnd; y++) {
+                for (let z = parsedZStart; z <= parsedZEnd; z++) {
+                  const result = sequence(num, x, y, z, maxStepsForCalculation);
+
+                  if (result.type !== "error") {
+                    let generatedAsciiNet = "";
+                    try {
+                        generatedAsciiNet = nine_net(num, x, y, z);
+                    } catch (asciiError) {
+                        console.error("Error generating ASCII net:", asciiError);
+                        generatedAsciiNet = "Error generating ASCII net: " + asciiError.message;
+                    }
+
+                    tempNewRuns.push({
+                      id: Date.now() + (idCounter++),
+                      startNum: num,
+                      X: x,
+                      Y: y,
+                      Z: z,
+                      sequence: result.sequence,
+                      steps: result.steps,
+                      type: result.type,
+                      asciiNet: generatedAsciiNet
+                    });
+                  }
+                }
+              }
+            }
+            calculatedRuns.unshift(...tempNewRuns); // Add all new runs to the beginning
+            renderHistory();
+
+            if (tempNewRuns.length === 0) {
+                errorMessage.textContent = "No valid sequences generated for the given ranges. Check inputs.";
+            } else {
+                errorMessage.textContent = "";
+            }
+        });
+
+        // Initial render (if any default values are set or loaded)
+        document.addEventListener('DOMContentLoaded', () => {
+            // You can optionally trigger a default calculation or render empty history here
+            // For example, if you want to show an initial run:
+            // document.getElementById('calculateSingle').click();
+            renderHistory(); // Ensure history container visibility is correctly set on load
+        });
+    </script>
+</body>
+</html>
