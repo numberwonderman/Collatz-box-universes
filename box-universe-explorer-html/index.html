@@ -82,6 +82,30 @@
             class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
             Generate Box Universe (Bulk)
         </button>
+        <button id="generateBulk"
+        class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
+        Generate Box Universe (Bulk)
+    </button>
+
+    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+        <div class="flex items-center space-x-2 text-white">
+            <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
+            <input type="color" id="divColorPicker" value="#34d399"
+                   class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+        </div>
+        <div class="flex items-center space-x-2 text-white">
+            <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
+            <input type="color" id="mulColorPicker" value="#fb923c"
+                   class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+        </div>
+    </div>
+    <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
+
+    <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+        </div>
+
+    ```
+
 
         <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
@@ -134,6 +158,9 @@
     const faceSize = 30;
     const padding = 10;
     const stepSize = 3;
+     // Add these two lines to get the colors from the global window variables
+     const divColor = window.divColor || "#34d399";  // fallback to green
+    const mulColor = window.mulColor || "#fb923c";  // fallback to orange
 
     const layout = {
         top: { r: 0, c: 1 },
@@ -158,9 +185,9 @@
                 if (index < sequence.length) {
                     const val = sequence[index];
                     if (val % Math.abs(xVal) === 0) {
-                        color = "#34d399"; // green for D (Divisible)
+                        color = divColor; // green for D (Divisible)
                     } else {
-                        color = "#fb923c"; // orange for M (Multiply/Add)
+                        color = mulColor; // orange for M (Multiply/Add)
                     }
                 }
 
@@ -267,13 +294,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                 return;
             }
 
-            let generatedAsciiNet = "";
-            try {
-                generatedAsciiNet = nine_net(num, X, Y, Z);
-            } catch (asciiError) {
-                console.error("Error generating ASCII net:", asciiError);
-                generatedAsciiNet = "Error generating ASCII net: " + asciiError.message;
-            }
+            
 
             const newRun = {
                 id: Date.now(),
@@ -284,7 +305,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                 sequence: result.sequence,
                 steps: result.steps,
                 type: result.type,
-                asciiNet: generatedAsciiNet
+                
             };
 
             calculatedRuns.unshift(newRun); // Add to the beginning of the array
@@ -346,14 +367,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                   const result = sequence(num, x, y, z, maxStepsForCalculation);
 
                   if (result.type !== "error") {
-                    let generatedAsciiNet = "";
-                    try {
-                        generatedAsciiNet = nine_net(num, x, y, z);
-                    } catch (asciiError) {
-                        console.error("Error generating ASCII net:", asciiError);
-                        generatedAsciiNet = "Error generating ASCII net: " + asciiError.message;
-                    }
-
+                   
                     tempNewRuns.push({
                       id: Date.now() + (idCounter++),
                       startNum: num,
@@ -363,7 +377,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                       sequence: result.sequence,
                       steps: result.steps,
                       type: result.type,
-                      asciiNet: generatedAsciiNet
+                      
                     });
                   }
                 }
@@ -378,7 +392,20 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                 errorMessage.textContent = "";
             }
         });
+// Default canvas colors - These initialize the colors when the page loads
+window.divColor = "#34d399";
+window.mulColor = "#fb923c";
 
+// Event Listeners - These detect when the user changes a color and update the nets
+document.getElementById('divColorPicker').addEventListener('input', (e) => {
+    window.divColor = e.target.value; // Get the new color from the picker
+    renderHistory(); // Re-render all the displayed nets with the new color
+});
+
+document.getElementById('mulColorPicker').addEventListener('input', (e) => {
+    window.mulColor = e.target.value; // Get the new color from the picker
+    renderHistory(); // Re-render all the displayed nets with the new color
+});
         // Initial render (if any default values are set or loaded)
         document.addEventListener('DOMContentLoaded', () => {
             // You can optionally trigger a default calculation or render empty history here
