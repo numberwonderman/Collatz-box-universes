@@ -82,23 +82,21 @@
             class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
             Generate Box Universe (Bulk)
         </button>
-       
+        
     <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
         <div class="flex items-center space-x-2 text-white">
             <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
             <input type="color" id="divColorPicker" value="#34d399"
-                   class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                       class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
         </div>
         <div class="flex items-center space-x-2 text-white">
             <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
             <input type="color" id="mulColorPicker" value="#fb923c"
-                   class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                       class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
         </div>
     </div>
     <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
-
-<p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
 <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
     <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
@@ -109,6 +107,10 @@
     </div>
 
     <script>
+        // Default canvas colors - These initialize the colors when the page loads
+        window.divColor = "#34d399";
+        window.mulColor = "#fb923c";
+
         // === YOUR ORIGINAL SEQUENCE FUNCTION ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
@@ -119,6 +121,9 @@
             const output = [];
             output.push(num);
             let iterations = 0;
+            const visited = new Set(); // For cycle detection
+            visited.add(num);
+
             while (num !== 1 && iterations < maxiterations) {
                 let next_num;
                 if (num % Math.abs(x) === 0) { // Using Math.abs(x) for the modulo check
@@ -128,10 +133,11 @@
                 }
 
                 // Cycle detection
-                if (output.includes(next_num)) {
-                    output.push(next_num);
+                if (visited.has(next_num)) {
+                    output.push(next_num); // Add the number that completes the cycle
                     return { sequence: output, type: "cycle", steps: iterations + 1 };
                 }
+                visited.add(next_num); // Add to visited set
 
                 num = next_num;
                 output.push(num);
@@ -145,56 +151,91 @@
             }
         };
 
-      function drawNineNetCanvas(canvas, sequence, xVal) {
-    const ctx = canvas.getContext("2d");
-    const faceSize = 30;
-    const padding = 10;
-    const stepSize = 3;
-     // Add these two lines to get the colors from the global window variables
-     const divColor = window.divColor || "#34d399";  // fallback to green
-    const mulColor = window.mulColor || "#fb923c";  // fallback to orange
+        /**
+         * Draws the 9-net visualization of the sequence on a canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @param {Array<number>} sequence - The sequence of numbers to visualize.
+         * @param {number} xVal - The X parameter used in the Collatz rule for color determination.
+         */
+        function drawNineNetCanvas(canvas, sequence, xVal) {
+            const ctx = canvas.getContext("2d");
+            // Clear the canvas before drawing
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const layout = {
-        top: { r: 0, c: 1 },
-        left: { r: 1, c: 0 },
-        centerLeft: { r: 1, c: 1 },
-        center: { r: 1, c: 2 },
-        centerRight: { r: 1, c: 3 },
-        bottom: { r: 2, c: 1 }
-    };
+            const faceSize = 30; // Size of each small square face
+            const padding = 10; // Padding around the entire 9-net
+            const stepSize = 3; // Number of small squares per 'face' side (3x3 grid)
 
-    const stepRects = [];
+            // Get the colors from the global window variables, with fallbacks
+            const divColor = window.divColor || "#34d399"; // green for Divisible
+            const mulColor = window.mulColor || "#fb923c"; // orange for Multiply/Add
 
-    let index = 0;
-    for (const key in layout) {
-        const pos = layout[key];
-        for (let i = 0; i < stepSize; i++) {
-            for (let j = 0; j < stepSize; j++) {
-                const x = padding + (pos.c * stepSize + j) * faceSize;
-                const y = padding + (pos.r * stepSize + i) * faceSize;
-                let color = "#444"; // Default for 'no data' or placeholder
+            // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
+            const layout = {
+                // Each key represents a 'face' in the 9-net, with its row (r) and column (c) in the larger grid
+                top: { r: 0, c: 1 },
+                left: { r: 1, c: 0 },
+                centerLeft: { r: 1, c: 1 },
+                center: { r: 1, c: 2 },
+                centerRight: { r: 1, c: 3 },
+                bottom: { r: 2, c: 1 }
+            };
 
-                if (index < sequence.length) {
-                    const val = sequence[index];
-                    if (val % Math.abs(xVal) === 0) {
-                        color = divColor; // green for D (Divisible)
-                    } else {
-                        color = mulColor; // orange for M (Multiply/Add)
+            let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
+
+            // Iterate through each 'face' in the predefined layout
+            for (const key in layout) {
+                const pos = layout[key]; // Get the row and column of the current face
+
+                // Iterate through the 3x3 grid of small squares within each face
+                for (let i = 0; i < stepSize; i++) { // Row within the face
+                    for (let j = 0; j < stepSize; j++) { // Column within the face
+                        // Calculate the x and y coordinates for the current small square
+                        const x = padding + (pos.c * stepSize + j) * faceSize;
+                        const y = padding + (pos.r * stepSize + i) * faceSize;
+
+                        let color = "#444"; // Default color for squares not representing a sequence number
+                        let label = ""; // Optional label for the number
+
+                        // Check if there's a corresponding number in the sequence
+                        if (sequenceIndex < sequence.length) {
+                            const val = sequence[sequenceIndex];
+                            // Determine color based on the Collatz rule (divisible by X or not)
+                            if (val % Math.abs(xVal) === 0) {
+                                color = divColor; // Green if divisible
+                            } else {
+                                color = mulColor; // Orange if not divisible
+                            }
+                            label = val.toString(); // Set label to the number itself
+                        }
+
+                        // Draw the square
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
+
+                        // Draw the number label if available
+                        if (label) {
+                            ctx.fillStyle = "#FFF"; // White text
+                            ctx.ctx.font = "10px Arial"; // Smaller font for numbers
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
+                        }
+
+                        sequenceIndex++; // Move to the next number in the sequence
                     }
                 }
-
-                ctx.fillStyle = color;
-                ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
-                index++;
             }
         }
-    }
-}
 
         let calculatedRuns = []; // Global array to store runs
 
         /**
          * Helper function to validate a single number input.
+         * @param {string} value - The input string value.
+         * @param {string} name - The name of the input for error messages.
+         * @param {boolean} allowZero - Whether zero is a valid input.
+         * @returns {string|null} Error message if invalid, otherwise null.
          */
         const validateNumberInput = (value, name, allowZero = false) => {
             const num = parseInt(value, 10);
@@ -219,13 +260,15 @@
                 historyContainer.classList.remove('hidden');
             }
 
-            calculatedRuns.forEach((run, index) => {
+            // Iterate in reverse to show newest runs at the top
+            for (let i = calculatedRuns.length - 1; i >= 0; i--) {
+                const run = calculatedRuns[i];
                 const runDiv = document.createElement('div');
                 runDiv.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-blue-600 last:mb-0';
 
                 const title = document.createElement('h3');
                 title.className = 'text-xl font-bold text-blue-200 mb-2';
-                title.textContent = `Run ${calculatedRuns.length - index}: N=${run.startNum}, X=${run.X}, Y=${run.Y}, Z=${run.Z}`;
+                title.textContent = `N=${run.startNum}, X=${run.X}, Y=${run.Y}, Z=${run.Z}`;
                 runDiv.appendChild(title);
 
                 const stepsInfo = document.createElement('p');
@@ -242,14 +285,16 @@
                 sequenceDiv.textContent = Array.isArray(run.sequence) ? run.sequence.join(' → ') : 'Invalid sequence data';
                 runDiv.appendChild(sequenceDiv);
 
-              const canvas = document.createElement('canvas');
-canvas.width = 300;
-canvas.height = 300;
-canvas.className = 'rounded-md border border-blue-700 mt-2';
-runDiv.appendChild(canvas);
-drawNineNetCanvas(canvas, run.sequence, run.X);
+                // Create and draw the canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 300; // Fixed width
+                canvas.height = 300; // Fixed height
+                canvas.className = 'rounded-md border border-blue-700 mt-2';
+                runDiv.appendChild(canvas);
+                drawNineNetCanvas(canvas, run.sequence, run.X);
+
                 runsHistoryDiv.appendChild(runDiv);
-            });
+            }
         };
 
         /**
@@ -267,6 +312,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
             const Y = parseInt(yValueInput.value, 10);
             const Z = parseInt(zValueInput.value, 10);
 
+            // Validate inputs
             let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
             if (err) { errorMessage.textContent = err; return; }
             err = validateNumberInput(xValueInput.value, 'X (Divisor)', false);
@@ -278,15 +324,13 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
 
             errorMessage.textContent = ''; // Clear previous errors
 
-            const maxStepsForCalculation = 10000;
+            const maxStepsForCalculation = 10000; // Hardcoded max iterations
             const result = sequence(num, X, Y, Z, maxStepsForCalculation);
 
             if (result.type === "error") {
                 errorMessage.textContent = result.message;
                 return;
             }
-
-            
 
             const newRun = {
                 id: Date.now(),
@@ -297,12 +341,12 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                 sequence: result.sequence,
                 steps: result.steps,
                 type: result.type,
-                
             };
 
-            calculatedRuns.unshift(newRun); // Add to the beginning of the array
+            calculatedRuns.push(newRun); // Add to the end, then renderHistory will reverse for display
             renderHistory();
 
+            // Display specific messages for non-converging sequences
             if (newRun.type === "reached_max_iterations") {
                 errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.sequence[newRun.sequence.length - 1]} after ${newRun.steps} steps.`;
             } else if (newRun.type === "cycle") {
@@ -325,11 +369,13 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
 
             const num = parseInt(startNumberInput.value, 10);
             let tempNewRuns = [];
-            const maxStepsForCalculation = 10000;
+            const maxStepsForCalculation = 10000; // Hardcoded max iterations
 
+            // Validate starting number
             let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
             if (err) { errorMessage.textContent = err; return; }
 
+            // Parse range inputs
             const parsedXStart = parseInt(xStartInput.value, 10);
             const parsedXEnd = parseInt(xEndInput.value, 10);
             const parsedYStart = parseInt(yStartInput.value, 10);
@@ -337,6 +383,7 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
             const parsedZStart = parseInt(zStartInput.value, 10);
             const parsedZEnd = parseInt(zEndInput.value, 10);
 
+            // Validate ranges
             if (isNaN(parsedXStart) || isNaN(parsedXEnd) || parsedXStart > parsedXEnd || !Number.isInteger(parsedXStart) || !Number.isInteger(parsedXEnd)) {
               errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
             }
@@ -349,19 +396,22 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
 
             errorMessage.textContent = ''; // Clear previous errors
 
-            let idCounter = 0;
+            let idCounter = 0; // Used to ensure unique IDs for runs generated in quick succession
 
             for (let x = parsedXStart; x <= parsedXEnd; x++) {
-              if (x === 0) continue; // Skip X=0 for bulk generation
+              if (x === 0) {
+                // Optionally provide a message that X=0 is skipped in bulk
+                console.warn("Skipping X=0 in bulk generation as it's an invalid divisor.");
+                continue;
+              }
 
               for (let y = parsedYStart; y <= parsedYEnd; y++) {
                 for (let z = parsedZStart; z <= parsedZEnd; z++) {
                   const result = sequence(num, x, y, z, maxStepsForCalculation);
 
-                  if (result.type !== "error") {
-                   
+                  if (result.type !== "error") { // Only add valid results
                     tempNewRuns.push({
-                      id: Date.now() + (idCounter++),
+                      id: Date.now() + (idCounter++), // Unique ID
                       startNum: num,
                       X: x,
                       Y: y,
@@ -369,40 +419,34 @@ drawNineNetCanvas(canvas, run.sequence, run.X);
                       sequence: result.sequence,
                       steps: result.steps,
                       type: result.type,
-                      
                     });
                   }
                 }
               }
             }
-            calculatedRuns.unshift(...tempNewRuns); // Add all new runs to the beginning
-            renderHistory();
+            calculatedRuns.push(...tempNewRuns); // Add all new runs to the end
+            renderHistory(); // Re-render the history
 
             if (tempNewRuns.length === 0) {
                 errorMessage.textContent = "No valid sequences generated for the given ranges. Check inputs.";
             } else {
-                errorMessage.textContent = "";
+                errorMessage.textContent = ""; // Clear error if successful
             }
         });
-// Default canvas colors - These initialize the colors when the page loads
-window.divColor = "#34d399";
-window.mulColor = "#fb923c";
 
-// Event Listeners - These detect when the user changes a color and update the nets
-document.getElementById('divColorPicker').addEventListener('input', (e) => {
-    window.divColor = e.target.value; // Get the new color from the picker
-    renderHistory(); // Re-render all the displayed nets with the new color
-});
+        // Event Listeners for color pickers to update global colors and re-render history
+        document.getElementById('divColorPicker').addEventListener('input', (e) => {
+            window.divColor = e.target.value; // Get the new color from the picker
+            renderHistory(); // Re-render all the displayed nets with the new color
+        });
 
-document.getElementById('mulColorPicker').addEventListener('input', (e) => {
-    window.mulColor = e.target.value; // Get the new color from the picker
-    renderHistory(); // Re-render all the displayed nets with the new color
-});
-        // Initial render (if any default values are set or loaded)
+        document.getElementById('mulColorPicker').addEventListener('input', (e) => {
+            window.mulColor = e.target.value; // Get the new color from the picker
+            renderHistory(); // Re-render all the displayed nets with the new color
+        });
+
+        // Initial render (on page load)
         document.addEventListener('DOMContentLoaded', () => {
-            // You can optionally trigger a default calculation or render empty history here
-            // For example, if you want to show an initial run:
-            // document.getElementById('calculateSingle').click();
             renderHistory(); // Ensure history container visibility is correctly set on load
         });
     </script>
