@@ -21,9 +21,67 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-        body {
-            font-family: 'Inter', sans-serif;
+      body {
+        font-family: 'Inter', sans-serif;
+    } 
+     @media print {
+        /* Hide UI elements not needed on a printout */
+        button,
+        input,
+        label,
+        #errorMessage {
+            display: none;
         }
+
+        /* Hide the 9-net canvases */
+        canvas {
+            display: none;
+        }
+
+        /* Force backgrounds and colors to be print-friendly (white background, dark text) */
+        body {
+            background: white !important;
+            color: black !important;
+            margin: 0; /* Remove default body margins for print */
+        }
+
+        /* Adjust main content container for print */
+        .bg-white.bg-opacity-10 {
+            background-color: white !important; /* Force white background */
+            box-shadow: none !important;        /* Remove shadows */
+            border: none !important;            /* Remove borders */
+            backdrop-filter: none !important;   /* Disable blur */
+            padding: 1rem !important;           /* Adjust padding for print */
+        }
+
+        /* Ensure history container and its content are visible and expand */
+        #historyContainer {
+            display: block !important;
+            background-color: transparent !important; /* Remove background for print */
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        #runsHistory {
+            max-height: none !important;        /* Allow content to expand fully */
+            overflow-y: visible !important;     /* Prevent scrollbars */
+        }
+
+        /* Adjust individual history item backgrounds and text for print */
+        .bg-blue-800.bg-opacity-40,
+        .bg-blue-900.bg-opacity-60 {
+            background-color: #f8f8f8 !important; /* Light gray background for items */
+            border: 1px solid #ddd !important;
+            color: #333 !important;             /* Dark text for readability */
+        }
+
+        /* Ensure all text is dark and readable on paper */
+        .text-blue-200,
+        .text-blue-300,
+        .text-blue-100 {
+            color: #333 !important;
+        }
+    } 
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
@@ -216,7 +274,7 @@
                         // Draw the number label if available
                         if (label) {
                             ctx.fillStyle = "#FFF"; // White text
-                            ctx.ctx.font = "10px Arial"; // Smaller font for numbers
+                            ctx.font = "10px Arial"; // Smaller font for numbers
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
@@ -449,6 +507,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             renderHistory(); // Ensure history container visibility is correctly set on load
         });
+    
     </script>
 </body>
 </html>
