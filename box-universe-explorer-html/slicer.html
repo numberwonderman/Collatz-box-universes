@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Pseudo-3D Slicer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #282c34; /* Dark background */
+            color: #ffffff; /* White text */
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 2px solid #61dafb; /* Light blue border */
+            background-color: #1c1f26; /* Slightly lighter dark for canvas background */
+        }
+    </style>
+</head>
+<body>
+    <h1>Our Slicer is Coming Soon!</h1>
+    <canvas id="slicerCanvas" width="600" height="600"></canvas>
+
+    <script>
+        // JavaScript will go here
+        const canvas = document.getElementById('slicerCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Let's just draw a simple square for now to make sure it's working
+        ctx.fillStyle = 'red';
+        ctx.fillRect(50, 50, 100, 100); // Draw a red square at (50,50) with size 100x100
+
+        console.log("Slicer canvas is ready!");
+    </script>
+</body>
+</html>
