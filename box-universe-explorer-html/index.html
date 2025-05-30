@@ -38,7 +38,7 @@
                 Explore your generalized Collatz sequence where the rules are defined by X, Y, and Z coordinates.
             </p>
             <p class="font-semibold text-xl mb-4">
-                Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
+                Rule: If n mod X = 0, then n is equal to n / X. Otherwise, n is equal to n times Y + Z.
             </p>
             <p class="text-sm text-blue-200">
                 (Standard Collatz uses X=2, Y=3, Z=1)
@@ -121,10 +121,17 @@
             const output = [];
             output.push(num);
             let iterations = 0;
-            const visited = new Set(); // For cycle detection
-            visited.add(num);
+            const visitedNumbersMap = new Map(); // Use a Map to store visited numbers AND their iteration index
+            visitedNumbersMap.set(num, 0); // Store the starting number and its index (0)
 
             while (num !== 1 && iterations < maxiterations) {
+                // --- MAX NUMBER SAFETY BARRIER ---
+                // Check if the current number exceeds JavaScript's safe integer limit
+                // Using Math.abs ensures it works for negative numbers if your rules allow them
+                if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num };
+                }
+
                 let next_num;
                 if (num % Math.abs(x) === 0) { // Using Math.abs(x) for the modulo check
                     next_num = num / x;
@@ -132,12 +139,15 @@
                     next_num = (Math.abs(y) || 3) * num + (z || 1); // Using Math.abs(y)
                 }
 
-                // Cycle detection
-                if (visited.has(next_num)) {
-                    output.push(next_num); // Add the number that completes the cycle
-                    return { sequence: output, type: "cycle", steps: iterations + 1 };
+                // --- ENHANCED CYCLE DETECTION ---
+                if (visitedNumbersMap.has(next_num)) {
+                    const cycleStartIndex = visitedNumbersMap.get(next_num);
+                    // Extract the cycle from the output array
+                    const cycle = output.slice(cycleStartIndex);
+                    // The cycle starts with next_num, which was already added to output at cycleStartIndex
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle };
                 }
-                visited.add(next_num); // Add to visited set
+                visitedNumbersMap.set(next_num, output.length); // Store the next number and its index in the output array
 
                 num = next_num;
                 output.push(num);
@@ -147,7 +157,7 @@
             if (num === 1) {
                 return { sequence: output, type: "converges_to_1", steps: iterations };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num };
             }
         };
 
@@ -171,22 +181,20 @@
             const mulColor = window.mulColor || "#fb923c"; // orange for Multiply/Add
 
             // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
-            const layout = {
-                // Each key represents a 'face' in the 9-net, with its row (r) and column (c) in the larger grid
-                top: { r: 0, c: 1 },
-                left: { r: 1, c: 0 },
-                centerLeft: { r: 1, c: 1 },
-                center: { r: 1, c: 2 },
-                centerRight: { r: 1, c: 3 },
-                bottom: { r: 2, c: 1 }
-            };
+            const layout = [
+                { r: 0, c: 1 }, // Top
+                { r: 1, c: 0 }, // Left
+                { r: 1, c: 1 }, // Center-Left (main sequence starts here)
+                { r: 1, c: 2 }, // Center
+                { r: 1, c: 3 }, // Center-Right
+                { r: 2, c: 1 }  // Bottom
+            ];
+
 
             let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
 
             // Iterate through each 'face' in the predefined layout
-            for (const key in layout) {
-                const pos = layout[key]; // Get the row and column of the current face
-
+            for (const pos of layout) { // Changed to iterate directly over array
                 // Iterate through the 3x3 grid of small squares within each face
                 for (let i = 0; i < stepSize; i++) { // Row within the face
                     for (let j = 0; j < stepSize; j++) { // Column within the face
@@ -216,7 +224,7 @@
                         // Draw the number label if available
                         if (label) {
                             ctx.fillStyle = "#FFF"; // White text
-                            ctx.ctx.font = "10px Arial"; // Smaller font for numbers
+                            ctx.font = "10px Arial"; // Smaller font for numbers (fixed ctx.ctx.font to ctx.font)
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
@@ -274,8 +282,13 @@
                 const stepsInfo = document.createElement('p');
                 stepsInfo.className = 'text-blue-300 mb-2';
                 let typeText = run.type.replace(/_/g, ' ');
+
                 if (run.type === "reached_max_iterations") {
-                    typeText += ` - Ended at ${run.sequence[run.sequence.length - 1]}`;
+                    typeText += ` - Ended at ${run.finalNum}`;
+                } else if (run.type === "exceeded_max_safe_integer") {
+                    typeText += ` - Ended at ${run.finalNum} (Exceeded safe integer limit)`;
+                } else if (run.type === "cycle") {
+                    typeText += ` - Cycle: ${run.cycle.join(' → ')}`;
                 }
                 stepsInfo.textContent = `Steps: ${run.steps} (Type: ${typeText})`;
                 runDiv.appendChild(stepsInfo);
@@ -341,6 +354,8 @@
                 sequence: result.sequence,
                 steps: result.steps,
                 type: result.type,
+                cycle: result.cycle, // Include cycle if present
+                finalNum: result.finalNum // Include finalNum if present (for max iterations/safe integer)
             };
 
             calculatedRuns.push(newRun); // Add to the end, then renderHistory will reverse for display
@@ -348,9 +363,11 @@
 
             // Display specific messages for non-converging sequences
             if (newRun.type === "reached_max_iterations") {
-                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.sequence[newRun.sequence.length - 1]} after ${newRun.steps} steps.`;
+                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
+            } else if (newRun.type === "exceeded_max_safe_integer") {
+                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} exceeded JavaScript's safe integer limit. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
             } else if (newRun.type === "cycle") {
-                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} entered a cycle.`;
+                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} entered a cycle: ${newRun.cycle.join(' → ')}.`;
             }
         });
 
@@ -419,6 +436,8 @@
                       sequence: result.sequence,
                       steps: result.steps,
                       type: result.type,
+                      cycle: result.cycle, // Include cycle if present
+                      finalNum: result.finalNum // Include finalNum if present
                     });
                   }
                 }
