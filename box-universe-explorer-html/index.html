@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Box Universe Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         /* Custom scrollbar for history div */
         .custom-scrollbar::-webkit-scrollbar {
@@ -21,67 +22,77 @@
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
         }
-      body {
-        font-family: 'Inter', sans-serif;
-    } 
-     @media print {
-        /* Hide UI elements not needed on a printout */
-        button,
-        input,
-        label,
-        #errorMessage {
-            display: none;
-        }
-
-        /* Hide the 9-net canvases */
-        canvas {
-            display: none;
-        }
-
-        /* Force backgrounds and colors to be print-friendly (white background, dark text) */
         body {
-            background: white !important;
-            color: black !important;
-            margin: 0; /* Remove default body margins for print */
+            font-family: 'Inter', sans-serif;
+        } 
+        /* Mission statement specific styling */
+        p.project-mission {
+            max-width: 700px; /* Constrain width for readability */
+            text-align: center;
+            font-size: 0.9em;
+            color: #c0c0c0; /* Lighter color for secondary text */
+            margin-top: -15px; /* Adjust spacing with elements above */
+            margin-bottom: 25px; /* Space before next section */
+            line-height: 1.5;
         }
+        @media print {
+            /* Hide UI elements not needed on a printout */
+            button,
+            input,
+            label,
+            #errorMessage {
+                display: none;
+            }
 
-        /* Adjust main content container for print */
-        .bg-white.bg-opacity-10 {
-            background-color: white !important; /* Force white background */
-            box-shadow: none !important;        /* Remove shadows */
-            border: none !important;            /* Remove borders */
-            backdrop-filter: none !important;   /* Disable blur */
-            padding: 1rem !important;           /* Adjust padding for print */
-        }
+            /* Hide the 9-net canvases */
+            canvas {
+                display: none;
+            }
 
-        /* Ensure history container and its content are visible and expand */
-        #historyContainer {
-            display: block !important;
-            background-color: transparent !important; /* Remove background for print */
-            border: none !important;
-            box-shadow: none !important;
-        }
+            /* Force backgrounds and colors to be print-friendly (white background, dark text) */
+            body {
+                background: white !important;
+                color: black !important;
+                margin: 0; /* Remove default body margins for print */
+            }
 
-        #runsHistory {
-            max-height: none !important;        /* Allow content to expand fully */
-            overflow-y: visible !important;     /* Prevent scrollbars */
-        }
+            /* Adjust main content container for print */
+            .bg-white.bg-opacity-10 {
+                background-color: white !important; /* Force white background */
+                box-shadow: none !important;        /* Remove shadows */
+                border: none !important;            /* Remove borders */
+                backdrop-filter: none !important;   /* Disable blur */
+                padding: 1rem !important;           /* Adjust padding for print */
+            }
 
-        /* Adjust individual history item backgrounds and text for print */
-        .bg-blue-800.bg-opacity-40,
-        .bg-blue-900.bg-opacity-60 {
-            background-color: #f8f8f8 !important; /* Light gray background for items */
-            border: 1px solid #ddd !important;
-            color: #333 !important;             /* Dark text for readability */
-        }
+            /* Ensure history container and its content are visible and expand */
+            #historyContainer {
+                display: block !important;
+                background-color: transparent !important; /* Remove background for print */
+                border: none !important;
+                box-shadow: none !important;
+            }
 
-        /* Ensure all text is dark and readable on paper */
-        .text-blue-200,
-        .text-blue-300,
-        .text-blue-100 {
-            color: #333 !important;
-        }
-    } 
+            #runsHistory {
+                max-height: none !important;        /* Allow content to expand fully */
+                overflow-y: visible !important;     /* Prevent scrollbars */
+            }
+
+            /* Adjust individual history item backgrounds and text for print */
+            .bg-blue-800.bg-opacity-40,
+            .bg-blue-900.bg-opacity-60 {
+                background-color: #f8f8f8 !important; /* Light gray background for items */
+                border: 1px solid #ddd !important;
+                color: #333 !important;             /* Dark text for readability */
+            }
+
+            /* Ensure all text is dark and readable on paper */
+            .text-blue-200,
+            .text-blue-300,
+            .text-blue-100 {
+                color: #333 !important;
+            }
+        } 
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
@@ -90,6 +101,12 @@
         <h1 class="text-4xl font-extrabold text-center text-white mb-6 drop-shadow-lg">
             Box Universe Explorer
         </h1>
+
+        <p class="project-mission">
+            Explore and visualize generalized Collatz sequences to discover hidden
+            patterns, foster intuition, and gain new perspectives on dynamical systems.
+            A journey of visual discovery beyond traditional analysis.
+        </p>
 
         <div class="mb-8 text-white text-lg leading-relaxed text-center">
             <p class="mb-3">
@@ -141,26 +158,26 @@
             Generate Box Universe (Bulk)
         </button>
         
-    <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-        <div class="flex items-center space-x-2 text-white">
-            <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
-            <input type="color" id="divColorPicker" value="#34d399"
-                       class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+            <div class="flex items-center space-x-2 text-white">
+                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
+                <input type="color" id="divColorPicker" value="#34d399"
+                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
+            <div class="flex items-center space-x-2 text-white">
+                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
+                <input type="color" id="mulColorPicker" value="#fb923c"
+                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
         </div>
-        <div class="flex items-center space-x-2 text-white">
-            <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
-            <input type="color" id="mulColorPicker" value="#fb923c"
-                       class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-        </div>
-    </div>
-    <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
+        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
 
-<div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-    <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
-    <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+    <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+        <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
+        <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+        </div>
     </div>
-</div>
 
     </div>
 
@@ -282,7 +299,7 @@
                         // Draw the number label if available
                         if (label) {
                             ctx.fillStyle = "#FFF"; // White text
-                            ctx.ctx.font = "10px Arial"; // Smaller font for numbers
+                            ctx.font = "10px Arial"; // Smaller font for numbers
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
@@ -460,13 +477,13 @@
 
             // Validate ranges
             if (isNaN(parsedXStart) || isNaN(parsedXEnd) || parsedXStart > parsedXEnd || !Number.isInteger(parsedXStart) || !Number.isInteger(parsedXEnd)) {
-              errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
+                errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
             }
             if (isNaN(parsedYStart) || isNaN(parsedYEnd) || parsedYStart > parsedYEnd || !Number.isInteger(parsedYStart) || !Number.isInteger(parsedYEnd)) {
-              errorMessage.textContent = 'Y range must be valid integers (Y Start <= Y End).'; return;
+                errorMessage.textContent = 'Y range must be valid integers (Y Start <= Y End).'; return;
             }
             if (isNaN(parsedZStart) || isNaN(parsedZEnd) || parsedZStart > parsedZEnd || !Number.isInteger(parsedZStart) || !Number.isInteger(parsedZEnd)) {
-              errorMessage.textContent = 'Z range must be valid integers (Z Start <= Z End).'; return;
+                errorMessage.textContent = 'Z range must be valid integers (Z Start <= Z End).'; return;
             }
 
             errorMessage.textContent = ''; // Clear previous errors
@@ -474,32 +491,32 @@
             let idCounter = 0; // Used to ensure unique IDs for runs generated in quick succession
 
             for (let x = parsedXStart; x <= parsedXEnd; x++) {
-              if (x === 0) {
+                if (x === 0) {
                 // Optionally provide a message that X=0 is skipped in bulk
                 console.warn("Skipping X=0 in bulk generation as it's an invalid divisor.");
                 continue;
-              }
-
-              for (let y = parsedYStart; y <= parsedYEnd; y++) {
-                for (let z = parsedZStart; z <= parsedZEnd; z++) {
-                  const result = sequence(num, x, y, z, maxStepsForCalculation);
-
-                  if (result.type !== "error") { // Only add valid results
-                    tempNewRuns.push({
-                      id: Date.now() + (idCounter++), // Unique ID
-                      startNum: num,
-                      X: x,
-                      Y: y,
-                      Z: z,
-                      sequence: result.sequence,
-                      steps: result.steps,
-                      type: result.type,
-                      cycle: result.cycle, // Include cycle if present
-                      finalNum: result.finalNum // Include finalNum if present
-                    });
-                  }
                 }
-              }
+
+                for (let y = parsedYStart; y <= parsedYEnd; y++) {
+                    for (let z = parsedZStart; z <= parsedZEnd; z++) {
+                    const result = sequence(num, x, y, z, maxStepsForCalculation);
+
+                    if (result.type !== "error") { // Only add valid results
+                        tempNewRuns.push({
+                        id: Date.now() + (idCounter++), // Unique ID
+                        startNum: num,
+                        X: x,
+                        Y: y,
+                        Z: z,
+                        sequence: result.sequence,
+                        steps: result.steps,
+                        type: result.type,
+                        cycle: result.cycle, // Include cycle if present
+                        finalNum: result.finalNum // Include finalNum if present
+                        });
+                    }
+                    }
+                }
             }
             calculatedRuns.push(...tempNewRuns); // Add all new runs to the end
             renderHistory(); // Re-render the history
