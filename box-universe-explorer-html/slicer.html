@@ -4,9 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
+
+    <!--
+    LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
+
+    This project aims to explore and visualize generalized Collatz sequences
+    from novel perspectives, moving beyond traditional numerical analysis.
+    The goal is not necessarily to prove the Collatz conjecture directly,
+    but to build intuitive tools and models (like 9-nets and 2D/3D slicers)
+    that reveal hidden patterns, behaviors, and relationships within the
+    parameter space (N, X, Y, Z).
+
+    Ultimately, this work seeks to provide a unique "visual intuition"
+    that can inspire new hypotheses, facilitate deeper understanding,
+    and potentially lay groundwork for future mathematical insights,
+    even if it takes months or years to fully realize.
+    -->
+
     <style>
         body {
             display: flex;
+            flex-direction: column; /* Allow content to stack vertically */
             justify-content: center;
             align-items: center;
             min-height: 100vh;
@@ -14,15 +32,39 @@
             background-color: #282c34; /* Dark background */
             color: #ffffff; /* White text */
             font-family: Arial, sans-serif;
+            padding: 20px; /* Add some padding around the content */
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
         canvas {
             border: 2px solid #61dafb; /* Light blue border */
             background-color: #1c1f26; /* Slightly lighter dark for canvas background */
+            max-width: 100%; /* Ensure canvas is responsive */
+            height: auto; /* Maintain aspect ratio */
+            display: block; /* Remove extra space below canvas */
+            margin-top: 20px; /* Space between title and canvas */
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        p.mission-statement {
+            max-width: 800px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #b0b0b0;
+            margin-top: 20px;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
-    <h1>Our Slicer is Coming Soon!</h1>
+    <h1>2D Pseudo-3D Slicer</h1>
+    <p class="mission-statement">
+        Part of the Box Universe Explorer project, this tool aims to visualize
+        complex data by representing it as 3D geometric shapes and allowing
+        interactive 2D cross-section slicing. The goal is to build visual intuition
+        and explore patterns within multi-dimensional data.
+    </p>
     <canvas id="slicerCanvas" width="600" height="600"></canvas>
 
     <script>
