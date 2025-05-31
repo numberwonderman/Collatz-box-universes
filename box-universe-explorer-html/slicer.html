@@ -22,6 +22,49 @@
     -->
 
     <style>
+        .range-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #61dafb;
+            border-radius: 8px;
+        }
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .param-group label {
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+        .range-controls input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: #eee;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .range-controls button {
+            padding: 8px 15px;
+            background-color: #61dafb;
+            color: #282c34;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+        .range-controls button:hover {
+            background-color: #4fa3d1;
+        }
         body {
             display: flex;
             flex-direction: column; /* Allow content to stack vertically */
@@ -115,7 +158,29 @@
             <input type="color" id="multiplyColor" value="#fb923c">
         </div>
     </div>
-
+    <div class="range-controls">
+        <div class="param-group">
+            <label>N (Start Number):</label>
+            <input type="number" id="nMin" value="1" min="1">
+            <input type="number" id="nMax" value="50" min="1">
+        </div>
+        <div class="param-group">
+            <label>X (Divisor):</label>
+            <input type="number" id="xMin" value="2" min="1">
+            <input type="number" id="xMax" value="5" min="1">
+        </div>
+        <div class="param-group">
+            <label>Y (Multiplier):</label>
+            <input type="number" id="yMin" value="3" min="1">
+            <input type="number" id="yMax" value="5" min="1">
+        </div>
+        <div class="param-group">
+            <label>Z (Adder):</label>
+            <input type="number" id="zMin" value="1" min="1">
+            <input type="number" id="zMax" value="5" min="1">
+        </div>
+        <button id="applyFilters">Apply Filters</button>
+    </div>
     <canvas id="slicerCanvas" width="750" height="1200"></canvas>
 
     <script>
@@ -125,6 +190,16 @@
         // Get color input elements
         const divisibleColorInput = document.getElementById('divisibleColor');
         const multiplyColorInput = document.getElementById('multiplyColor');
+        // --- Get references to the new range input elements and button ---
+const nMinInput = document.getElementById('nMin');
+const nMaxInput = document.getElementById('nMax');
+const xMinInput = document.getElementById('xMin');
+const xMaxInput = document.getElementById('xMax');
+const yMinInput = document.getElementById('yMin');
+const yMaxInput = document.getElementById('yMax');
+const zMinInput = document.getElementById('zMin');
+const zMaxInput = document.getElementById('zMax');
+const applyFiltersButton = document.getElementById('applyFilters');
 
         // --- GLOBAL CONSTANTS FOR 9-NET DIMENSIONS ---
         // These are defined here so they are accessible to both drawing functions
@@ -258,7 +333,8 @@
         // --- DATA STRUCTURE FOR OUR "BOX UNIVERSES" ---
         const boxUniverses = [];
         const MAX_ITERATIONS = 1000; // Adjusted for performance with more nets
-
+ // This will hold the currently displayed (filtered) box universes
+ let filteredBoxUniverses = []; // <-- Place it here, once.
         const testCases = [
             { N: 10, X: 2, Y: 3, Z: 1 },
             { N: 27, X: 2, Y: 3, Z: 1 },
@@ -292,7 +368,34 @@
                 });
             }
         });
+// --- Function to get current filter values from inputs and apply them ---
+function applyAndDrawFilters() {
+        const filters = getFilterValues(); // Get the latest filter values from input fields
 
+        // Filter the original `boxUniverses` data
+        filteredBoxUniverses = boxUniverses.filter(bu => {
+            // Apply N (Start Number) filter
+            if (bu.N < filters.nMin || bu.N > filters.nMax) {
+                return false;
+            }
+            // Apply X (Divisor) filter
+            if (bu.X < filters.xMin || bu.X > filters.xMax) {
+                return false;
+            }
+            // Apply Y (Multiplier) filter
+            if (bu.Y < filters.yMin || bu.Y > filters.yMax) {
+                return false;
+            }
+            // Apply Z (Adder) filter
+            if (bu.Z < filters.zMin || bu.Z > filters.zMax) {
+                return false;
+            }
+            return true; // If all filters pass, include this box universe in the filtered list
+        });
+
+        // Now, call the drawing function to update the canvas with the filtered list
+        drawAllBoxUniverses();
+    }
         // --- DRAWING FUNCTION ---
         // This function will draw all the currently selected box universes
         function drawAllBoxUniverses() {
@@ -307,7 +410,7 @@
             const paddingOverall = 20; // Padding for the overall grid on the canvas
             const netsPerRow = Math.floor((canvas.width - paddingOverall * 2 + spacingX) / (netWidth + spacingX));
 
-            boxUniverses.forEach((bu, index) => {
+            filteredBoxUniverses.forEach((bu, index) => {
                 const col = index % netsPerRow;
                 const row = Math.floor(index / netsPerRow);
 
@@ -332,7 +435,19 @@
                 ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset, currentYOffset + netHeight + 5); // +5 for small margin
             });
         }
-
+// --- Function to get current filter values from inputs ---
+function getFilterValues() {
+    return {
+        nMin: parseInt(nMinInput.value) || 1, // Default to 1 if empty or invalid
+        nMax: parseInt(nMaxInput.value) || Infinity, // Default to Infinity
+        xMin: parseInt(xMinInput.value) || 1,
+        xMax: parseInt(xMaxInput.value) || Infinity,
+        yMin: parseInt(yMinInput.value) || 1,
+        yMax: parseInt(yMaxInput.value) || Infinity,
+        zMin: parseInt(zMinInput.value) || 1,
+        zMax: parseInt(zMaxInput.value) || Infinity
+    };
+}
         // --- EVENT LISTENERS FOR COLOR PICKERS ---
         divisibleColorInput.addEventListener('input', (event) => {
             divColor = event.target.value; // Update the global variable
@@ -343,9 +458,11 @@
             mulColor = event.target.value; // Update the global variable
             drawAllBoxUniverses(); // Redraw with new color
         });
-
-        // Initial draw when the page loads
-        drawAllBoxUniverses();
+       // --- Event listener for the Apply Filters button ---
+       applyFiltersButton.addEventListener('click', () => {
+            applyAndDrawFilters(); // Call our new function to filter and redraw
+        });
+        applyAndDrawFilters(); // <--- TO THIS LINE (This will initialize filtering and drawing)
         console.log("Slicer canvas is ready with color pickers!");
 
     </script>
