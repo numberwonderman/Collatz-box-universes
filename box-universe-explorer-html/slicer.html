@@ -5,22 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
 
-    <!--
-    LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
-
-    This project aims to explore and visualize generalized Collatz sequences
-    from novel perspectives, moving beyond traditional numerical analysis.
-    The goal is not necessarily to prove the Collatz conjecture directly,
-    but to build intuitive tools and models (like 9-nets and 2D/3D slicers)
-    that reveal hidden patterns, behaviors, and relationships within the
-    parameter space (N, X, Y, Z).
-
-    Ultimately, this work seeks to provide a unique "visual intuition"
-    that can inspire new hypotheses, facilitate deeper understanding,
-    and potentially lay groundwork for future mathematical insights,
-    even if it takes months or years to fully realize.
-    -->
-
     <style>
         body {
             display: flex;
@@ -65,18 +49,204 @@
         interactive 2D cross-section slicing. The goal is to build visual intuition
         and explore patterns within multi-dimensional data.
     </p>
-    <canvas id="slicerCanvas" width="600" height="600"></canvas>
+    <canvas id="slicerCanvas" width="750" height="1200"></canvas> 
 
     <script>
-        // JavaScript will go here
         const canvas = document.getElementById('slicerCanvas');
         const ctx = canvas.getContext('2d');
 
-        // Let's just draw a simple square for now to make sure it's working
-        ctx.fillStyle = 'red';
-        ctx.fillRect(50, 50, 100, 100); // Draw a red square at (50,50) with size 100x100
+        // --- GLOBAL COLOR DEFINITIONS ---
+        const DIV_COLOR = "#34d399"; // green for Divisible
+        const MUL_COLOR = "#fb923c"; // orange for Multiply/Add
 
-        console.log("Slicer canvas is ready!");
+
+        // --- RE-USING THE SEQUENCE FUNCTION FROM INDEX.HTML ---
+        const sequence = (num, x, y, z, maxiterations) => {
+            if (x === 0) {
+                return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
+            }
+            const output = [];
+            output.push(num);
+            let iterations = 0;
+            const visitedNumbersMap = new Map();
+            visitedNumbersMap.set(num, 0);
+
+            while (num !== 1 && iterations < maxiterations) {
+                if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num };
+                }
+
+                let next_num;
+                if (num % Math.abs(x) === 0) {
+                    next_num = num / x;
+                } else {
+                    next_num = (Math.abs(y) || 3) * num + (z || 1);
+                }
+
+                if (visitedNumbersMap.has(next_num)) {
+                    const cycleStartIndex = visitedNumbersMap.get(next_num);
+                    const cycle = output.slice(cycleStartIndex);
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle };
+                }
+                visitedNumbersMap.set(next_num, output.length);
+
+                num = next_num;
+                output.push(num);
+                iterations++;
+            }
+
+            if (num === 1) {
+                return { sequence: output, type: "converges_to_1", steps: iterations };
+            } else {
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num };
+            }
+        };
+
+        // --- RE-USING THE DRAW 9-NET FUNCTION FROM INDEX.HTML ---
+        function drawNineNetCanvas(canvasElement, sequence, xVal, offsetX = 0, offsetY = 0) {
+            const ctx = canvasElement.getContext("2d");
+            
+            const faceSize = 40; // Size of each small square face
+            const padding = 10; // Padding around the entire 9-net
+            const stepSize = 3; // Number of small squares per 'face' side (3x3 grid)
+
+            const divColor = DIV_COLOR;
+            const mulColor = MUL_COLOR;
+
+            const layout = [
+                { r: 0, c: 1 }, // Top
+                { r: 1, c: 0 }, // Left
+                { r: 1, c: 1 }, // Center-Left (main sequence starts here)
+                { r: 1, c: 2 }, // Center
+                { r: 1, c: 3 }, // Center-Right
+                { r: 2, c: 1 }  // Bottom
+            ];
+
+            let sequenceIndex = 0;
+
+            for (const pos of layout) {
+                for (let i = 0; i < stepSize; i++) {
+                    for (let j = 0; j < stepSize; j++) {
+                        // Coordinates for the current small square relative to offsetX, offsetY
+                        const x = offsetX + padding + (pos.c * stepSize + j) * faceSize;
+                        const y = offsetY + padding + (pos.r * stepSize + i) * faceSize;
+
+                        let color = "#444"; // Default grey for empty squares
+                        let label = "";
+
+                        if (sequenceIndex < sequence.length) {
+                            const val = sequence[sequenceIndex];
+                            color = (val % Math.abs(xVal) === 0) ? divColor : mulColor;
+                            label = val.toString();
+
+                            // AGGRESSIVE DYNAMIC FONT SIZING FOR NUMBERS
+                            let currentFontSize = 12; // Default starting font size
+                            if (label.length > 9) { // If number is very very long
+                                currentFontSize = 6;
+                                label = label.substring(0, 5) + "..."; // Truncate and add ellipsis
+                            } else if (label.length > 7) { // If number is very long
+                                currentFontSize = 7;
+                            } else if (label.length > 5) { // If number is long
+                                currentFontSize = 8;
+                            } else if (label.length > 3) { // If number is medium length
+                                currentFontSize = 10;
+                            }
+                            ctx.font = `${currentFontSize}px Arial`;
+
+                        } else {
+                            ctx.font = `12px Arial`; // Reset font for empty squares (though not strictly necessary)
+                        }
+
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2); 
+
+                        if (label) {
+                            ctx.fillStyle = "#FFF"; 
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1);
+                        }
+                        sequenceIndex++;
+                    }
+                }
+            }
+        }
+
+
+        // --- DATA STRUCTURE FOR OUR "BOX UNIVERSES" ---
+        const boxUniverses = [];
+        const MAX_ITERATIONS = 2000; 
+
+        // Generate sample "Box Universes" (Collatz sequences)
+        for (let x = 2; x <= 4; x += 1) { // X from 2, 3, 4 (3 values)
+            for (let y = 3; y <= 4; y += 1) { // Y from 3, 4 (2 values)
+                for (let z = 1; z <= 2; z += 1) { // Z from 1, 2 (2 values)
+                    const startNum = 20; 
+                    const result = sequence(startNum, x, y, z, MAX_ITERATIONS);
+
+                    if (result.type !== "error") {
+                        boxUniverses.push({
+                            N: startNum,
+                            X: x,
+                            Y: y,
+                            Z: z,
+                            sequence: result.sequence,
+                            steps: result.steps,
+                            type: result.type
+                        });
+                    }
+                }
+            }
+        }
+
+        console.log("Generated Box Universes:", boxUniverses);
+
+        // --- INITIAL DRAWING ---
+        ctx.clearRect(0, 0, canvas.width, canvas.height); 
+
+        const faceSize = 40; 
+        const padding = 10;
+        const netVisualWidth = (3 * faceSize + 2 * padding); 
+        const netVisualHeight = (3 * faceSize + 2 * padding); 
+
+        const numCols = 3;
+        const numRows = Math.ceil(boxUniverses.length / numCols);
+
+        const horizontalMargin = 30; 
+        const verticalMargin = 30;
+
+        const gapBetweenNetsX = 40; 
+        const gapBetweenNetsY = 100; 
+
+
+        boxUniverses.forEach((bu, index) => {
+            const col = index % numCols;
+            const row = Math.floor(index / numCols);
+
+            const currentXOffset = horizontalMargin + col * (netVisualWidth + gapBetweenNetsX);
+            const currentYOffset = verticalMargin + row * (netVisualHeight + gapBetweenNetsY);
+
+            // Draw a background for each 9-net to make it distinct
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            const backgroundWidth = netVisualWidth + padding * 2; 
+            const backgroundHeight = netVisualHeight + padding * 2 + 30; 
+            ctx.fillRect(currentXOffset, currentYOffset, backgroundWidth, backgroundHeight);
+
+            // --- IMPORTANT CHANGE: REMOVED CLIPPING BLOCK ---
+            // Removed ctx.save(), ctx.beginPath(), ctx.rect(), ctx.clip(), ctx.restore()
+            // It was too aggressive and hid the 9-nets.
+            drawNineNetCanvas(canvas, bu.sequence, bu.X, currentXOffset, currentYOffset);
+
+            // Add text label below each net
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset + padding, currentYOffset + netVisualHeight + padding + 5);
+        });
+
+        console.log("Sample Box Universes drawn on canvas.");
+
     </script>
 </body>
 </html>
