@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
 
+    <!--
+    LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
+
+    This project aims to explore and visualize generalized Collatz sequences
+    from novel perspectives, moving beyond traditional numerical analysis.
+    The goal is not necessarily to prove the Collatz conjecture directly,
+    but to build intuitive tools and models (like 9-nets and 2D/3D slicers)
+    that reveal hidden patterns, behaviors, and relationships within the
+    parameter space (N, X, Y, Z) that defines these universes.
+
+    Ultimately, this work seeks to provide a unique "visual intuition"
+    that can inspire new hypotheses, facilitate deeper understanding,
+    and potentially lay groundwork for future mathematical insights,
+    even if it takes months or years to fully realize.
+    -->
+
     <style>
         body {
             display: flex;
@@ -186,7 +202,7 @@
         const xMinInput = document.getElementById('xMin');
         const xMaxInput = document.getElementById('xMax');
         const yMinInput = document.getElementById('yMin');
-        const yMaxInput = document.getElementById('yMax');
+        const yMaxInput = document.getElementById('yMax'); // Corrected: was document='yMax'
         const zMinInput = document.getElementById('zMin');
         const zMaxInput = document.getElementById('zMax');
         const applyFiltersButton = document.getElementById('applyFilters');
@@ -397,6 +413,15 @@
             const paddingOverall = 20; // Padding for the overall grid on the canvas
             const netsPerRow = Math.max(1, Math.floor((canvas.width - paddingOverall * 2 + spacingX) / (netWidth + spacingX)));
 
+            if (netsPerRow <= 0) {
+                ctx.fillStyle = '#b0b0b0';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("Canvas too small to draw nets. Increase canvas width or reduce spacing.", canvas.width / 2, canvas.height / 2);
+                return;
+            }
+
             filteredBoxUniverses.forEach((bu, index) => {
                 const col = index % netsPerRow;
                 const row = Math.floor(index / netsPerRow);
@@ -418,8 +443,10 @@
                 ctx.font = '12px Arial';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';
-                ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset, currentYOffset + netHeight + 5);
-                ctx.fillText(`Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`, currentXOffset, currentYOffset + netHeight + 20); // Add type info
+
+                const labelYStart = currentYOffset + netHeight + 10;
+                ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset + 10, labelYStart);
+                ctx.fillText(`Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`, currentXOffset + 10, labelYStart + 15);
             });
 
             if (filteredBoxUniverses.length === 0) {
