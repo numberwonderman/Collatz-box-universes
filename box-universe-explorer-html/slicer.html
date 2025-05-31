@@ -5,66 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
 
-    <!--
-    LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
-
-    This project aims to explore and visualize generalized Collatz sequences
-    from novel perspectives, moving beyond traditional numerical analysis.
-    The goal is not necessarily to prove the Collatz conjecture directly,
-    but to build intuitive tools and models (like 9-nets and 2D/3D slicers)
-    that reveal hidden patterns, behaviors, and relationships within the
-    parameter space (N, X, Y, Z).
-
-    Ultimately, this work seeks to provide a unique "visual intuition"
-    that can inspire new hypotheses, facilitate deeper understanding,
-    and potentially lay groundwork for future mathematical insights,
-    even if it takes months or years to fully realize.
-    -->
-
     <style>
-        .range-controls {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            border: 1px solid #61dafb;
-            border-radius: 8px;
-        }
-        .param-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-        .param-group label {
-            font-size: 0.9em;
-            color: #b0b0b0;
-        }
-        .range-controls input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            border: 1px solid #555;
-            background-color: #333;
-            color: #eee;
-            border-radius: 4px;
-            text-align: center;
-        }
-        .range-controls button {
-            padding: 8px 15px;
-            background-color: #61dafb;
-            color: #282c34;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s ease;
-        }
-        .range-controls button:hover {
-            background-color: #4fa3d1;
-        }
         body {
             display: flex;
             flex-direction: column; /* Allow content to stack vertically */
@@ -105,6 +46,10 @@
             flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
             justify-content: center;
             align-items: center;
+            padding: 10px;
+            background-color: #3a3f47; /* Slightly lighter background for controls */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         .color-control {
             display: flex;
@@ -124,18 +69,62 @@
             border: none;
             cursor: pointer;
             padding: 0;
-            border-radius: 5px; /* Rounded corners for color input */
+            border-radius: 5px;
         }
         input[type="color"]::-webkit-color-swatch-wrapper {
             padding: 0;
         }
         input[type="color"]::-webkit-color-swatch {
-            border: 1px solid #555; /* Add a subtle border to the color swatch */
-            border-radius: 4px; /* Slightly smaller rounded corners for the swatch itself */
+            border: 1px solid #555;
+            border-radius: 4px;
         }
         input[type="color"]::-moz-color-swatch {
             border: 1px solid #555;
             border-radius: 4px;
+        }
+        .range-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background-color: #3a3f47; /* Consistent background with .controls */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .param-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        .param-group label {
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+        .range-controls input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #555;
+            background-color: #4a4f57; /* Consistent input background */
+            color: #eee;
+            border-radius: 4px;
+            text-align: center;
+        }
+        button {
+            background-color: #61dafb;
+            color: #1c1f26;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #21a1f1;
         }
     </style>
 </head>
@@ -190,25 +179,23 @@
         // Get color input elements
         const divisibleColorInput = document.getElementById('divisibleColor');
         const multiplyColorInput = document.getElementById('multiplyColor');
-        // --- Get references to the new range input elements and button ---
-const nMinInput = document.getElementById('nMin');
-const nMaxInput = document.getElementById('nMax');
-const xMinInput = document.getElementById('xMin');
-const xMaxInput = document.getElementById('xMax');
-const yMinInput = document.getElementById('yMin');
-const yMaxInput = document.getElementById('yMax');
-const zMinInput = document.getElementById('zMin');
-const zMaxInput = document.getElementById('zMax');
-const applyFiltersButton = document.getElementById('applyFilters');
+
+        // Get range input elements
+        const nMinInput = document.getElementById('nMin');
+        const nMaxInput = document.getElementById('nMax');
+        const xMinInput = document.getElementById('xMin');
+        const xMaxInput = document.getElementById('xMax');
+        const yMinInput = document.getElementById('yMin');
+        const yMaxInput = document.getElementById('yMax');
+        const zMinInput = document.getElementById('zMin');
+        const zMaxInput = document.getElementById('zMax');
+        const applyFiltersButton = document.getElementById('applyFilters');
 
         // --- GLOBAL CONSTANTS FOR 9-NET DIMENSIONS ---
-        // These are defined here so they are accessible to both drawing functions
         const faceSize = 30; // Size of each small square face
         const padding = 10; // Padding around the entire 9-net
 
-        // --- RE-USING THE SEQUENCE FUNCTION FROM INDEX.HTML ---
-        // We'll need the Collatz sequence logic to generate our sample "Box Universes".
-        // This is the same function you have in index.html.
+        // --- RE-USING THE SEQUENCE FUNCTION ---
         const sequence = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
@@ -250,19 +237,14 @@ const applyFiltersButton = document.getElementById('applyFilters');
             }
         };
 
-        // --- RE-USING THE DRAW 9-NET FUNCTION FROM INDEX.HTML ---
-        // We'll need this to draw the individual "Box Universes" (9-nets) on the slicer canvas.
-        // Default canvas colors - These initialize the colors when the page loads
+        // --- RE-USING THE DRAW 9-NET FUNCTION ---
         let divColor = divisibleColorInput.value;
         let mulColor = multiplyColorInput.value;
 
         function drawNineNetCanvas(canvasElement, sequence, xVal, offsetX = 0, offsetY = 0) {
             const ctx = canvasElement.getContext("2d");
 
-            // faceSize and padding are now global constants
-            const stepSize = 3; // Number of small squares per 'face' side (3x3 grid)
-
-            // Use the current colors from the global variables
+            const stepSize = 3;
             const currentDivColor = divColor;
             const currentMulColor = mulColor;
 
@@ -291,7 +273,7 @@ const applyFiltersButton = document.getElementById('applyFilters');
                             label = val.toString();
 
                             // Ellipsis Logic for very large numbers
-                            const maxChars = 5; // Max characters before truncating with ellipsis
+                            const maxChars = 5;
                             if (label.length > maxChars) {
                                 const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
                                 const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
@@ -299,9 +281,9 @@ const applyFiltersButton = document.getElementById('applyFilters');
                             }
 
                             if (val % Math.abs(xVal) === 0) {
-                                color = currentDivColor; // Use current divisible color
+                                color = currentDivColor;
                             } else {
-                                color = currentMulColor; // Use current multiply/add color
+                                color = currentMulColor;
                             }
                         }
 
@@ -310,11 +292,11 @@ const applyFiltersButton = document.getElementById('applyFilters');
 
                         if (label) {
                             ctx.fillStyle = "#FFF";
-                            // Dynamic font sizing (adjusted for smaller faceSize if needed)
-                            let currentFontSize = 10; // Default starting font size
-                            if (label.length > 7) { // If number is very very long
+                            // Dynamic font sizing
+                            let currentFontSize = 10;
+                            if (label.length > 7) {
                                 currentFontSize = 6;
-                            } else if (label.length > 5) { // If number is very long
+                            } else if (label.length > 5) {
                                 currentFontSize = 8;
                             }
                             ctx.font = `${currentFontSize}px Arial`;
@@ -329,86 +311,91 @@ const applyFiltersButton = document.getElementById('applyFilters');
             }
         }
 
+        // --- DATA GENERATION ---
+        const MAX_ITERATIONS = 1000;
+        let allBoxUniverses = []; // This will store all generated universes
+        let filteredBoxUniverses = []; // This will hold the currently displayed (filtered) box universes
 
-        // --- DATA STRUCTURE FOR OUR "BOX UNIVERSES" ---
-        const boxUniverses = [];
-        const MAX_ITERATIONS = 1000; // Adjusted for performance with more nets
- // This will hold the currently displayed (filtered) box universes
- let filteredBoxUniverses = []; // <-- Place it here, once.
-        const testCases = [
-            { N: 10, X: 2, Y: 3, Z: 1 },
-            { N: 27, X: 2, Y: 3, Z: 1 },
-            { N: 100, X: 2, Y: 3, Z: 1 },
-            { N: 7, X: 5, Y: 2, Z: 1 },
-            { N: 13, X: 2, Y: 5, Z: 1 },
-            { N: 5, X: 3, Y: 4, Z: 2 },
-            { N: 10000000000000000, X: 2, Y: 3, Z: 1 }, // Very large N
-            { N: 10000000000000000, X: 3, Y: 4, Z: 5 },
-            { N: 12345, X: 4, Y: 3, Z: 2 },
-            { N: 98765, X: 2, Y: 7, Z: 1 },
-            { N: 50000, X: 5, Y: 3, Z: 1 },
-            { N: 20000, X: 2, Y: 3, Z: 10 },
-            { N: 30000, X: 2, Y: 3, Z: 1 }, // Another standard Collatz for comparison
-            { N: 67, X: 2, Y: 3, Z: 1 }, // A number known to have a long sequence
-            { N: 42, X: 2, Y: 3, Z: 1 },
-            { N: 1, X: 2, Y: 3, Z: 1 } // Test for starting at 1
-        ];
+        // --- NEW: Function to generate a set of Box Universes based on specified ranges ---
+        function generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax) {
+            const tempUniverses = [];
+            // Limit the total number of universes generated to prevent performance issues
+            // Adjust this limit based on your browser's performance
+            const maxUniversesToGenerate = 100;
+            let generatedCount = 0;
 
-        testCases.forEach(test => {
-            const result = sequence(test.N, test.X, test.Y, test.Z, MAX_ITERATIONS);
-            if (result.type !== "error") {
-                boxUniverses.push({
-                    N: test.N,
-                    X: test.X,
-                    Y: test.Y,
-                    Z: test.Z,
-                    sequence: result.sequence,
-                    steps: result.steps,
-                    type: result.type
-                });
+            for (let n = nMin; n <= nMax && generatedCount < maxUniversesToGenerate; n++) {
+                for (let x = xMin; x <= xMax && generatedCount < maxUniversesToGenerate; x++) {
+                    // X cannot be 0 for division rule
+                    if (x === 0) continue; // Skip x=0 as it causes an error
+                    for (let y = yMin; y <= yMax && generatedCount < maxUniversesToGenerate; y++) {
+                        for (let z = zMin; z <= zMax && generatedCount < maxUniversesToGenerate; z++) {
+                            const result = sequence(n, x, y, z, MAX_ITERATIONS);
+                            if (result.type !== "error") { // Only push valid sequences
+                                tempUniverses.push({
+                                    N: n,
+                                    X: x,
+                                    Y: y,
+                                    Z: z,
+                                    sequence: result.sequence,
+                                    steps: result.steps,
+                                    type: result.type
+                                });
+                                generatedCount++;
+                            }
+                        }
+                    }
+                }
             }
-        });
-// --- Function to get current filter values from inputs and apply them ---
-function applyAndDrawFilters() {
-        const filters = getFilterValues(); // Get the latest filter values from input fields
+            return tempUniverses;
+        }
 
-        // Filter the original `boxUniverses` data
-        filteredBoxUniverses = boxUniverses.filter(bu => {
-            // Apply N (Start Number) filter
-            if (bu.N < filters.nMin || bu.N > filters.nMax) {
-                return false;
-            }
-            // Apply X (Divisor) filter
-            if (bu.X < filters.xMin || bu.X > filters.xMax) {
-                return false;
-            }
-            // Apply Y (Multiplier) filter
-            if (bu.Y < filters.yMin || bu.Y > filters.yMax) {
-                return false;
-            }
-            // Apply Z (Adder) filter
-            if (bu.Z < filters.zMin || bu.Z > filters.zMax) {
-                return false;
-            }
-            return true; // If all filters pass, include this box universe in the filtered list
-        });
+        // --- Function to get current filter values from inputs ---
+        function getFilterValues() {
+            return {
+                nMin: parseInt(nMinInput.value) || 1,
+                nMax: parseInt(nMaxInput.value) || Infinity,
+                xMin: parseInt(xMinInput.value) || 1,
+                xMax: parseInt(xMaxInput.value) || Infinity,
+                yMin: parseInt(yMinInput.value) || 1,
+                yMax: parseInt(yMaxInput.value) || Infinity,
+                zMin: parseInt(zMinInput.value) || 1,
+                zMax: parseInt(zMaxInput.value) || Infinity
+            };
+        }
 
-        // Now, call the drawing function to update the canvas with the filtered list
-        drawAllBoxUniverses();
-    }
+        // --- Function to get current filter values from inputs and apply them ---
+        function applyAndDrawFilters() {
+            const filters = getFilterValues();
+
+            // First, generate all possible box universes within the specified ranges
+            // This ensures we always have the full set to potentially filter from
+            allBoxUniverses = generateBoxUniverses(
+                filters.nMin, filters.nMax,
+                filters.xMin, filters.xMax,
+                filters.yMin, filters.yMax,
+                filters.zMin, filters.zMax
+            );
+
+            // For now, the "filter" is simply the generation based on ranges.
+            // In the future, you could add more complex filtering criteria here
+            // (e.g., filter by sequence type, number of steps, etc.)
+            filteredBoxUniverses = allBoxUniverses;
+
+            drawAllBoxUniverses();
+        }
+
         // --- DRAWING FUNCTION ---
-        // This function will draw all the currently selected box universes
         function drawAllBoxUniverses() {
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
 
-            // Use the global faceSize and padding
-            const netWidth = 3 * faceSize + 2 * padding; 
-            const netHeight = 3 * faceSize + 2 * padding; 
+            const netWidth = (3 * faceSize) + (2 * padding);
+            const netHeight = (3 * faceSize) + (2 * padding);
             const spacingX = 40; // Horizontal space between nets
             const spacingY = 100; // Vertical space between nets (more for text label)
 
             const paddingOverall = 20; // Padding for the overall grid on the canvas
-            const netsPerRow = Math.floor((canvas.width - paddingOverall * 2 + spacingX) / (netWidth + spacingX));
+            const netsPerRow = Math.max(1, Math.floor((canvas.width - paddingOverall * 2 + spacingX) / (netWidth + spacingX)));
 
             filteredBoxUniverses.forEach((bu, index) => {
                 const col = index % netsPerRow;
@@ -419,8 +406,7 @@ function applyAndDrawFilters() {
 
                 // Draw a background for each 9-net to make it distinct
                 ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                // Adjusted background size to correctly contain the net and its label
-                const backgroundWidth = netWidth; 
+                const backgroundWidth = netWidth;
                 const backgroundHeight = netHeight + (spacingY - padding); // net height + space for text
 
                 ctx.fillRect(currentXOffset, currentYOffset, backgroundWidth, backgroundHeight);
@@ -432,38 +418,35 @@ function applyAndDrawFilters() {
                 ctx.font = '12px Arial';
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'top';
-                ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset, currentYOffset + netHeight + 5); // +5 for small margin
+                ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset, currentYOffset + netHeight + 5);
+                ctx.fillText(`Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`, currentXOffset, currentYOffset + netHeight + 20); // Add type info
             });
+
+            if (filteredBoxUniverses.length === 0) {
+                ctx.fillStyle = '#b0b0b0';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText("No Box Universes found for the current filter.", canvas.width / 2, canvas.height / 2);
+            }
         }
-// --- Function to get current filter values from inputs ---
-function getFilterValues() {
-    return {
-        nMin: parseInt(nMinInput.value) || 1, // Default to 1 if empty or invalid
-        nMax: parseInt(nMaxInput.value) || Infinity, // Default to Infinity
-        xMin: parseInt(xMinInput.value) || 1,
-        xMax: parseInt(xMaxInput.value) || Infinity,
-        yMin: parseInt(yMinInput.value) || 1,
-        yMax: parseInt(yMaxInput.value) || Infinity,
-        zMin: parseInt(zMinInput.value) || 1,
-        zMax: parseInt(zMaxInput.value) || Infinity
-    };
-}
-        // --- EVENT LISTENERS FOR COLOR PICKERS ---
+
+        // --- EVENT LISTENERS ---
         divisibleColorInput.addEventListener('input', (event) => {
-            divColor = event.target.value; // Update the global variable
-            drawAllBoxUniverses(); // Redraw with new color
+            divColor = event.target.value;
+            drawAllBoxUniverses();
         });
 
         multiplyColorInput.addEventListener('input', (event) => {
-            mulColor = event.target.value; // Update the global variable
-            drawAllBoxUniverses(); // Redraw with new color
+            mulColor = event.target.value;
+            drawAllBoxUniverses();
         });
-       // --- Event listener for the Apply Filters button ---
-       applyFiltersButton.addEventListener('click', () => {
-            applyAndDrawFilters(); // Call our new function to filter and redraw
-        });
-        applyAndDrawFilters(); // <--- TO THIS LINE (This will initialize filtering and drawing)
-        console.log("Slicer canvas is ready with color pickers!");
+
+        applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+
+        // Initial call to generate and draw universes based on default filter values
+        applyAndDrawFilters();
+        console.log("Slicer canvas is ready with full filtering functionality!");
 
     </script>
 </body>
