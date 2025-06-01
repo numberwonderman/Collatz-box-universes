@@ -67,6 +67,67 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        .slideshow-controls {
+            margin-top: 20px; /* Space above this new control section */
+            background-color: #3a3f47; /* Consistent background */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .slideshow-controls select {
+            padding: 5px;
+            border: 1px solid #555;
+            background-color: #4a4f57;
+            color: #eee;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .slideshow-controls input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 150px; /* Adjust width as needed */
+            height: 8px;
+            background: #555;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+
+        .slideshow-controls input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #61dafb;
+            cursor: pointer;
+        }
+
+        .slideshow-controls input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #61dafb;
+            cursor: pointer;
+        }
+
+        .slideshow-controls #speedValue {
+            font-size: 0.8em;
+            color: #b0b0b0;
+            margin-left: 5px;
+            min-width: 30px; /* Ensure space for number */
+            text-align: center;
+        }
         .color-control {
             display: flex;
             align-items: center;
@@ -186,6 +247,23 @@
         </div>
         <button id="applyFilters">Apply Filters</button>
     </div>
+    <div class="controls slideshow-controls">
+        <div class="param-group">
+            <label for="animationAxis">Animate Axis:</label>
+            <select id="animationAxis">
+                <option value="N">N (Start Number)</option>
+                <option value="X">X (Divisor)</option>
+                <option value="Y">Y (Multiplier)</option>
+                <option value="Z">Z (Adder)</option>
+            </select>
+        </div>
+        <div class="param-group">
+            <label for="animationSpeed">Speed (ms/step):</label>
+            <input type="range" id="animationSpeed" min="50" max="2000" value="500">
+            <span id="speedValue">500</span>
+        </div>
+        <button id="toggleSlideshow">Play Slideshow</button>
+    </div>
     <canvas id="slicerCanvas" width="750" height="1200"></canvas>
 
     <script>
@@ -206,11 +284,96 @@
         const zMinInput = document.getElementById('zMin');
         const zMaxInput = document.getElementById('zMax');
         const applyFiltersButton = document.getElementById('applyFilters');
+        // Slideshow Controls
+        const animationAxisSelect = document.getElementById('animationAxis');
+        const animationSpeedSlider = document.getElementById('animationSpeed');
+        const speedValueSpan = document.getElementById('speedValue');
+        const toggleSlideshowButton = document.getElementById('toggleSlideshow');
 
         // --- GLOBAL CONSTANTS FOR 9-NET DIMENSIONS ---
         const faceSize = 30; // Size of each small square face
         const padding = 10; // Padding around the entire 9-net
+// Update speed value display
+animationSpeedSlider.addEventListener('input', () => {
+            speedValueSpan.textContent = animationSpeedSlider.value;
+        });
 
+        // Slideshow Animation Logic
+        let slideshowInterval;
+        let isSlideshowPlaying = false;
+        let currentAnimationValue; // To keep track of the current N, X, Y, or Z value during animation
+
+        toggleSlideshowButton.addEventListener('click', () => {
+            if (isSlideshowPlaying) {
+                // Stop the slideshow
+                clearInterval(slideshowInterval);
+                toggleSlideshowButton.textContent = 'Play Slideshow';
+                isSlideshowPlaying = false;
+            } else {
+                // Start the slideshow
+                toggleSlideshowButton.textContent = 'Stop Slideshow';
+                isSlideshowPlaying = true;
+                
+                // Initialize the current animation value based on selected axis's min value
+                const axis = animationAxisSelect.value;
+                if (axis === 'N') {
+                    currentAnimationValue = parseInt(nMinInput.value);
+                } else if (axis === 'X') {
+                    currentAnimationValue = parseInt(xMinInput.value);
+                } else if (axis === 'Y') {
+                    currentAnimationValue = parseInt(yMinInput.value);
+                } else if (axis === 'Z') {
+                    currentAnimationValue = parseInt(zMinInput.value);
+                } else {
+                    currentAnimationValue = 0; // Fallback
+                }
+
+                // Call the animation step immediately to draw the first frame
+                animationStep(); 
+                
+                // Set up the interval for subsequent frames
+                slideshowInterval = setInterval(animationStep, parseInt(animationSpeedSlider.value));
+            }
+        });
+
+        // Function to perform one step of the animation
+        function animationStep() {
+            const axis = animationAxisSelect.value;
+            let minVal, maxVal, inputElement;
+
+            // Determine which axis is being animated and get its range/input element
+            if (axis === 'N') {
+                minVal = parseInt(nMinInput.value);
+                maxVal = parseInt(nMaxInput.value);
+                inputElement = nMinInput;
+            } else if (axis === 'X') {
+                minVal = parseInt(xMinInput.value);
+                maxVal = parseInt(xMaxInput.value);
+                inputElement = xMinInput;
+            } else if (axis === 'Y') {
+                minVal = parseInt(yMinInput.value);
+                maxVal = parseInt(yMaxInput.value);
+                inputElement = yMinInput;
+            } else if (axis === 'Z') {
+                minVal = parseInt(zMinInput.value);
+                maxVal = parseInt(zMaxInput.value);
+                inputElement = zMinInput;
+            }
+
+            // Increment the current animation value
+            currentAnimationValue++;
+
+            // Loop back to min if max is exceeded
+            if (currentAnimationValue > maxVal) {
+                currentAnimationValue = minVal;
+            }
+
+            // Update the corresponding input field in the UI
+            inputElement.value = currentAnimationValue;
+
+            // Re-apply filters and redraw the canvas with the new parameter
+            applyAndDrawFilters();
+        }
         // --- RE-USING THE SEQUENCE FUNCTION ---
         const sequence = (num, x, y, z, maxiterations) => {
             if (x === 0) {
