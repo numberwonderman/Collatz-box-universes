@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Universe Slicer 3D</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for a clean look */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* IE10+/Edge */
+            user-select: none; /* Standard */
+        }
+        canvas {
+            background-color: #eee;
+            display: block;
+            width: 100%; /* Make canvas responsive */
+            height: auto; /* Maintain aspect ratio */
+            max-width: 800px; /* Max width for larger screens */
+            max-height: 800px; /* Max height for larger screens */
+            margin: 0 auto; /* Center the canvas */
+            border-radius: 0.75rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+        }
+        /* Style for the message box */
+        #message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-200 to-purple-300 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="message-box" class="hidden"></div>
+
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mb-6 border border-purple-300">
+        <h1 class="text-3xl font-bold text-purple-800 mb-4 text-center">Box Universe Slicer 3D</h1>
+        <p class="text-gray-700 mb-6 text-center">Explore generalized Collatz sequences in a 3D "Box Universe."</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="flex flex-col items-center bg-blue-50 p-3 rounded-md shadow-sm">
+                <label class="text-sm font-medium text-blue-700">N (Base)</label>
+                <span id="display-n" class="text-xl font-bold text-blue-900"></span>
+            </div>
+            <div class="flex flex-col items-center bg-green-50 p-3 rounded-md shadow-sm">
+                <label class="text-sm font-medium text-green-700">X (Divisor)</label>
+                <span id="display-x" class="text-xl font-bold text-green-900"></span>
+            </div>
+            <div class="flex flex-col items-center bg-red-50 p-3 rounded-md shadow-sm">
+                <label class="text-sm font-medium text-red-700">Y (Multiplier)</label>
+                <span id="display-y" class="text-xl font-bold text-red-900"></span>
+            </div>
+            <div class="flex flex-col items-center bg-yellow-50 p-3 rounded-md shadow-sm">
+                <label class="text-sm font-medium text-yellow-700">Z (Adder)</label>
+                <span id="display-z" class="text-xl font-bold text-yellow-900"></span>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+            <label for="speed-slider" class="text-lg font-semibold text-gray-800">Animation Speed:</label>
+            <input type="range" id="speed-slider" min="1" max="100" value="50" class="w-full md:w-64 accent-purple-500">
+            <span id="speed-value" class="text-gray-700">50</span>
+        </div>
+
+        <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
+            <label for="slice-axis" class="text-lg font-semibold text-gray-800">Slice Axis:</label>
+            <select id="slice-axis" class="p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                <option value="x">X-axis</option>
+                <option value="y">Y-axis</option>
+                <option value="z">Z-axis</option>
+            </select>
+            <label for="slice-value" class="text-lg font-semibold text-gray-800">Slice Value:</label>
+            <input type="range" id="slice-value" min="0" max="8" value="0" class="w-full md:w-64 accent-purple-500">
+            <span id="slice-display" class="text-gray-700">0</span>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4">
+            <button id="reset-view-btn" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Reset View
+            </button>
+            <button id="share-link-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                Share Current View Link
+            </button>
+        </div>
+    </div>
+
+    <canvas id="collatzCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer, controls; // Added controls
+        let cubes = [];
+        let N_BASE = 9; // Default N for 9-net
+        let X_DIVISOR = 2; // Default X for n/X rule
+        let Y_MULTIPLIER = 3; // Default Y for Y*n+Z rule
+        let Z_ADDER = 1; // Default Z for Y*n+Z rule
+
+        let animationSpeed = 50; // Initial animation speed
+        let currentSliceAxis = 'x'; // Default slice axis
+        let currentSliceValue = 0; // Default slice value
+
+        let activePath = []; // Stores the current sequence path for visualization
+        let pathIndex = 0; // Current index in the activePath for animation
+        let animationFrameId; // To store the requestAnimationFrame ID
+
+        const CUBE_SIZE = 1;
+        const SPACING = 0.1;
+        let GRID_SIZE = N_BASE; // Will be updated based on N_BASE
+        const TOTAL_CUBE_SIZE = CUBE_SIZE + SPACING;
+
+        // --- Utility Functions ---
+        function showMessage(message, duration = 2000) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        // Function to parse URL parameters
+        function getUrlParams() {
+            const params = {};
+            window.location.search.substring(1).split('&').forEach(param => {
+                const parts = param.split('=');
+                if (parts.length === 2) {
+                    params[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+                }
+            });
+            return params;
+        }
+
+        // --- Collatz Logic ---
+        function generalizedCollatz(n, x, y, z) {
+            if (n <= 0) return []; // Sequences typically start with positive integers
+            let sequence = [n];
+            let current = n;
+            const MAX_ITERATIONS = 1000; // Prevent infinite loops for non-converging sequences
+            let iterations = 0;
+
+            while (current !== 1 && iterations < MAX_ITERATIONS) {
+                if (current % x === 0) {
+                    current = current / x;
+                } else {
+                    current = y * current + z;
+                }
+                sequence.push(current);
+                iterations++;
+            }
+            return sequence;
+        }
+
+        // --- Visualization Functions ---
+        function createCube(x, y, z, color) {
+            const geometry = new THREE.BoxGeometry(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE);
+            const material = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0.8 });
+            const cube = new THREE.Mesh(geometry, material);
+            cube.position.set(
+                (x - (GRID_SIZE - 1) / 2) * TOTAL_CUBE_SIZE,
+                (y - (GRID_SIZE - 1) / 2) * TOTAL_CUBE_SIZE,
+                (z - (GRID_SIZE - 1) / 2) * TOTAL_CUBE_SIZE
+            );
+            scene.add(cube);
+            cubes.push(cube);
+            return cube; // Return the created cube
+        }
+
+        function create9NetCubes() {
+            // Clear existing cubes
+            cubes.forEach(cube => scene.remove(cube));
+            cubes = [];
+
+            // Create cubes for the 9-net based on N_BASE
+            for (let i = 0; i < N_BASE; i++) {
+                for (let j = 0; j < N_BASE; j++) {
+                    for (let k = 0; k < N_BASE; k++) {
+                        // Determine color based on (i, j, k)
+                        // This is a placeholder; you can define your own coloring logic
+                        let color = new THREE.Color(`hsl(${((i * N_BASE * N_BASE + j * N_BASE + k) * 10) % 360}, 70%, 60%)`);
+                        const cube = createCube(i, j, k, color); // Capture the returned cube
+                        if (cube) { // Ensure cube was created successfully
+                            cube.userData.originalIndex = (i * N_BASE * N_BASE + j * N_BASE + k); // Store original index for coloring
+                        }
+                    }
+                }
+            }
+        }
+
+        function getCoordinatesForNumber(n) {
+            // Map a number 'n' to (x, y, z) coordinates within the N_BASE grid
+            // This is a simplified mapping for demonstration.
+            // You'll need to define how your 'slicer' maps numbers to 3D space.
+            // For a 9-net, typically coordinates are (n % N, (n/N) % N, (n/N/N) % N)
+            // Or based on your specific 'box universe' definition.
+            const x = n % N_BASE;
+            const y = Math.floor((n / N_BASE) % N_BASE);
+            const z = Math.floor((n / (N_BASE * N_BASE)) % N_BASE);
+            return { x, y, z };
+        }
+
+        function updatePathVisualization() {
+            if (activePath.length === 0) return;
+
+            // Reset all cube colors to their original 9-net color or default
+            cubes.forEach(cube => {
+                // Re-calculate original color or store it
+                const originalColor = new THREE.Color(`hsl(${((cube.userData.originalIndex) * 10) % 360}, 70%, 60%)`); // Assuming originalIndex is stored
+                cube.material.color.copy(originalColor);
+                cube.material.opacity = 0.8;
+            });
+
+            // Highlight cubes along the active path
+            for (let i = 0; i <= pathIndex; i++) {
+                const num = activePath[i];
+                const { x, y, z } = getCoordinatesForNumber(num);
+
+                // Find the corresponding cube
+                const targetCube = cubes.find(cube => {
+                    // Check if cube position matches calculated coordinates
+                    // Need to map cube.position back to grid indices (0 to N_BASE-1)
+                    const cubeX = Math.round(cube.position.x / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                    const cubeY = Math.round(cube.position.y / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                    const cubeZ = Math.round(cube.position.z / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                    return cubeX === x && cubeY === y && cubeZ === z;
+                });
+
+                if (targetCube) {
+                    targetCube.material.color.set(0xff0000); // Highlight in red
+                    targetCube.material.opacity = 1.0;
+                }
+            }
+        }
+
+        // --- Three.js Setup ---
+        function initThreeJS() {
+            const canvas = document.getElementById('collatzCanvas');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0); // Light background
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.set(10, 10, 10); // Initial camera position
+            camera.lookAt(scene.position);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040); // soft white light
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1).normalize();
+            scene.add(directionalLight);
+
+            create9NetCubes(); // Initial creation of the 9-net
+
+            // Store original index for coloring
+            cubes.forEach((cube, index) => {
+                cube.userData.originalIndex = index;
+            });
+
+            // OrbitControls for camera interaction
+            // THREE.OrbitControls is available globally when loaded via UMD script
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // Enable damping (inertia)
+            controls.dampingFactor = 0.05; // Damping factor
+            controls.screenSpacePanning = false; // Disable panning in screen space
+            controls.minDistance = 2; // Minimum zoom distance
+            controls.maxDistance = 100; // Maximum zoom distance
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+            onWindowResize(); // Call once to set initial size
+        }
+
+        function onWindowResize() {
+            const canvas = document.getElementById('collatzCanvas');
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            if (camera) { // Check if camera is defined before accessing its properties
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+            }
+            if (renderer) { // Check if renderer is defined
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            }
+        }
+
+        // --- Animation Loop ---
+        function animate() {
+            animationFrameId = requestAnimationFrame(animate);
+
+            // Update path visualization based on animation speed
+            if (activePath.length > 0 && pathIndex < activePath.length - 1) {
+                if (Date.now() % (100 - animationSpeed) < 10) { // Slower animation for lower speed
+                    pathIndex++;
+                    updatePathVisualization();
+                }
+            } else if (activePath.length > 0 && pathIndex === activePath.length - 1) {
+                // Path animation complete, reset for next click or loop
+                // For now, just stop animation, can add loop logic later
+                // cancelAnimationFrame(animationFrameId);
+            }
+
+            // Apply slicing effect
+            cubes.forEach(cube => {
+                const pos = cube.position;
+                let shouldBeVisible = true;
+
+                // Map cube position back to grid indices (0 to N_BASE-1)
+                const cubeX = Math.round(cube.position.x / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                const cubeY = Math.round(cube.position.y / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                const cubeZ = Math.round(pos.z / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+
+                if (currentSliceAxis === 'x' && cubeX !== currentSliceValue) {
+                    shouldBeVisible = false;
+                } else if (currentSliceAxis === 'y' && cubeY !== currentSliceValue) {
+                    shouldBeVisible = false;
+                } else if (currentSliceAxis === 'z' && cubeZ !== currentSliceValue) {
+                    shouldBeVisible = false;
+                }
+
+                cube.visible = shouldBeVisible;
+            });
+
+            if (renderer && scene && camera) { // Ensure all are defined before rendering
+                controls.update(); // Update controls in the animation loop
+                renderer.render(scene, camera);
+            }
+        }
+
+        // --- Event Listeners and UI Logic ---
+
+        // Display message box function
+        function showMessageBox(message, duration = 3000) {
+            const msgBox = document.getElementById('message-box');
+            msgBox.textContent = message;
+            msgBox.style.display = 'block';
+            setTimeout(() => {
+                msgBox.style.display = 'none';
+            }, duration);
+        }
+
+        // Parse URL parameters on load and set initial values
+        function initializeFromUrlParams() {
+            const params = getUrlParams();
+            if (params.n) {
+                N_BASE = parseInt(params.n);
+                document.getElementById('display-n').textContent = N_BASE;
+            } else {
+                document.getElementById('display-n').textContent = N_BASE; // Display default if no param
+            }
+            if (params.x) {
+                X_DIVISOR = parseInt(params.x);
+                document.getElementById('display-x').textContent = X_DIVISOR;
+            } else {
+                document.getElementById('display-x').textContent = X_DIVISOR; // Display default if no param
+            }
+            if (params.y) {
+                Y_MULTIPLIER = parseInt(params.y);
+                document.getElementById('display-y').textContent = Y_MULTIPLIER;
+            } else {
+                document.getElementById('display-y').textContent = Y_MULTIPLIER; // Display default if no param
+            }
+            if (params.z) {
+                Z_ADDER = parseInt(params.z);
+                document.getElementById('display-z').textContent = Z_ADDER;
+            } else {
+                document.getElementById('display-z').textContent = Z_ADDER; // Display default if no param
+            }
+
+            // Update GRID_SIZE based on the new N_BASE after parsing params
+            GRID_SIZE = N_BASE;
+
+            // Update slice range max based on N_BASE
+            const sliceValueInput = document.getElementById('slice-value');
+            sliceValueInput.max = N_BASE - 1;
+            if (params.slice) {
+                currentSliceValue = parseInt(params.slice);
+                if (currentSliceValue >= N_BASE || currentSliceValue < 0) { // Ensure slice value is within new bounds
+                    currentSliceValue = 0;
+                }
+                sliceValueInput.value = currentSliceValue;
+                document.getElementById('slice-display').textContent = currentSliceValue;
+            } else {
+                sliceValueInput.value = 0;
+                document.getElementById('slice-display').textContent = 0;
+            }
+
+            if (params.axis) {
+                currentSliceAxis = params.axis;
+                document.getElementById('slice-axis').value = currentSliceAxis;
+            }
+
+            if (params.speed) {
+                animationSpeed = parseInt(params.speed);
+                document.getElementById('speed-slider').value = animationSpeed;
+                document.getElementById('speed-value').textContent = animationSpeed;
+            }
+        }
+
+        // Execute code when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Call this to parse URL parameters and set initial values
+            initializeFromUrlParams();
+
+            // Initialize Three.js scene and objects
+            initThreeJS();
+
+            // Start the animation loop
+            animate();
+
+            // Event listener for canvas click (to start sequence animation)
+            document.getElementById('collatzCanvas').addEventListener('click', (event) => {
+                // Raycasting to detect clicked cube
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+
+                // Calculate mouse position in normalized device coordinates (-1 to +1)
+                const canvas = document.getElementById('collatzCanvas');
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(cubes);
+
+                if (intersects.length > 0) {
+                    const intersectedCube = intersects[0].object;
+                    // Map cube position back to grid indices (0 to N_BASE-1)
+                    const cubeX = Math.round(intersectedCube.position.x / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                    const cubeY = Math.round(intersectedCube.position.y / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+                    const cubeZ = Math.round(intersectedCube.position.z / TOTAL_CUBE_SIZE + (GRID_SIZE - 1) / 2);
+
+                    // Convert (x, y, z) back to a number for generalizedCollatz
+                    // This mapping needs to be consistent with getCoordinatesForNumber
+                    const startingNumber = cubeX + cubeY * N_BASE + cubeZ * N_BASE * N_BASE;
+
+                    activePath = generalizedCollatz(startingNumber, X_DIVISOR, Y_MULTIPLIER, Z_ADDER);
+                    pathIndex = 0; // Reset animation
+                    updatePathVisualization(); // Initial highlight
+                    showMessage(`Sequence started from: ${startingNumber}`);
+                }
+            });
+
+            // Event listeners for UI controls
+            document.getElementById('speed-slider').addEventListener('input', (event) => {
+                animationSpeed = parseInt(event.target.value);
+                document.getElementById('speed-value').textContent = animationSpeed;
+            });
+
+            document.getElementById('slice-axis').addEventListener('change', (event) => {
+                currentSliceAxis = event.target.value;
+                // Update slice value max based on N_BASE if axis changes
+                const sliceValueInput = document.getElementById('slice-value');
+                sliceValueInput.max = N_BASE - 1;
+                if (currentSliceValue >= N_BASE) {
+                    currentSliceValue = 0; // Reset if out of bounds
+                }
+                sliceValueInput.value = currentSliceValue;
+                document.getElementById('slice-display').textContent = currentSliceValue;
+            });
+
+            document.getElementById('slice-value').addEventListener('input', (event) => {
+                currentSliceValue = parseInt(event.target.value);
+                document.getElementById('slice-display').textContent = currentSliceValue;
+            });
+
+            document.getElementById('reset-view-btn').addEventListener('click', () => {
+                camera.position.set(10, 10, 10);
+                camera.lookAt(scene.position);
+                // Reset slicing
+                currentSliceAxis = 'x';
+                currentSliceValue = 0;
+                document.getElementById('slice-axis').value = 'x';
+                document.getElementById('slice-value').value = 0;
+                document.getElementById('slice-display').textContent = 0;
+                // Reset path
+                activePath = [];
+                pathIndex = 0;
+                updatePathVisualization();
+                showMessage("View reset!");
+            });
+
+            document.getElementById('share-link-btn').addEventListener('click', () => {
+                const currentN = N_BASE;
+                const currentX = X_DIVISOR;
+                const currentY = Y_MULTIPLIER;
+                const currentZ = Z_ADDER;
+
+                const currentSliceAxisVal = currentSliceAxis;
+                const currentSliceValueVal = currentSliceValue;
+                const currentSpeed = animationSpeed;
+
+                const baseUrl = window.location.origin + window.location.pathname;
+                const shareUrl = `${baseUrl}?n=${currentN}&x=${currentX}&y=${currentY}&z=${currentZ}&axis=${currentSliceAxisVal}&slice=${currentSliceValueVal}&speed=${currentSpeed}`;
+
+                // Copy to clipboard
+                const tempInput = document.createElement('textarea');
+                tempInput.value = shareUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                showMessage("Link copied to clipboard!");
+            });
+        });
+    </script>
+</body>
+</html>
