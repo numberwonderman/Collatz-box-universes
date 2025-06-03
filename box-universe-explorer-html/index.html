@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Box Universe Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* Custom scrollbar for history div */
         .custom-scrollbar::-webkit-scrollbar {
@@ -21,6 +21,7 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
         }
         body {
             font-family: 'Inter', sans-serif;
@@ -44,8 +45,8 @@
                 display: none;
             }
 
-            /* Hide the 9-net canvases */
-            canvas {
+            /* Hide the 9-net canvases in history for print, but keep the main one if desired */
+            #runsHistory canvas {
                 display: none;
             }
 
@@ -93,6 +94,18 @@
                 color: #333 !important;
             }
         } 
+        /* Custom styling for the gold star/indicator */
+        .gold-star {
+            color: gold; /* Or use an emoji like '⭐' in the HTML directly */
+            font-size: 1.25rem; /* text-xl */
+            margin-left: 0.25rem; /* ml-1 */
+            display: inline-block; /* To align with text */
+        }
+        /* Styling for disabled button */
+        .disabled-btn {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
     </style>
      <!--
     LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
@@ -139,18 +152,33 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
                 class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <div class="flex items-center">
+                <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="x-star" class="gold-star">⭐</span>
+            </div>
+            <div class="flex items-center">
+                <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="y-star" class="gold-star">⭐</span>
+            </div>
+            <div class="flex items-center">
+                <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="z-star" class="gold-star">⭐</span>
+            </div>
         </div>
 
         <button id="calculateSingle"
-            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-8">
+            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
             Calculate Single Sequence
         </button>
+
+        <!-- Container for the single 9-net canvas -->
+        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
+            <canvas id="singleNineNetCanvas" width="300" height="300" class="rounded-md border border-blue-700"></canvas>
+        </div>
+
 
         <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
@@ -177,12 +205,12 @@
             <div class="flex items-center space-x-2 text-white">
                 <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
                 <input type="color" id="divColorPicker" value="#34d399"
-                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
             <div class="flex items-center space-x-2 text-white">
                 <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
                 <input type="color" id="mulColorPicker" value="#fb923c"
-                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
         </div>
         <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
@@ -201,7 +229,7 @@
         window.divColor = "#34d399";
         window.mulColor = "#fb923c";
 
-        // === YOUR ORIGINAL SEQUENCE FUNCTION ===
+        // === Generalized Collatz function ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
         const sequence = (num, x, y, z, maxiterations) => {
@@ -251,13 +279,16 @@
             }
         };
 
+        // === drawNineNetCanvas function (re-added to index.html) ===
         /**
          * Draws the 9-net visualization of the sequence on a canvas.
          * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
          * @param {Array<number>} sequence - The sequence of numbers to visualize.
          * @param {number} xVal - The X parameter used in the Collatz rule for color determination.
+         * @param {string} divColor - Color for divisible numbers.
+         * @param {string} mulColor - Color for multiply/add numbers.
          */
-        function drawNineNetCanvas(canvas, sequence, xVal) {
+        function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
             const ctx = canvas.getContext("2d");
             // Clear the canvas before drawing
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -265,10 +296,6 @@
             const faceSize = 30; // Size of each small square face
             const padding = 10; // Padding around the entire 9-net
             const stepSize = 3; // Number of small squares per 'face' side (3x3 grid)
-
-            // Get the colors from the global window variables, with fallbacks
-            const divColor = window.divColor || "#34d399"; // green for Divisible
-            const mulColor = window.mulColor || "#fb923c"; // orange for Multiply/Add
 
             // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
             const layout = [
@@ -280,11 +307,10 @@
                 { r: 2, c: 1 }  // Bottom
             ];
 
-
             let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
 
             // Iterate through each 'face' in the predefined layout
-            for (const pos of layout) { // Changed to iterate directly over array
+            for (const pos of layout) {
                 // Iterate through the 3x3 grid of small squares within each face
                 for (let i = 0; i < stepSize; i++) { // Row within the face
                     for (let j = 0; j < stepSize; j++) { // Column within the face
@@ -305,6 +331,14 @@
                                 color = mulColor; // Orange if not divisible
                             }
                             label = val.toString(); // Set label to the number itself
+
+                            // Ellipsis Logic for very large numbers (copied from slicer.html)
+                            const maxChars = 5;
+                            if (label.length > maxChars) {
+                                const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
+                                const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
+                                label = start + "..." + end;
+                            }
                         }
 
                         // Draw the square
@@ -314,7 +348,14 @@
                         // Draw the number label if available
                         if (label) {
                             ctx.fillStyle = "#FFF"; // White text
-                            ctx.font = "10px Arial"; // Smaller font for numbers
+                            // Dynamic font sizing (copied from slicer.html)
+                            let currentFontSize = 10;
+                            if (label.length > 7) {
+                                currentFontSize = 6;
+                            } else if (label.length > 5) {
+                                currentFontSize = 8;
+                            }
+                            ctx.font = `${currentFontSize}px Arial`;
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
                             ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
@@ -324,6 +365,21 @@
                     }
                 }
             }
+        }
+
+        // Function to update the gold star visibility
+        function updateGoldStarVisibility() {
+            const xVal = parseInt(document.getElementById('xValue').value);
+            const yVal = parseInt(document.getElementById('yValue').value);
+            const zVal = parseInt(document.getElementById('zValue').value);
+
+            const xStar = document.getElementById('x-star');
+            const yStar = document.getElementById('y-star');
+            const zStar = document.getElementById('z-star');
+
+            if (xStar) xStar.style.display = (xVal === 2) ? 'inline-block' : 'none';
+            if (yStar) yStar.style.display = (yVal === 3) ? 'inline-block' : 'none';
+            if (zStar) zStar.style.display = (zVal === 1) ? 'inline-block' : 'none';
         }
 
         let calculatedRuns = []; // Global array to store runs
@@ -388,27 +444,25 @@
                 sequenceDiv.textContent = Array.isArray(run.sequence) ? run.sequence.join(' → ') : 'Invalid sequence data';
                 runDiv.appendChild(sequenceDiv);
 
-                // Create and draw the canvas
-                const canvas = document.createElement('canvas');
-                canvas.width = 300; // Fixed width
-                canvas.height = 300; // Fixed height
-                canvas.className = 'rounded-md border border-blue-700 mt-2';
-                runDiv.appendChild(canvas);
-                drawNineNetCanvas(canvas, run.sequence, run.X);
-                // Add "View in 3D" button for this run
+                // Add "View in 3D" button for this run (DISABLED with tooltip)
                 const viewIn3dBtn = document.createElement('button');
                 viewIn3dBtn.textContent = 'View in 3D';
-                // Tailwind classes for styling the button
-                viewIn3dBtn.className = 'mt-4 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400';
+                viewIn3dBtn.className = 'mt-4 px-4 py-2 bg-purple-500 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out disabled-btn';
+                viewIn3dBtn.setAttribute('disabled', 'true');
+                viewIn3dBtn.setAttribute('title', '3D visualization temporarily unavailable due to local server compatibility. Please ensure Live Server is active.');
+                runDiv.appendChild(viewIn3dBtn);
 
-                // Add event listener to the button
-                viewIn3dBtn.addEventListener('click', () => {
-                    // Construct the URL for slicer3d.html with the current run's parameters
-                    // 'run.startNum' will be 'N_BASE' in slicer3d.html
-                    const url = `slicer3d.html?n=${run.startNum}&x=${run.X}&y=${run.Y}&z=${run.Z}`;
-                    window.open(url, '_blank'); // Open slicer3d.html in a new browser tab
+                // Add "View in 2D" button for this run
+                const viewIn2dBtn = document.createElement('button');
+                viewIn2dBtn.textContent = 'View in 2D';
+                viewIn2dBtn.className = 'mt-4 ml-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400';
+                viewIn2dBtn.setAttribute('title', 'Requires server to view (e.g., via Live Server)'); // Tooltip for 2D
+                viewIn2dBtn.addEventListener('click', () => {
+                    // Pass all relevant parameters to slicer.html
+                    const url = `slicer.html?n=${run.startNum}&x=${run.X}&y=${run.Y}&z=${run.Z}&divColor=${encodeURIComponent(window.divColor)}&mulColor=${encodeURIComponent(window.mulColor)}`;
+                    window.open(url, '_blank'); // Open slicer.html in a new browser tab
                 });
-                runDiv.appendChild(viewIn3dBtn); // Append the button to the history item div
+                runDiv.appendChild(viewIn2dBtn);
 
                 runsHistoryDiv.appendChild(runDiv);
             }
@@ -446,6 +500,10 @@
 
             if (result.type === "error") {
                 errorMessage.textContent = result.message;
+                // Clear the single 9-net canvas on error
+                const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+                const ctx = singleNineNetCanvas.getContext('2d');
+                ctx.clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
                 return;
             }
 
@@ -461,6 +519,10 @@
                 cycle: result.cycle, // Include cycle if present
                 finalNum: result.finalNum // Include finalNum if present (for max iterations/safe integer)
             };
+
+            // Draw the single 9-net immediately after calculation
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+            drawNineNetCanvas(singleNineNetCanvas, newRun.sequence, newRun.X, window.divColor, window.mulColor);
 
             calculatedRuns.push(newRun); // Add to the end, then renderHistory will reverse for display
             renderHistory();
@@ -560,19 +622,59 @@
         // Event Listeners for color pickers to update global colors and re-render history
         document.getElementById('divColorPicker').addEventListener('input', (e) => {
             window.divColor = e.target.value; // Get the new color from the picker
-            renderHistory(); // Re-render all the displayed nets with the new color
+            // Re-draw the single 9-net if it's currently displayed
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+            const currentN = parseInt(document.getElementById('startNumber').value);
+            const currentX = parseInt(document.getElementById('xValue').value);
+            const currentY = parseInt(document.getElementById('yValue').value);
+            const currentZ = parseInt(document.getElementById('zValue').value);
+            const maxSteps = 10000;
+            const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
+            if (result.type !== "error") {
+                drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
+            }
+            renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
         });
 
         document.getElementById('mulColorPicker').addEventListener('input', (e) => {
             window.mulColor = e.target.value; // Get the new color from the picker
-            renderHistory(); // Re-render all the displayed nets with the new color
+            // Re-draw the single 9-net if it's currently displayed
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+            const currentN = parseInt(document.getElementById('startNumber').value);
+            const currentX = parseInt(document.getElementById('xValue').value);
+            const currentY = parseInt(document.getElementById('yValue').value);
+            const currentZ = parseInt(document.getElementById('zValue').value);
+            const maxSteps = 10000;
+            const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
+            if (result.type !== "error") {
+                drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
+            }
+            renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
         });
+
+        // Add event listeners to input fields to update gold star visibility
+        document.getElementById('xValue').addEventListener('input', updateGoldStarVisibility);
+        document.getElementById('yValue').addEventListener('input', updateGoldStarVisibility);
+        document.getElementById('zValue').addEventListener('input', updateGoldStarVisibility);
+
 
         // Initial render (on page load)
         document.addEventListener('DOMContentLoaded', () => {
             renderHistory(); // Ensure history container visibility is correctly set on load
+            updateGoldStarVisibility(); // Initial call to set gold star visibility on page load
+            
+            // Initial draw of the single 9-net on page load with default values
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+            const defaultN = parseInt(document.getElementById('startNumber').value);
+            const defaultX = parseInt(document.getElementById('xValue').value);
+            const defaultY = parseInt(document.getElementById('yValue').value);
+            const defaultZ = parseInt(document.getElementById('zValue').value);
+            const maxSteps = 10000;
+            const defaultResult = sequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
+            if (defaultResult.type !== "error") {
+                drawNineNetCanvas(singleNineNetCanvas, defaultResult.sequence, defaultX, window.divColor, window.mulColor);
+            }
         });
-    
     </script>
 </body>
 </html>
