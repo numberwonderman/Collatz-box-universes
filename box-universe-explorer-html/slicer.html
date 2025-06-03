@@ -166,6 +166,8 @@
         <p class="sequence-info" id="sequenceInfo">Calculating sequence...</p>
         <!-- New element for min/max range -->
         <p class="sequence-range-info text-gray-400 text-sm mb-2" id="sequenceRangeInfo"></p>
+        <!-- New element for sum -->
+        <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
         <!-- Single 9-net canvas (for direct URL viewing) -->
@@ -255,7 +257,7 @@
         // === Generalized Collatz function ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
-        // Now also calculates min and max values in the sequence.
+        // Now also calculates min, max, and sum values in the sequence.
         const generalizedCollatz = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
@@ -268,10 +270,11 @@
 
             let minVal = num;
             let maxVal = num;
+            let sumVal = num; // Initialize sum with the starting number
 
             while (num !== 1 && iterations < maxiterations) {
                 if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal };
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
                 }
 
                 let next_num;
@@ -285,10 +288,18 @@
                 minVal = Math.min(minVal, next_num);
                 maxVal = Math.max(maxVal, next_num);
 
+                // Update sum, checking for potential overflow with very large numbers
+                // If sumVal + next_num would exceed MAX_SAFE_INTEGER, cap it or mark as too large
+                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) { // Check for potential overflow
+                    sumVal = Number.MAX_SAFE_INTEGER; // Indicate it's too large
+                } else {
+                    sumVal += next_num;
+                }
+
                 if (visitedNumbersMap.has(next_num)) {
                     const cycleStartIndex = visitedNumbersMap.get(next_num);
                     const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal };
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
                 }
                 visitedNumbersMap.set(next_num, output.length);
 
@@ -298,9 +309,9 @@
             }
 
             if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal };
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
             }
         };
 
@@ -432,6 +443,7 @@
         const applyFiltersButton = document.getElementById('applyFilters');
         const gridContainer = document.getElementById('gridContainer');
         const sequenceRangeInfo = document.getElementById('sequenceRangeInfo'); // New element for main slicer display
+        const sequenceSumInfo = document.getElementById('sequenceSumInfo'); // New element for main slicer display
 
         // Update speed value display
         animationSpeedSlider.addEventListener('input', () => {
@@ -516,8 +528,9 @@
                                     sequence: result.sequence,
                                     steps: result.steps,
                                     type: result.type,
-                                    minVal: result.minVal, // New: min value in sequence
-                                    maxVal: result.maxVal  // New: max value in sequence
+                                    minVal: result.minVal, // min value in sequence
+                                    maxVal: result.maxVal,  // max value in sequence
+                                    sumVal: result.sumVal   // New: sum of sequence values
                                 });
                                 generatedCount++;
                             }
@@ -573,7 +586,7 @@
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}`;
+                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}<br>Sum: ${bu.sumVal > Number.MAX_SAFE_INTEGER ? 'Too Large' : bu.sumVal.toLocaleString()}`;
                 gridItemDiv.appendChild(infoDiv);
 
                 // Add "View in Main Explorer" button
@@ -629,6 +642,7 @@
                     sequenceInfo.textContent = `Error: ${result.message}`;
                     sequenceNumbersDiv.textContent = '';
                     sequenceRangeInfo.textContent = ''; // Clear range info on error
+                    sequenceSumInfo.textContent = ''; // Clear sum info on error
                     nineNetCanvas.style.display = 'none';
                 } else {
                     let typeText = result.type.replace(/_/g, ' ');
@@ -642,6 +656,7 @@
                     sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
                     sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
                     sequenceRangeInfo.textContent = `Range: ${result.minVal} to ${result.maxVal}`; // Display range
+                    sequenceSumInfo.textContent = `Sum: ${result.sumVal > Number.MAX_SAFE_INTEGER ? 'Too Large' : result.sumVal.toLocaleString()}`; // Display sum
                     drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
                     nineNetCanvas.style.display = 'block'; // Ensure it's visible
                 }
@@ -650,6 +665,7 @@
                 sequenceInfo.textContent = '';
                 sequenceNumbersDiv.textContent = '';
                 sequenceRangeInfo.textContent = ''; // Clear range info
+                sequenceSumInfo.textContent = ''; // Clear sum info
                 nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
             }
 
