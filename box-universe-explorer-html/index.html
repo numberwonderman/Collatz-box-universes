@@ -176,7 +176,8 @@
 
         <!-- Container for the single 9-net canvas -->
         <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
-            <canvas id="singleNineNetCanvas" width="300" height="300" class="rounded-md border border-blue-700"></canvas>
+            <!-- Canvas dimensions updated to correctly fit the 9-net drawing -->
+            <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
         </div>
 
 
@@ -229,6 +230,19 @@
         window.divColor = "#34d399";
         window.mulColor = "#fb923c";
 
+        // === Constants for 9-Net Dimensions ===
+        // These are calculated based on the drawNineNetCanvas logic.
+        // The 9-net layout is effectively 4 'face' columns wide and 3 'face' rows high.
+        // Each face is 3x3 small squares.
+        const FACE_SIZE = 30; // Size of each small square face
+        const PADDING = 10; // Padding around the entire 9-net
+        const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
+
+        // Total internal drawing dimensions for a complete 9-net
+        const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
+        const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
+
+
         // === Generalized Collatz function ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
@@ -279,7 +293,7 @@
             }
         };
 
-        // === drawNineNetCanvas function (re-added to index.html) ===
+        // === drawNineNetCanvas function ===
         /**
          * Draws the 9-net visualization of the sequence on a canvas.
          * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
@@ -293,9 +307,10 @@
             // Clear the canvas before drawing
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const faceSize = 30; // Size of each small square face
-            const padding = 10; // Padding around the entire 9-net
-            const stepSize = 3; // Number of small squares per 'face' side (3x3 grid)
+            // Use the global constants for drawing logic
+            const faceSize = FACE_SIZE;
+            const padding = PADDING;
+            const stepSize = STEP_SIZE;
 
             // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
             const layout = [
@@ -332,7 +347,7 @@
                             }
                             label = val.toString(); // Set label to the number itself
 
-                            // Ellipsis Logic for very large numbers (copied from slicer.html)
+                            // Ellipsis Logic for very large numbers
                             const maxChars = 5;
                             if (label.length > maxChars) {
                                 const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
@@ -348,7 +363,7 @@
                         // Draw the number label if available
                         if (label) {
                             ctx.fillStyle = "#FFF"; // White text
-                            // Dynamic font sizing (copied from slicer.html)
+                            // Dynamic font sizing
                             let currentFontSize = 10;
                             if (label.length > 7) {
                                 currentFontSize = 6;
@@ -657,23 +672,54 @@
         document.getElementById('yValue').addEventListener('input', updateGoldStarVisibility);
         document.getElementById('zValue').addEventListener('input', updateGoldStarVisibility);
 
+        /**
+         * Parses URL parameters.
+         * @returns {Object} An object containing key-value pairs of URL parameters.
+         */
+        function getUrlParams() {
+            const params = {};
+            window.location.search.substring(1).split('&').forEach(param => {
+                const parts = param.split('=');
+                if (parts.length === 2) {
+                    params[parts[0]] = decodeURIComponent(parts[1]);
+                }
+            });
+            return params;
+        }
 
         // Initial render (on page load)
         document.addEventListener('DOMContentLoaded', () => {
+            const params = getUrlParams();
+            const nParam = params.n;
+            const xParam = params.x;
+            const yParam = params.y;
+            const zParam = params.z;
+
+            // If parameters are present, pre-fill inputs and trigger calculation
+            if (nParam && xParam && yParam && zParam) {
+                document.getElementById('startNumber').value = nParam;
+                document.getElementById('xValue').value = xParam;
+                document.getElementById('yValue').value = yParam;
+                document.getElementById('zValue').value = zParam;
+                
+                // Automatically trigger the single calculation
+                document.getElementById('calculateSingle').click();
+            } else {
+                // If no parameters, perform initial draw with default values
+                const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+                const defaultN = parseInt(document.getElementById('startNumber').value);
+                const defaultX = parseInt(document.getElementById('xValue').value);
+                const defaultY = parseInt(document.getElementById('yValue').value);
+                const defaultZ = parseInt(document.getElementById('zValue').value);
+                const maxSteps = 10000;
+                const defaultResult = sequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
+                if (defaultResult.type !== "error") {
+                    drawNineNetCanvas(singleNineNetCanvas, defaultResult.sequence, defaultX, window.divColor, window.mulColor);
+                }
+            }
+
             renderHistory(); // Ensure history container visibility is correctly set on load
             updateGoldStarVisibility(); // Initial call to set gold star visibility on page load
-            
-            // Initial draw of the single 9-net on page load with default values
-            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-            const defaultN = parseInt(document.getElementById('startNumber').value);
-            const defaultX = parseInt(document.getElementById('xValue').value);
-            const defaultY = parseInt(document.getElementById('yValue').value);
-            const defaultZ = parseInt(document.getElementById('zValue').value);
-            const maxSteps = 10000;
-            const defaultResult = sequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
-            if (defaultResult.type !== "error") {
-                drawNineNetCanvas(singleNineNetCanvas, defaultResult.sequence, defaultX, window.divColor, window.mulColor);
-            }
         });
     </script>
 </body>

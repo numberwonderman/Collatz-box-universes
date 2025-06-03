@@ -4,378 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
-
-    <!--
-    LONG-TERM MISSION STATEMENT FOR THE BOX UNIVERSE EXPLORER PROJECT:
-
-    This project aims to explore and visualize generalized Collatz sequences
-    from novel perspectives, moving beyond traditional numerical analysis.
-    The goal is not necessarily to prove the Collatz conjecture directly,
-    but to build intuitive tools and models (like 9-nets and 2D/3D slicers)
-    that reveal hidden patterns, behaviors, and relationships within the
-    parameter space (N, X, Y, Z) that defines these universes.
-
-    Ultimately, this work seeks to provide a unique "visual intuition"
-    that can inspire new hypotheses, facilitate deeper understanding,
-    and potentially lay groundwork for future mathematical insights,
-    even if it takes months or years to fully realize.
-    -->
-
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
-            display: flex;
-            flex-direction: column; /* Allow content to stack vertically */
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #282c34; /* Dark background */
-            color: #ffffff; /* White text */
-            font-family: Arial, sans-serif;
-            padding: 20px; /* Add some padding around the content */
-            box-sizing: border-box; /* Include padding in element's total width and height */
-        }
-        canvas {
-            border: 2px solid #61dafb; /* Light blue border */
-            background-color: #1c1f26; /* Slightly lighter dark for canvas background */
-            max-width: 100%; /* Ensure canvas is responsive */
-            height: auto; /* Maintain aspect ratio */
-            display: block; /* Remove extra space below canvas */
-            margin-top: 20px; /* Space between title and canvas */
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        p.mission-statement {
-            max-width: 800px;
-            text-align: center;
-            font-size: 0.9em;
-            color: #b0b0b0;
-            margin-top: 20px;
-            line-height: 1.5;
-        }
-        .controls {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap; /* Allow controls to wrap on smaller screens */
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            background-color: #3a3f47; /* Slightly lighter background for controls */
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .slideshow-controls {
-            margin-top: 20px; /* Space above this new control section */
-            background-color: #3a3f47; /* Consistent background */
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            padding: 10px;
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .slideshow-controls select {
-            padding: 5px;
-            border: 1px solid #555;
-            background-color: #4a4f57;
-            color: #eee;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-
-        .slideshow-controls input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 150px; /* Adjust width as needed */
-            height: 8px;
-            background: #555;
-            outline: none;
-            opacity: 0.7;
-            -webkit-transition: .2s;
-            transition: opacity .2s;
-            border-radius: 5px;
-        }
-
-        .slideshow-controls input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #61dafb;
-            cursor: pointer;
-        }
-
-        .slideshow-controls input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #61dafb;
-            cursor: pointer;
-        }
-
-        .slideshow-controls #speedValue {
-            font-size: 0.8em;
-            color: #b0b0b0;
-            margin-left: 5px;
-            min-width: 30px; /* Ensure space for number */
-            text-align: center;
-        }
-        .color-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .color-control label {
-            font-size: 0.9em;
-        }
-        input[type="color"] {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            width: 40px;
-            height: 25px;
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            border-radius: 5px;
-        }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: 1px solid #555;
-            border-radius: 4px;
-        }
-        input[type="color"]::-moz-color-swatch {
-            border: 1px solid #555;
-            border-radius: 4px;
-        }
-        .range-controls {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-            background-color: #3a3f47; /* Consistent background with .controls */
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .param-group {
+            font-family: 'Inter', sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 5px;
+            justify-content: flex-start; /* Align to top to give space for controls */
+            min-height: 100vh;
+            background-color: #1a202c; /* Dark background similar to index.html */
+            color: #e2e8f0; /* Light text color */
+            padding: 1rem;
+            box-sizing: border-box;
         }
-        .param-group label {
-            font-size: 0.9em;
-            color: #b0b0b0;
-        }
-        .range-controls input[type="number"] {
-            width: 60px;
-            padding: 5px;
-            border: 1px solid #555;
-            background-color: #4a4f57; /* Consistent input background */
-            color: #eee;
-            border-radius: 4px;
+        .container {
+            background-color: #2d3748; /* Slightly lighter dark background for container */
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* shadow-xl */
             text-align: center;
+            max-width: 90%; /* Responsive width */
+            margin-bottom: 2rem; /* Space below the main controls container */
         }
-        button {
-            background-color: #61dafb;
-            color: #1c1f26;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+        /* Adjusted canvas styling for consistency across the app */
+        canvas {
+            display: block;
+            margin: 1.5rem auto; /* mt-6 mb-6 */
+            border-radius: 0.5rem; /* rounded-md */
+            border: 1px solid #4a5568; /* border-gray-600 */
+            max-width: 100%; /* Ensure canvas is responsive */
+            height: auto; /* Maintain aspect ratio */
+        }
+        .param-display {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 1rem;
+            color: #90cdf4; /* blue-300 */
+        }
+        .sequence-info {
+            font-size: 1rem; /* text-base */
+            margin-bottom: 1.5rem;
+            color: #a0aec0; /* gray-400 */
+        }
+        .sequence-numbers {
+            background-color: #1a202c; /* Darker background for sequence numbers */
+            padding: 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            max-height: 8rem; /* max-h-32 */
+            overflow-y: auto;
+            font-size: 0.875rem; /* text-sm */
+            word-break: break-all;
+            color: #cbd5e0; /* gray-300 */
+            margin-bottom: 1.5rem;
+        }
+        .color-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .color-box {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #a0aec0;
+        }
+        /* Styles for slideshow controls */
+        .slideshow-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .slideshow-controls label {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .slideshow-controls select,
+        .slideshow-controls input[type="range"] {
+            background-color: #4a5568;
+            border: 1px solid #64748b;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .slideshow-controls button {
+            padding: 0.75rem 1.5rem;
+            background-color: #4299e1; /* Blue for play/stop */
+            color: white;
             font-weight: bold;
+            border-radius: 0.75rem;
             transition: background-color 0.3s ease;
         }
-        button:hover {
+        .slideshow-controls button:hover {
+            background-color: #3182ce;
+        }
+        /* Styles for the grid of 9-nets */
+        .grid-container {
+            display: grid;
+            /* Calculate minmax based on desired display size, maintaining aspect ratio */
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjusted for better fit */
+            gap: 1.5rem;
+            padding: 1rem;
+            width: 100%;
+            max-width: 1200px; /* Limit overall grid width */
+            margin: 2rem auto;
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        .grid-item {
+            background-color: #1a202c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Distribute space */
+        }
+        .grid-item canvas {
+            /* Set max-width to a desired display size, height auto to maintain aspect ratio */
+            max-width: 150px; /* Display size for grid items */
+            height: auto; /* Crucial for maintaining aspect ratio */
+            margin: 0.5rem auto;
+            border: 1px solid #4a5568;
+        }
+        .grid-item .info {
+            font-size: 0.875rem;
+            color: #cbd5e0;
+            margin-bottom: 0.5rem;
+        }
+        .grid-item button {
+            background-color: #61dafb; /* Light blue for "View in Main" */
+            color: #1a202c;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        .grid-item button:hover {
             background-color: #21a1f1;
         }
     </style>
 </head>
 <body>
-    <h1>2D Pseudo-3D Slicer</h1>
-    <p class="mission-statement">
-        Part of the Box Universe Explorer project, this tool aims to visualize
-        complex data by representing it as 3D geometric shapes and allowing
-        interactive 2D cross-section slicing. The goal is to build visual intuition
-        and explore patterns within multi-dimensional data.
-    </p>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-4">2D Pseudo-3D Slicer</h1>
+        <p class="param-display" id="paramDisplay">Loading parameters...</p>
+        <p class="sequence-info" id="sequenceInfo">Calculating sequence...</p>
+        <div class="sequence-numbers" id="sequenceNumbers"></div>
 
-    <div class="controls">
-        <div class="color-control">
-            <label for="divisibleColor">Divisible Color:</label>
-            <input type="color" id="divisibleColor" value="#34d399">
+        <!-- Single 9-net canvas (for direct URL viewing) -->
+        <!-- Dimensions updated to correctly fit the 9-net drawing -->
+        <canvas id="nineNetCanvas" width="380" height="290"></canvas>
+
+        <div class="color-display">
+            <span class="text-lg">Divisible:</span>
+            <div id="divColorBox" class="color-box"></div>
+            <span class="text-lg">Multiply/Add:</span>
+            <div id="mulColorBox" class="color-box"></div>
         </div>
-        <div class="color-control">
-            <label for="multiplyColor">Multiply/Add Color:</label>
-            <input type="color" id="multiplyColor" value="#fb923c">
-        </div>
+
+        <button onclick="window.close()" class="mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400">
+            Close Slicer
+        </button>
     </div>
-    <div class="range-controls">
-        <div class="param-group">
-            <label>N (Start Number):</label>
-            <input type="number" id="nMin" value="1" min="1">
-            <input type="number" id="nMax" value="50" min="1">
-        </div>
-        <div class="param-group">
-            <label>X (Divisor):</label>
-            <input type="number" id="xMin" value="2" min="1">
-            <input type="number" id="xMax" value="5" min="1">
-        </div>
-        <div class="param-group">
-            <label>Y (Multiplier):</label>
-            <input type="number" id="yMin" value="3" min="1">
-            <input type="number" id="yMax" value="5" min="1">
-        </div>
-        <div class="param-group">
-            <label>Z (Adder):</label>
-            <input type="number" id="zMin" value="1" min="1">
-            <input type="number" id="zMax" value="5" min="1">
-        </div>
-        <button id="applyFilters">Apply Filters</button>
-    </div>
-    <div class="controls slideshow-controls">
-        <div class="param-group">
+
+    <!-- Slideshow and Bulk Generation Controls (Moved to top for better flow) -->
+    <div class="container slideshow-controls">
+        <div class="flex flex-col items-center">
             <label for="animationAxis">Animate Axis:</label>
-            <select id="animationAxis">
+            <select id="animationAxis" class="mt-1 p-2 rounded-md">
                 <option value="N">N (Start Number)</option>
                 <option value="X">X (Divisor)</option>
                 <option value="Y">Y (Multiplier)</option>
                 <option value="Z">Z (Adder)</option>
             </select>
         </div>
-        <div class="param-group">
+        <div class="flex flex-col items-center">
             <label for="animationSpeed">Speed (ms/step):</label>
-            <input type="range" id="animationSpeed" min="50" max="2000" value="500">
-            <span id="speedValue">500</span>
+            <input type="range" id="animationSpeed" min="50" max="2000" value="500" class="mt-1">
+            <span id="speedValue" class="text-sm text-gray-400">500</span>
         </div>
-        <button id="toggleSlideshow">Play Slideshow</button>
+        <button id="toggleSlideshow" class="px-4 py-2">Play Slideshow</button>
+
+        <div class="flex flex-col items-center">
+            <label>N Range:</label>
+            <div class="flex gap-2">
+                <input type="number" id="nMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="nMax" value="50" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label>X Range:</label>
+            <div class="flex gap-2">
+                <input type="number" id="xMin" value="2" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="xMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label>Y Range:</label>
+            <div class="flex gap-2">
+                <input type="number" id="yMin" value="3" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="yMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label>Z Range:</label>
+            <div class="flex gap-2">
+                <input type="number" id="zMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="zMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <button id="applyFilters" class="px-4 py-2 bg-green-500 hover:bg-green-600">Apply Filters</button>
     </div>
-    <canvas id="slicerCanvas" width="750" height="1200"></canvas>
+
+    <!-- Grid for Bulk Generated Universes -->
+    <div id="gridContainer" class="grid-container">
+        <!-- 9-nets will be rendered here -->
+    </div>
 
     <script>
-        const canvas = document.getElementById('slicerCanvas');
-        const ctx = canvas.getContext('2d');
+        // === Constants for 9-Net Dimensions ===
+        // These are calculated based on the drawNineNetCanvas logic.
+        // The 9-net layout is effectively 4 'face' columns wide and 3 'face' rows high.
+        // Each face is 3x3 small squares.
+        const FACE_SIZE = 30; // Size of each small square face
+        const PADDING = 10; // Padding around the entire 9-net
+        const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
 
-        // Get color input elements
-        const divisibleColorInput = document.getElementById('divisibleColor');
-        const multiplyColorInput = document.getElementById('multiplyColor');
+        // Total internal drawing dimensions for a complete 9-net
+        const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
+        const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
 
-        // Get range input elements
-        const nMinInput = document.getElementById('nMin');
-        const nMaxInput = document.getElementById('nMax');
-        const xMinInput = document.getElementById('xMin');
-        const xMaxInput = document.getElementById('xMax');
-        const yMinInput = document.getElementById('yMin');
-        const yMaxInput = document.getElementById('yMax'); // Corrected: was document='yMax'
-        const zMinInput = document.getElementById('zMin');
-        const zMaxInput = document.getElementById('zMax');
-        const applyFiltersButton = document.getElementById('applyFilters');
-        // Slideshow Controls
-        const animationAxisSelect = document.getElementById('animationAxis');
-        const animationSpeedSlider = document.getElementById('animationSpeed');
-        const speedValueSpan = document.getElementById('speedValue');
-        const toggleSlideshowButton = document.getElementById('toggleSlideshow');
 
-        // --- GLOBAL CONSTANTS FOR 9-NET DIMENSIONS ---
-        const faceSize = 30; // Size of each small square face
-        const padding = 10; // Padding around the entire 9-net
-// Update speed value display
-animationSpeedSlider.addEventListener('input', () => {
-            speedValueSpan.textContent = animationSpeedSlider.value;
-        });
-
-        // Slideshow Animation Logic
-        let slideshowInterval;
-        let isSlideshowPlaying = false;
-        let currentAnimationValue; // To keep track of the current N, X, Y, or Z value during animation
-
-        toggleSlideshowButton.addEventListener('click', () => {
-            if (isSlideshowPlaying) {
-                // Stop the slideshow
-                clearInterval(slideshowInterval);
-                toggleSlideshowButton.textContent = 'Play Slideshow';
-                isSlideshowPlaying = false;
-            } else {
-                // Start the slideshow
-                toggleSlideshowButton.textContent = 'Stop Slideshow';
-                isSlideshowPlaying = true;
-                
-                // Initialize the current animation value based on selected axis's min value
-                const axis = animationAxisSelect.value;
-                if (axis === 'N') {
-                    currentAnimationValue = parseInt(nMinInput.value);
-                } else if (axis === 'X') {
-                    currentAnimationValue = parseInt(xMinInput.value);
-                } else if (axis === 'Y') {
-                    currentAnimationValue = parseInt(yMinInput.value);
-                } else if (axis === 'Z') {
-                    currentAnimationValue = parseInt(zMinInput.value);
-                } else {
-                    currentAnimationValue = 0; // Fallback
-                }
-
-                // Call the animation step immediately to draw the first frame
-                animationStep(); 
-                
-                // Set up the interval for subsequent frames
-                slideshowInterval = setInterval(animationStep, parseInt(animationSpeedSlider.value));
-            }
-        });
-
-        // Function to perform one step of the animation
-        function animationStep() {
-            const axis = animationAxisSelect.value;
-            let minVal, maxVal, inputElement;
-
-            // Determine which axis is being animated and get its range/input element
-            if (axis === 'N') {
-                minVal = parseInt(nMinInput.value);
-                maxVal = parseInt(nMaxInput.value);
-                inputElement = nMinInput;
-            } else if (axis === 'X') {
-                minVal = parseInt(xMinInput.value);
-                maxVal = parseInt(xMaxInput.value);
-                inputElement = xMinInput;
-            } else if (axis === 'Y') {
-                minVal = parseInt(yMinInput.value);
-                maxVal = parseInt(yMaxInput.value);
-                inputElement = yMinInput;
-            } else if (axis === 'Z') {
-                minVal = parseInt(zMinInput.value);
-                maxVal = parseInt(zMaxInput.value);
-                inputElement = zMinInput;
-            }
-
-            // Increment the current animation value
-            currentAnimationValue++;
-
-            // Loop back to min if max is exceeded
-            if (currentAnimationValue > maxVal) {
-                currentAnimationValue = minVal;
-            }
-
-            // Update the corresponding input field in the UI
-            inputElement.value = currentAnimationValue;
-
-            // Re-apply filters and redraw the canvas with the new parameter
-            applyAndDrawFilters();
-        }
-        // --- RE-USING THE SEQUENCE FUNCTION ---
-        const sequence = (num, x, y, z, maxiterations) => {
+        // === Generalized Collatz function ===
+        const generalizedCollatz = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
             }
@@ -416,17 +292,25 @@ animationSpeedSlider.addEventListener('input', () => {
             }
         };
 
-        // --- RE-USING THE DRAW 9-NET FUNCTION ---
-        let divColor = divisibleColorInput.value;
-        let mulColor = multiplyColorInput.value;
+        // === drawNineNetCanvas function ===
+        /**
+         * Draws the 9-net visualization of the sequence on a canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @param {Array<number>} sequence - The sequence of numbers to visualize.
+         * @param {number} xVal - The X parameter used in the Collatz rule for color determination.
+         * @param {string} divColor - Color for divisible numbers.
+         * @param {string} mulColor - Color for multiply/add numbers.
+         */
+        function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        function drawNineNetCanvas(canvasElement, sequence, xVal, offsetX = 0, offsetY = 0) {
-            const ctx = canvasElement.getContext("2d");
+            // Use the global constants for drawing logic
+            const faceSize = FACE_SIZE;
+            const padding = PADDING;
+            const stepSize = STEP_SIZE;
 
-            const stepSize = 3;
-            const currentDivColor = divColor;
-            const currentMulColor = mulColor;
-
+            // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
             const layout = [
                 { r: 0, c: 1 }, // Top
                 { r: 1, c: 0 }, // Left
@@ -436,20 +320,30 @@ animationSpeedSlider.addEventListener('input', () => {
                 { r: 2, c: 1 }  // Bottom
             ];
 
-            let sequenceIndex = 0;
+            let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
 
+            // Iterate through each 'face' in the predefined layout
             for (const pos of layout) {
-                for (let i = 0; i < stepSize; i++) {
-                    for (let j = 0; j < stepSize; j++) {
-                        const x = offsetX + padding + (pos.c * stepSize + j) * faceSize;
-                        const y = offsetY + padding + (pos.r * stepSize + i) * faceSize;
+                // Iterate through the 3x3 grid of small squares within each face
+                for (let i = 0; i < stepSize; i++) { // Row within the face
+                    for (let j = 0; j < stepSize; j++) { // Column within the face
+                        // Calculate the x and y coordinates for the current small square
+                        const x = padding + (pos.c * stepSize + j) * faceSize;
+                        const y = padding + (pos.r * stepSize + i) * faceSize;
 
-                        let color = "#444";
-                        let label = "";
+                        let color = "#444"; // Default color for squares not representing a sequence number
+                        let label = ""; // Optional label for the number
 
+                        // Check if there's a corresponding number in the sequence
                         if (sequenceIndex < sequence.length) {
                             const val = sequence[sequenceIndex];
-                            label = val.toString();
+                            // Determine color based on the Collatz rule (divisible by X or not)
+                            if (val % Math.abs(xVal) === 0) {
+                                color = divColor; // Green if divisible
+                            } else {
+                                color = mulColor; // Orange if not divisible
+                            }
+                            label = val.toString(); // Set label to the number itself
 
                             // Ellipsis Logic for very large numbers
                             const maxChars = 5;
@@ -458,19 +352,15 @@ animationSpeedSlider.addEventListener('input', () => {
                                 const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
                                 label = start + "..." + end;
                             }
-
-                            if (val % Math.abs(xVal) === 0) {
-                                color = currentDivColor;
-                            } else {
-                                color = currentMulColor;
-                            }
                         }
 
+                        // Draw the square
                         ctx.fillStyle = color;
-                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2);
+                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
 
+                        // Draw the number label if available
                         if (label) {
-                            ctx.fillStyle = "#FFF";
+                            ctx.fillStyle = "#FFF"; // White text
                             // Dynamic font sizing
                             let currentFontSize = 10;
                             if (label.length > 7) {
@@ -479,43 +369,137 @@ animationSpeedSlider.addEventListener('input', () => {
                                 currentFontSize = 8;
                             }
                             ctx.font = `${currentFontSize}px Arial`;
-
                             ctx.textAlign = "center";
                             ctx.textBaseline = "middle";
-                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1);
+                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
                         }
-                        sequenceIndex++;
+
+                        sequenceIndex++; // Move to the next number in the sequence
                     }
                 }
             }
         }
 
-        // --- DATA GENERATION ---
-        const MAX_ITERATIONS = 1000;
-        let allBoxUniverses = []; // This will store all generated universes
-        let filteredBoxUniverses = []; // This will hold the currently displayed (filtered) box universes
+        // Function to parse URL parameters
+        function getUrlParams() {
+            const params = {};
+            window.location.search.substring(1).split('&').forEach(param => {
+                const parts = param.split('=');
+                if (parts.length === 2) {
+                    params[parts[0]] = decodeURIComponent(parts[1]);
+                }
+            });
+            return params;
+        }
 
-        // --- NEW: Function to generate a set of Box Universes based on specified ranges ---
+        // Global variables for colors (can be overridden by URL params)
+        let divColor = "#34d399"; // Default Green
+        let mulColor = "#fb923c"; // Default Orange
+
+        // Slideshow Animation Logic
+        let slideshowInterval;
+        let isSlideshowPlaying = false;
+        let currentAnimationValue;
+        let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
+        let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
+        const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
+
+        // Get elements for controls
+        const animationAxisSelect = document.getElementById('animationAxis');
+        const animationSpeedSlider = document.getElementById('animationSpeed');
+        const speedValueSpan = document.getElementById('speedValue');
+        const toggleSlideshowButton = document.getElementById('toggleSlideshow');
+        const nMinInput = document.getElementById('nMin');
+        const nMaxInput = document.getElementById('nMax');
+        const xMinInput = document.getElementById('xMin');
+        const xMaxInput = document.getElementById('xMax');
+        const yMinInput = document.getElementById('yMin');
+        const yMaxInput = document.getElementById('yMax');
+        const zMinInput = document.getElementById('zMin');
+        const zMaxInput = document.getElementById('zMax');
+        const applyFiltersButton = document.getElementById('applyFilters');
+        const gridContainer = document.getElementById('gridContainer');
+
+        // Update speed value display
+        animationSpeedSlider.addEventListener('input', () => {
+            speedValueSpan.textContent = animationSpeedSlider.value;
+        });
+
+        toggleSlideshowButton.addEventListener('click', () => {
+            if (isSlideshowPlaying) {
+                clearInterval(slideshowInterval);
+                toggleSlideshowButton.textContent = 'Play Slideshow';
+                isSlideshowPlaying = false;
+            } else {
+                toggleSlideshowButton.textContent = 'Stop Slideshow';
+                isSlideshowPlaying = true;
+                
+                const axis = animationAxisSelect.value;
+                if (axis === 'N') {
+                    currentAnimationValue = parseInt(nMinInput.value);
+                } else if (axis === 'X') {
+                    currentAnimationValue = parseInt(xMinInput.value);
+                } else if (axis === 'Y') {
+                    currentAnimationValue = parseInt(yMinInput.value);
+                } else if (axis === 'Z') {
+                    currentAnimationValue = parseInt(zMinInput.value);
+                } else {
+                    currentAnimationValue = 0; // Fallback
+                }
+
+                animationStep(); // Call the animation step immediately to draw the first frame
+                slideshowInterval = setInterval(animationStep, parseInt(animationSpeedSlider.value));
+            }
+        });
+
+        // Function to perform one step of the animation
+        function animationStep() {
+            const axis = animationAxisSelect.value;
+            let minVal, maxVal, inputElement;
+
+            if (axis === 'N') {
+                minVal = parseInt(nMinInput.value);
+                maxVal = parseInt(nMaxInput.value);
+                inputElement = nMinInput;
+            } else if (axis === 'X') {
+                minVal = parseInt(xMinInput.value);
+                maxVal = parseInt(xMaxInput.value);
+                inputElement = xMinInput;
+            } else if (axis === 'Y') {
+                minVal = parseInt(yMinInput.value);
+                maxVal = parseInt(yMaxInput.value);
+                inputElement = yMinInput;
+            } else if (axis === 'Z') {
+                minVal = parseInt(zMinInput.value);
+                maxVal = parseInt(zMaxInput.value);
+                inputElement = zMinInput;
+            }
+
+            currentAnimationValue++;
+
+            if (currentAnimationValue > maxVal) {
+                currentAnimationValue = minVal;
+            }
+
+            inputElement.value = currentAnimationValue;
+            applyAndDrawFilters(); // Re-apply filters and redraw the canvas with the new parameter
+        }
+
+        // Function to generate a set of Box Universes based on specified ranges
         function generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax) {
             const tempUniverses = [];
-            // Limit the total number of universes generated to prevent performance issues
-            // Adjust this limit based on your browser's performance
-            const maxUniversesToGenerate = 100;
+            const maxUniversesToGenerate = 100; // Limit to prevent performance issues
             let generatedCount = 0;
 
             for (let n = nMin; n <= nMax && generatedCount < maxUniversesToGenerate; n++) {
                 for (let x = xMin; x <= xMax && generatedCount < maxUniversesToGenerate; x++) {
-                    // X cannot be 0 for division rule
-                    if (x === 0) continue; // Skip x=0 as it causes an error
+                    if (x === 0) continue; 
                     for (let y = yMin; y <= yMax && generatedCount < maxUniversesToGenerate; y++) {
                         for (let z = zMin; z <= zMax && generatedCount < maxUniversesToGenerate; z++) {
-                            const result = sequence(n, x, y, z, MAX_ITERATIONS);
-                            if (result.type !== "error") { // Only push valid sequences
+                            const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
+                            if (result.type !== "error") {
                                 tempUniverses.push({
-                                    N: n,
-                                    X: x,
-                                    Y: y,
-                                    Z: z,
+                                    N: n, X: x, Y: y, Z: z,
                                     sequence: result.sequence,
                                     steps: result.steps,
                                     type: result.type
@@ -529,7 +513,7 @@ animationSpeedSlider.addEventListener('input', () => {
             return tempUniverses;
         }
 
-        // --- Function to get current filter values from inputs ---
+        // Function to get current filter values from inputs
         function getFilterValues() {
             return {
                 nMin: parseInt(nMinInput.value) || 1,
@@ -543,101 +527,144 @@ animationSpeedSlider.addEventListener('input', () => {
             };
         }
 
-        // --- Function to get current filter values from inputs and apply them ---
+        // Function to get current filter values from inputs and apply them
         function applyAndDrawFilters() {
             const filters = getFilterValues();
-
-            // First, generate all possible box universes within the specified ranges
-            // This ensures we always have the full set to potentially filter from
             allBoxUniverses = generateBoxUniverses(
                 filters.nMin, filters.nMax,
                 filters.xMin, filters.xMax,
                 filters.yMin, filters.yMax,
                 filters.zMin, filters.zMax
             );
-
-            // For now, the "filter" is simply the generation based on ranges.
-            // In the future, you could add more complex filtering criteria here
-            // (e.g., filter by sequence type, number of steps, etc.)
-            filteredBoxUniverses = allBoxUniverses;
-
+            filteredBoxUniverses = allBoxUniverses; // For now, no further filtering
             drawAllBoxUniverses();
         }
 
-        // --- DRAWING FUNCTION ---
+        // --- DRAWING FUNCTION FOR BULK UNIVERSES ---
         function drawAllBoxUniverses() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the entire canvas
+            gridContainer.innerHTML = ''; // Clear previous grid items
 
-            const netWidth = (3 * faceSize) + (2 * padding);
-            const netHeight = (3 * faceSize) + (2 * padding);
-            const spacingX = 40; // Horizontal space between nets
-            const spacingY = 100; // Vertical space between nets (more for text label)
+            filteredBoxUniverses.forEach((bu) => {
+                const gridItemDiv = document.createElement('div');
+                gridItemDiv.className = 'grid-item';
 
-            const paddingOverall = 20; // Padding for the overall grid on the canvas
-            const netsPerRow = Math.max(1, Math.floor((canvas.width - paddingOverall * 2 + spacingX) / (netWidth + spacingX)));
+                const canvasElement = document.createElement('canvas');
+                // Set internal canvas resolution to the correct 9-net drawing size
+                canvasElement.width = NINE_NET_DRAW_WIDTH;
+                canvasElement.height = NINE_NET_DRAW_HEIGHT;
+                gridItemDiv.appendChild(canvasElement);
 
-            if (netsPerRow <= 0) {
-                ctx.fillStyle = '#b0b0b0';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText("Canvas too small to draw nets. Increase canvas width or reduce spacing.", canvas.width / 2, canvas.height / 2);
-                return;
-            }
+                drawNineNetCanvas(canvasElement, bu.sequence, bu.X, divColor, mulColor);
 
-            filteredBoxUniverses.forEach((bu, index) => {
-                const col = index % netsPerRow;
-                const row = Math.floor(index / netsPerRow);
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'info';
+                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`;
+                gridItemDiv.appendChild(infoDiv);
 
-                const currentXOffset = paddingOverall + col * (netWidth + spacingX);
-                const currentYOffset = paddingOverall + row * (netHeight + spacingY);
+                // Add "View in Main Explorer" button
+                const viewInMainBtn = document.createElement('button');
+                viewInMainBtn.textContent = 'View in Main Explorer';
+                viewInMainBtn.addEventListener('click', () => {
+                    const url = `index.html?n=${bu.N}&x=${bu.X}&y=${bu.Y}&z=${bu.Z}`;
+                    window.open(url, '_blank'); // Open index.html in a new tab with parameters
+                });
+                gridItemDiv.appendChild(viewInMainBtn);
 
-                // Draw a background for each 9-net to make it distinct
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                const backgroundWidth = netWidth;
-                const backgroundHeight = netHeight + (spacingY - padding); // net height + space for text
-
-                ctx.fillRect(currentXOffset, currentYOffset, backgroundWidth, backgroundHeight);
-
-                drawNineNetCanvas(canvas, bu.sequence, bu.X, currentXOffset, currentYOffset);
-
-                // Add text label below each net
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '12px Arial';
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-
-                const labelYStart = currentYOffset + netHeight + 10;
-                ctx.fillText(`N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}`, currentXOffset + 10, labelYStart);
-                ctx.fillText(`Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`, currentXOffset + 10, labelYStart + 15);
+                gridContainer.appendChild(gridItemDiv);
             });
 
             if (filteredBoxUniverses.length === 0) {
-                ctx.fillStyle = '#b0b0b0';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText("No Box Universes found for the current filter.", canvas.width / 2, canvas.height / 2);
+                const noResults = document.createElement('p');
+                noResults.className = 'text-center text-gray-400 p-4';
+                noResults.textContent = 'No Box Universes found for the current filter.';
+                gridContainer.appendChild(noResults);
             }
         }
 
-        // --- EVENT LISTENERS ---
-        divisibleColorInput.addEventListener('input', (event) => {
-            divColor = event.target.value;
-            drawAllBoxUniverses();
+        // Main logic for slicer.html
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getUrlParams();
+            const n = parseInt(params.n);
+            const x = parseInt(params.x);
+            const y = parseInt(params.y);
+            const z = parseInt(params.z);
+            const urlDivColor = params.divColor;
+            const urlMulColor = params.mulColor;
+
+            // Apply colors from URL if present
+            if (urlDivColor) divColor = urlDivColor;
+            if (urlMulColor) mulColor = urlMulColor;
+
+            const paramDisplay = document.getElementById('paramDisplay');
+            const sequenceInfo = document.getElementById('sequenceInfo');
+            const sequenceNumbersDiv = document.getElementById('sequenceNumbers');
+            const nineNetCanvas = document.getElementById('nineNetCanvas'); // This is the main single canvas at the top
+            const divColorBox = document.getElementById('divColorBox');
+            const mulColorBox = document.getElementById('mulColorBox');
+
+            // Set color boxes
+            divColorBox.style.backgroundColor = divColor;
+            mulColorBox.style.backgroundColor = mulColor;
+
+            if (!isNaN(n) && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
+                paramDisplay.textContent = `N=${n}, X=${x}, Y=${y}, Z=${z}`;
+                const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
+
+                if (result.type === "error") {
+                    sequenceInfo.textContent = `Error: ${result.message}`;
+                    sequenceNumbersDiv.textContent = '';
+                    nineNetCanvas.style.display = 'none';
+                } else {
+                    let typeText = result.type.replace(/_/g, ' ');
+                    if (result.type === "reached_max_iterations") {
+                        typeText += ` - Ended at ${result.finalNum}`;
+                    } else if (result.type === "exceeded_max_safe_integer") {
+                        typeText += ` - Ended at ${result.finalNum} (Exceeded safe integer limit)`;
+                    } else if (result.type === "cycle") {
+                        typeText += ` - Cycle: ${result.cycle.join(' → ')}`;
+                    }
+                    sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
+                    sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
+                    // Draw on the main single canvas
+                    drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
+                    nineNetCanvas.style.display = 'block'; // Ensure it's visible
+                }
+            } else {
+                paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
+                sequenceInfo.textContent = '';
+                sequenceNumbersDiv.textContent = '';
+                nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
+            }
+
+            // Event listener for apply filters button
+            applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+
+            // Initial draw of bulk universes (if no specific sequence loaded via URL)
+            if (isNaN(n) || isNaN(x) || isNaN(y) || isNaN(z)) {
+                 applyAndDrawFilters();
+            }
+
+            // Adjust canvas size if needed for responsiveness (for the single canvas at the top)
+            function resizeMainCanvas() {
+                const containerWidth = nineNetCanvas.parentElement.clientWidth;
+                // Set a max width to prevent it from getting too large, but allow it to shrink
+                const desiredDisplayWidth = Math.min(containerWidth * 0.9, NINE_NET_DRAW_WIDTH);
+                // Set CSS width, height auto maintains aspect ratio
+                nineNetCanvas.style.width = `${desiredDisplayWidth}px`;
+                nineNetCanvas.style.height = 'auto'; // Important for aspect ratio
+                // Redraw only if a sequence was loaded via URL
+                if (!isNaN(n) && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
+                    const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
+                    if (result.type !== "error") {
+                        // No need to change internal width/height here, they are fixed.
+                        // Just redraw to ensure it looks good after CSS scaling.
+                        drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
+                    }
+                }
+            }
+            window.addEventListener('resize', resizeMainCanvas);
+            resizeMainCanvas(); // Initial resize
         });
-
-        multiplyColorInput.addEventListener('input', (event) => {
-            mulColor = event.target.value;
-            drawAllBoxUniverses();
-        });
-
-        applyFiltersButton.addEventListener('click', applyAndDrawFilters);
-
-        // Initial call to generate and draw universes based on default filter values
-        applyAndDrawFilters();
-        console.log("Slicer canvas is ready with full filtering functionality!");
-
     </script>
 </body>
 </html>
