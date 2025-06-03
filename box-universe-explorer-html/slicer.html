@@ -164,6 +164,8 @@
         <h1 class="text-3xl font-bold mb-4">2D Pseudo-3D Slicer</h1>
         <p class="param-display" id="paramDisplay">Loading parameters...</p>
         <p class="sequence-info" id="sequenceInfo">Calculating sequence...</p>
+        <!-- New element for min/max range -->
+        <p class="sequence-range-info text-gray-400 text-sm mb-2" id="sequenceRangeInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
         <!-- Single 9-net canvas (for direct URL viewing) -->
@@ -251,6 +253,9 @@
 
 
         // === Generalized Collatz function ===
+        // This function calculates the generalized Collatz sequence.
+        // It includes error handling for X=0, cycle detection, and max iteration limit.
+        // Now also calculates min and max values in the sequence.
         const generalizedCollatz = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
@@ -261,9 +266,12 @@
             const visitedNumbersMap = new Map();
             visitedNumbersMap.set(num, 0);
 
+            let minVal = num;
+            let maxVal = num;
+
             while (num !== 1 && iterations < maxiterations) {
                 if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num };
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal };
                 }
 
                 let next_num;
@@ -273,10 +281,14 @@
                     next_num = (Math.abs(y) || 3) * num + (z || 1);
                 }
 
+                // Update min/max values
+                minVal = Math.min(minVal, next_num);
+                maxVal = Math.max(maxVal, next_num);
+
                 if (visitedNumbersMap.has(next_num)) {
                     const cycleStartIndex = visitedNumbersMap.get(next_num);
                     const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle };
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal };
                 }
                 visitedNumbersMap.set(next_num, output.length);
 
@@ -286,9 +298,9 @@
             }
 
             if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations };
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal };
             }
         };
 
@@ -419,6 +431,7 @@
         const zMaxInput = document.getElementById('zMax');
         const applyFiltersButton = document.getElementById('applyFilters');
         const gridContainer = document.getElementById('gridContainer');
+        const sequenceRangeInfo = document.getElementById('sequenceRangeInfo'); // New element for main slicer display
 
         // Update speed value display
         animationSpeedSlider.addEventListener('input', () => {
@@ -502,7 +515,9 @@
                                     N: n, X: x, Y: y, Z: z,
                                     sequence: result.sequence,
                                     steps: result.steps,
-                                    type: result.type
+                                    type: result.type,
+                                    minVal: result.minVal, // New: min value in sequence
+                                    maxVal: result.maxVal  // New: max value in sequence
                                 });
                                 generatedCount++;
                             }
@@ -558,7 +573,7 @@
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}`;
+                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}`;
                 gridItemDiv.appendChild(infoDiv);
 
                 // Add "View in Main Explorer" button
@@ -613,6 +628,7 @@
                 if (result.type === "error") {
                     sequenceInfo.textContent = `Error: ${result.message}`;
                     sequenceNumbersDiv.textContent = '';
+                    sequenceRangeInfo.textContent = ''; // Clear range info on error
                     nineNetCanvas.style.display = 'none';
                 } else {
                     let typeText = result.type.replace(/_/g, ' ');
@@ -625,7 +641,7 @@
                     }
                     sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
                     sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
-                    // Draw on the main single canvas
+                    sequenceRangeInfo.textContent = `Range: ${result.minVal} to ${result.maxVal}`; // Display range
                     drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
                     nineNetCanvas.style.display = 'block'; // Ensure it's visible
                 }
@@ -633,6 +649,7 @@
                 paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
                 sequenceInfo.textContent = '';
                 sequenceNumbersDiv.textContent = '';
+                sequenceRangeInfo.textContent = ''; // Clear range info
                 nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
             }
 
