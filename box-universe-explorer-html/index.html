@@ -246,7 +246,7 @@
         // === Generalized Collatz function ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
-        // Now also calculates min, max, and sum values in the sequence.
+        // Now also calculates min, max, sum, and average values in the sequence.
         const sequence = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
@@ -266,7 +266,9 @@
                 // Check if the current number exceeds JavaScript's safe integer limit
                 // Using Math.abs ensures it works for negative numbers if your rules allow them
                 if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                    // Calculate average even if exceeding max safe integer, based on current sum and steps
+                    const avgVal = sumVal / (iterations + 1);
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
                 }
 
                 let next_num;
@@ -290,11 +292,13 @@
 
                 // --- ENHANCED CYCLE DETECTION ---
                 if (visitedNumbersMap.has(next_num)) {
+                    // Calculate average for cycle, based on current sum and steps
+                    const avgVal = sumVal / (iterations + 1);
                     const cycleStartIndex = visitedNumbersMap.get(next_num);
                     // Extract the cycle from the output array
                     const cycle = output.slice(cycleStartIndex);
                     // The cycle starts with next_num, which was already added to output at cycleStartIndex
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
                 }
                 visitedNumbersMap.set(next_num, output.length); // Store the next number and its index in the output array
 
@@ -303,10 +307,13 @@
                 iterations++;
             }
 
+            // Calculate average at the end of the sequence
+            const avgVal = sumVal / (iterations + 1); // +1 because output.length includes the starting number
+
             if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
             }
         };
 
@@ -436,8 +443,14 @@
          */
         const renderHistory = () => {
             const runsHistoryDiv = document.getElementById('runsHistory');
-            runsHistoryDiv.innerHTML = ''; // Clear previous history
             const historyContainer = document.getElementById('historyContainer');
+
+            if (!runsHistoryDiv || !historyContainer) {
+                console.error("History elements not found. Cannot render history.");
+                return;
+            }
+
+            runsHistoryDiv.innerHTML = ''; // Clear previous history
 
             if (calculatedRuns.length === 0) {
                 historyContainer.classList.add('hidden');
@@ -464,7 +477,7 @@
                 if (run.type === "reached_max_iterations") {
                     typeText += ` - Ended at ${run.finalNum}`;
                 } else if (run.type === "exceeded_max_safe_integer") {
-                    typeText += ` - Ended at ${run.finalNum} (Exceeded safe integer limit)`;
+                    typeText += ` - Ended at ${run.finalNum}`; // No need to repeat "Exceeded safe integer limit" as it's in the type
                 } else if (run.type === "cycle") {
                     typeText += ` - Cycle: ${run.cycle.join(' → ')}`;
                 }
@@ -480,8 +493,14 @@
                 // Add sum info
                 const sumInfo = document.createElement('p');
                 sumInfo.className = 'text-blue-300 text-sm mb-2';
-                sumInfo.textContent = `Sum: ${run.sumVal > Number.MAX_SAFE_INTEGER ? 'Too Large' : run.sumVal.toLocaleString()}`; // Format sum for readability
+                sumInfo.textContent = `Sum: ${run.sumVal > Number.MAX_SAFE_INTEGER -1 ? 'Too Large' : run.sumVal.toLocaleString()}`; // Format sum for readability
                 runDiv.appendChild(sumInfo);
+
+                // Add average info
+                const avgInfo = document.createElement('p');
+                avgInfo.className = 'text-blue-300 text-sm mb-2';
+                avgInfo.textContent = `Average: ${run.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}`; // Format average
+                runDiv.appendChild(avgInfo);
 
                 const sequenceDiv = document.createElement('div');
                 sequenceDiv.className = 'bg-blue-900 bg-opacity-60 rounded-md p-3 max-h-32 overflow-y-auto text-blue-100 text-sm break-words mb-4';
@@ -515,197 +534,243 @@
         /**
          * Handles the calculation logic for a single sequence.
          */
-        document.getElementById('calculateSingle').addEventListener('click', () => {
-            const startNumberInput = document.getElementById('startNumber');
-            const xValueInput = document.getElementById('xValue');
-            const yValueInput = document.getElementById('yValue');
-            const zValueInput = document.getElementById('zValue');
-            const errorMessage = document.getElementById('errorMessage');
+        const calculateSingleButton = document.getElementById('calculateSingle');
+        if (calculateSingleButton) {
+            calculateSingleButton.addEventListener('click', () => {
+                const startNumberInput = document.getElementById('startNumber');
+                const xValueInput = document.getElementById('xValue');
+                const yValueInput = document.getElementById('yValue');
+                const zValueInput = document.getElementById('zValue');
+                const errorMessage = document.getElementById('errorMessage');
 
-            const num = parseInt(startNumberInput.value, 10);
-            const X = parseInt(xValueInput.value, 10);
-            const Y = parseInt(yValueInput.value, 10);
-            const Z = parseInt(zValueInput.value, 10);
+                if (!startNumberInput || !xValueInput || !yValueInput || !zValueInput || !errorMessage) {
+                    console.error("One or more single calculation input/output elements not found.");
+                    return;
+                }
 
-            // Validate inputs
-            let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
-            if (err) { errorMessage.textContent = err; return; }
-            err = validateNumberInput(xValueInput.value, 'X (Divisor)', false);
-            if (err) { errorMessage.textContent = err; return; }
-            err = validateNumberInput(yValueInput.value, 'Y (Multiplier)', true);
-            if (err) { errorMessage.textContent = err; return; }
-            err = validateNumberInput(zValueInput.value, 'Z (Additive Constant)', true);
-            if (err) { errorMessage.textContent = err; return; }
+                const num = parseInt(startNumberInput.value, 10);
+                const X = parseInt(xValueInput.value, 10);
+                const Y = parseInt(yValueInput.value, 10);
+                const Z = parseInt(zValueInput.value, 10);
 
-            errorMessage.textContent = ''; // Clear previous errors
+                // Validate inputs
+                let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
+                if (err) { errorMessage.textContent = err; return; }
+                err = validateNumberInput(xValueInput.value, 'X (Divisor)', false);
+                if (err) { errorMessage.textContent = err; return; }
+                err = validateNumberInput(yValueInput.value, 'Y (Multiplier)', true);
+                if (err) { errorMessage.textContent = err; return; }
+                err = validateNumberInput(zValueInput.value, 'Z (Additive Constant)', true);
+                if (err) { errorMessage.textContent = err; return; }
 
-            const maxStepsForCalculation = 10000; // Hardcoded max iterations
-            const result = sequence(num, X, Y, Z, maxStepsForCalculation);
+                errorMessage.textContent = ''; // Clear previous errors
 
-            if (result.type === "error") {
-                errorMessage.textContent = result.message;
-                // Clear the single 9-net canvas on error
+                const maxStepsForCalculation = 10000; // Hardcoded max iterations
+                const result = sequence(num, X, Y, Z, maxStepsForCalculation);
+
+                if (result.type === "error") {
+                    errorMessage.textContent = result.message;
+                    // Clear the single 9-net canvas on error
+                    const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+                    if (singleNineNetCanvas) {
+                        const ctx = singleNineNetCanvas.getContext('2d');
+                        ctx.clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
+                    }
+                    return;
+                }
+
+                const newRun = {
+                    id: Date.now(),
+                    startNum: num,
+                    X: X,
+                    Y: Y,
+                    Z: Z,
+                    sequence: result.sequence,
+                    steps: result.steps,
+                    type: result.type,
+                    cycle: result.cycle, // Include cycle if present
+                    finalNum: result.finalNum, // Include finalNum if present (for max iterations/safe integer)
+                    minVal: result.minVal, // min value in sequence
+                    maxVal: result.maxVal,  // max value in sequence
+                    sumVal: result.sumVal,   // sum of sequence values
+                    avgVal: result.avgVal   // average of sequence values
+                };
+
+                // Draw the single 9-net immediately after calculation
                 const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-                const ctx = singleNineNetCanvas.getContext('2d');
-                ctx.clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
-                return;
-            }
+                if (singleNineNetCanvas) {
+                    drawNineNetCanvas(singleNineNetCanvas, newRun.sequence, newRun.X, window.divColor, window.mulColor);
+                }
 
-            const newRun = {
-                id: Date.now(),
-                startNum: num,
-                X: X,
-                Y: Y,
-                Z: Z,
-                sequence: result.sequence,
-                steps: result.steps,
-                type: result.type,
-                cycle: result.cycle, // Include cycle if present
-                finalNum: result.finalNum, // Include finalNum if present (for max iterations/safe integer)
-                minVal: result.minVal, // min value in sequence
-                maxVal: result.maxVal,  // max value in sequence
-                sumVal: result.sumVal   // New: sum of sequence values
-            };
+                calculatedRuns.push(newRun); // Add to the end, then renderHistory will reverse for display
+                renderHistory();
 
-            // Draw the single 9-net immediately after calculation
-            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-            drawNineNetCanvas(singleNineNetCanvas, newRun.sequence, newRun.X, window.divColor, window.mulColor);
-
-            calculatedRuns.push(newRun); // Add to the end, then renderHistory will reverse for display
-            renderHistory();
-
-            // Display specific messages for non-converging sequences
-            if (newRun.type === "reached_max_iterations") {
-                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
-            } else if (newRun.type === "exceeded_max_safe_integer") {
-                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} exceeded JavaScript's safe integer limit. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
-            } else if (newRun.type === "cycle") {
-                errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} entered a cycle: ${newRun.cycle.join(' → ')}.`;
-            }
-        });
+                // Display specific messages for non-converging sequences
+                if (newRun.type === "reached_max_iterations") {
+                    errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} did not reach 1. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
+                } else if (newRun.type === "exceeded_max_safe_integer") {
+                    errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} exceeded JavaScript's safe integer limit. It ended at ${newRun.finalNum} after ${newRun.steps} steps.`;
+                } else if (newRun.type === "cycle") {
+                    errorMessage.textContent = `Sequence for N=${num}, X=${X}, Y=${Y}, Z=${Z} entered a cycle: ${newRun.cycle.join(' → ')}.`;
+                }
+            });
+        }
 
         /**
          * Handles the bulk generation logic.
          */
-        document.getElementById('generateBulk').addEventListener('click', () => {
-            const startNumberInput = document.getElementById('startNumber');
-            const xStartInput = document.getElementById('xStart');
-            const xEndInput = document.getElementById('xEnd');
-            const yStartInput = document.getElementById('yStart');
-            const yEndInput = document.getElementById('yEnd');
-            const zStartInput = document.getElementById('zStart');
-            const zEndInput = document.getElementById('zEnd');
-            const errorMessage = document.getElementById('errorMessage');
+        const generateBulkButton = document.getElementById('generateBulk');
+        if (generateBulkButton) {
+            generateBulkButton.addEventListener('click', () => {
+                const startNumberInput = document.getElementById('startNumber');
+                const xStartInput = document.getElementById('xStart');
+                const xEndInput = document.getElementById('xEnd');
+                const yStartInput = document.getElementById('yStart');
+                const yEndInput = document.getElementById('yEnd');
+                const zStartInput = document.getElementById('zStart');
+                const zEndInput = document.getElementById('zEnd');
+                const errorMessage = document.getElementById('errorMessage');
 
-            const num = parseInt(startNumberInput.value, 10);
-            let tempNewRuns = [];
-            const maxStepsForCalculation = 10000; // Hardcoded max iterations
-
-            // Validate starting number
-            let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
-            if (err) { errorMessage.textContent = err; return; }
-
-            // Parse range inputs
-            const parsedXStart = parseInt(xStartInput.value, 10);
-            const parsedXEnd = parseInt(xEndInput.value, 10);
-            const parsedYStart = parseInt(yStartInput.value, 10);
-            const parsedYEnd = parseInt(yEndInput.value, 10);
-            const parsedZStart = parseInt(zStartInput.value, 10);
-            const parsedZEnd = parseInt(zEndInput.value, 10);
-
-            // Validate ranges
-            if (isNaN(parsedXStart) || isNaN(parsedXEnd) || parsedXStart > parsedXEnd || !Number.isInteger(parsedXStart) || !Number.isInteger(parsedXEnd)) {
-                errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
-            }
-            if (isNaN(parsedYStart) || isNaN(parsedYEnd) || parsedYStart > parsedYEnd || !Number.isInteger(parsedYStart) || !Number.isInteger(parsedYEnd)) {
-                errorMessage.textContent = 'Y range must be valid integers (Y Start <= Y End).'; return;
-            }
-            if (isNaN(parsedZStart) || isNaN(parsedZEnd) || parsedZStart > parsedZEnd || !Number.isInteger(parsedZStart) || !Number.isInteger(parsedZEnd)) {
-                errorMessage.textContent = 'Z range must be valid integers (Z Start <= Z End).'; return;
-            }
-
-            errorMessage.textContent = ''; // Clear previous errors
-
-            let idCounter = 0; // Used to ensure unique IDs for runs generated in quick succession
-
-            for (let x = parsedXStart; x <= parsedXEnd; x++) {
-                if (x === 0) {
-                // Optionally provide a message that X=0 is skipped in bulk
-                console.warn("Skipping X=0 in bulk generation as it's an invalid divisor.");
-                continue;
+                if (!startNumberInput || !xStartInput || !xEndInput || !yStartInput || !yEndInput || !zStartInput || !zEndInput || !errorMessage) {
+                    console.error("One or more bulk generation input/output elements not found.");
+                    return;
                 }
 
-                for (let y = parsedYStart; y <= parsedYEnd; y++) {
-                    for (let z = parsedZStart; z <= parsedZEnd; z++) {
-                    const result = sequence(num, x, y, z, maxStepsForCalculation);
+                const num = parseInt(startNumberInput.value, 10);
+                let tempNewRuns = [];
+                const maxStepsForCalculation = 10000; // Hardcoded max iterations
 
-                    if (result.type !== "error") { // Only add valid results
-                        tempNewRuns.push({
-                        id: Date.now() + (idCounter++), // Unique ID
-                        startNum: num,
-                        X: x,
-                        Y: y,
-                        Z: z,
-                        sequence: result.sequence,
-                        steps: result.steps,
-                        type: result.type,
-                        cycle: result.cycle, // Include cycle if present
-                        finalNum: result.finalNum, // Include finalNum if present
-                        minVal: result.minVal, // min value in sequence
-                        maxVal: result.maxVal,  // max value in sequence
-                        sumVal: result.sumVal   // New: sum of sequence values
-                        });
+                // Validate starting number
+                let err = validateNumberInput(startNumberInput.value, 'Starting Number', false);
+                if (err) { errorMessage.textContent = err; return; }
+
+                // Parse range inputs
+                const parsedXStart = parseInt(xStartInput.value, 10);
+                const parsedXEnd = parseInt(xEndInput.value, 10);
+                const parsedYStart = parseInt(yStartInput.value, 10);
+                const parsedYEnd = parseInt(yEndInput.value, 10);
+                const parsedZStart = parseInt(zStartInput.value, 10);
+                const parsedZEnd = parseInt(zEndInput.value, 10);
+
+                // Validate ranges
+                if (isNaN(parsedXStart) || isNaN(parsedXEnd) || parsedXStart > parsedXEnd || !Number.isInteger(parsedXStart) || !Number.isInteger(parsedXEnd)) {
+                    errorMessage.textContent = 'X range must be valid integers (X Start <= X End).'; return;
+                }
+                if (isNaN(parsedYStart) || isNaN(parsedYEnd) || parsedYStart > parsedYEnd || !Number.isInteger(parsedYStart) || !Number.isInteger(parsedYEnd)) {
+                    errorMessage.textContent = 'Y range must be valid integers (Y Start <= Y End).'; return;
+                }
+                if (isNaN(parsedZStart) || isNaN(parsedZEnd) || parsedZStart > parsedZEnd || !Number.isInteger(parsedZStart) || !Number.isInteger(parsedZEnd)) {
+                    errorMessage.textContent = 'Z range must be valid integers (Z Start <= Z End).'; return;
+                }
+
+                errorMessage.textContent = ''; // Clear previous errors
+
+                let idCounter = 0; // Used to ensure unique IDs for runs generated in quick succession
+
+                for (let x = parsedXStart; x <= parsedXEnd; x++) {
+                    if (x === 0) {
+                    // Optionally provide a message that X=0 is skipped in bulk
+                    console.warn("Skipping X=0 in bulk generation as it's an invalid divisor.");
+                    continue;
                     }
+
+                    for (let y = parsedYStart; y <= parsedYEnd; y++) {
+                        for (let z = parsedZStart; z <= parsedZEnd; z++) {
+                        const result = sequence(num, x, y, z, maxStepsForCalculation);
+
+                        if (result.type !== "error") { // Only add valid results
+                            tempNewRuns.push({
+                            id: Date.now() + (idCounter++), // Unique ID
+                            startNum: num,
+                            X: x,
+                            Y: y,
+                            Z: z,
+                            sequence: result.sequence,
+                            steps: result.steps,
+                            type: result.type,
+                            cycle: result.cycle, // Include cycle if present
+                            finalNum: result.finalNum, // Include finalNum if present
+                            minVal: result.minVal, // min value in sequence
+                            maxVal: result.maxVal,  // max value in sequence
+                            sumVal: result.sumVal,   // sum of sequence values
+                            avgVal: result.avgVal    // average of sequence values
+                            });
+                        }
+                        }
                     }
                 }
-            }
-            calculatedRuns.push(...tempNewRuns); // Add all new runs to the end
-            renderHistory(); // Re-render the history
+                calculatedRuns.push(...tempNewRuns); // Add all new runs to the end
+                renderHistory(); // Re-render the history
 
-            if (tempNewRuns.length === 0) {
-                errorMessage.textContent = "No valid sequences generated for the given ranges. Check inputs.";
-            } else {
-                errorMessage.textContent = ""; // Clear error if successful
-            }
-        });
+                if (tempNewRuns.length === 0) {
+                    errorMessage.textContent = "No valid sequences generated for the given ranges. Check inputs.";
+                } else {
+                    errorMessage.textContent = ""; // Clear error if successful
+                }
+            });
+        }
 
         // Event Listeners for color pickers to update global colors and re-render history
-        document.getElementById('divColorPicker').addEventListener('input', (e) => {
-            window.divColor = e.target.value; // Get the new color from the picker
-            // Re-draw the single 9-net if it's currently displayed
-            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-            const currentN = parseInt(document.getElementById('startNumber').value);
-            const currentX = parseInt(document.getElementById('xValue').value);
-            const currentY = parseInt(document.getElementById('yValue').value);
-            const currentZ = parseInt(document.getElementById('zValue').value);
-            const maxSteps = 10000;
-            const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
-            if (result.type !== "error") {
-                drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
-            }
-            renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
-        });
+        const divColorPicker = document.getElementById('divColorPicker');
+        if (divColorPicker) {
+            divColorPicker.addEventListener('input', (e) => {
+                window.divColor = e.target.value; // Get the new color from the picker
+                // Re-draw the single 9-net if it's currently displayed
+                const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+                const startNumberInput = document.getElementById('startNumber');
+                const xValueInput = document.getElementById('xValue');
+                const yValueInput = document.getElementById('yValue');
+                const zValueInput = document.getElementById('zValue');
 
-        document.getElementById('mulColorPicker').addEventListener('input', (e) => {
-            window.mulColor = e.target.value; // Get the new color from the picker
-            // Re-draw the single 9-net if it's currently displayed
-            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-            const currentN = parseInt(document.getElementById('startNumber').value);
-            const currentX = parseInt(document.getElementById('xValue').value);
-            const currentY = parseInt(document.getElementById('yValue').value);
-            const currentZ = parseInt(document.getElementById('zValue').value);
-            const maxSteps = 10000;
-            const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
-            if (result.type !== "error") {
-                drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
-            }
-            renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
-        });
+                if (singleNineNetCanvas && startNumberInput && xValueInput && yValueInput && zValueInput) {
+                    const currentN = parseInt(startNumberInput.value);
+                    const currentX = parseInt(xValueInput.value);
+                    const currentY = parseInt(yValueInput.value);
+                    const currentZ = parseInt(zValueInput.value);
+                    const maxSteps = 10000;
+                    const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
+                    if (result.type !== "error") {
+                        drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
+                    }
+                }
+                renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
+            });
+        }
+
+        const mulColorPicker = document.getElementById('mulColorPicker');
+        if (mulColorPicker) {
+            mulColorPicker.addEventListener('input', (e) => {
+                window.mulColor = e.target.value; // Get the new color from the picker
+                // Re-draw the single 9-net if it's currently displayed
+                const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+                const startNumberInput = document.getElementById('startNumber');
+                const xValueInput = document.getElementById('xValue');
+                const yValueInput = document.getElementById('yValue');
+                const zValueInput = document.getElementById('zValue');
+
+                if (singleNineNetCanvas && startNumberInput && xValueInput && yValueInput && zValueInput) {
+                    const currentN = parseInt(startNumberInput.value);
+                    const currentX = parseInt(xValueInput.value);
+                    const currentY = parseInt(yValueInput.value);
+                    const currentZ = parseInt(zValueInput.value);
+                    const maxSteps = 10000;
+                    const result = sequence(currentN, currentX, currentY, currentZ, maxSteps);
+                    if (result.type !== "error") {
+                        drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
+                    }
+                }
+                renderHistory(); // Re-render all the displayed nets in history (if any) with the new color
+            });
+        }
 
         // Add event listeners to input fields to update gold star visibility
-        document.getElementById('xValue').addEventListener('input', updateGoldStarVisibility);
-        document.getElementById('yValue').addEventListener('input', updateGoldStarVisibility);
-        document.getElementById('zValue').addEventListener('input', updateGoldStarVisibility);
+        const xValueInputForStar = document.getElementById('xValue');
+        const yValueInputForStar = document.getElementById('yValue');
+        const zValueInputForStar = document.getElementById('zValue');
+
+        if (xValueInputForStar) xValueInputForStar.addEventListener('input', updateGoldStarVisibility);
+        if (yValueInputForStar) yValueInputForStar.addEventListener('input', updateGoldStarVisibility);
+        if (zValueInputForStar) zValueInputForStar.addEventListener('input', updateGoldStarVisibility);
 
         /**
          * Parses URL parameters.
@@ -730,22 +795,29 @@
             const yParam = params.y;
             const zParam = params.z;
 
+            // Get elements for initial setup
+            const startNumberInput = document.getElementById('startNumber');
+            const xValueInput = document.getElementById('xValue');
+            const yValueInput = document.getElementById('yValue');
+            const zValueInput = document.getElementById('zValue');
+            const calculateSingleButton = document.getElementById('calculateSingle');
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+
             // If parameters are present, pre-fill inputs and trigger calculation
-            if (nParam && xParam && yParam && zParam) {
-                document.getElementById('startNumber').value = nParam;
-                document.getElementById('xValue').value = xParam;
-                document.getElementById('yValue').value = yParam;
-                document.getElementById('zValue').value = zParam;
+            if (nParam && xParam && yParam && zParam && startNumberInput && xValueInput && yValueInput && zValueInput && calculateSingleButton) {
+                startNumberInput.value = nParam;
+                xValueInput.value = xParam;
+                yValueInput.value = yParam;
+                zValueInput.value = zParam;
                 
                 // Automatically trigger the single calculation
-                document.getElementById('calculateSingle').click();
-            } else {
+                calculateSingleButton.click();
+            } else if (singleNineNetCanvas && startNumberInput && xValueInput && yValueInput && zValueInput) {
                 // If no parameters, perform initial draw with default values
-                const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-                const defaultN = parseInt(document.getElementById('startNumber').value);
-                const defaultX = parseInt(document.getElementById('xValue').value);
-                const defaultY = parseInt(document.getElementById('yValue').value);
-                const defaultZ = parseInt(document.getElementById('zValue').value);
+                const defaultN = parseInt(startNumberInput.value);
+                const defaultX = parseInt(xValueInput.value);
+                const defaultY = parseInt(yValueInput.value);
+                const defaultZ = parseInt(zValueInput.value);
                 const maxSteps = 10000;
                 const defaultResult = sequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
                 if (defaultResult.type !== "error") {

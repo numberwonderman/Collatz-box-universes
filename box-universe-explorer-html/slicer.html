@@ -168,6 +168,8 @@
         <p class="sequence-range-info text-gray-400 text-sm mb-2" id="sequenceRangeInfo"></p>
         <!-- New element for sum -->
         <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
+        <!-- New element for average -->
+        <p class="sequence-avg-info text-gray-400 text-sm mb-2" id="sequenceAvgInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
         <!-- Single 9-net canvas (for direct URL viewing) -->
@@ -257,7 +259,7 @@
         // === Generalized Collatz function ===
         // This function calculates the generalized Collatz sequence.
         // It includes error handling for X=0, cycle detection, and max iteration limit.
-        // Now also calculates min, max, and sum values in the sequence.
+        // Now also calculates min, max, sum, and average values in the sequence.
         const generalizedCollatz = (num, x, y, z, maxiterations) => {
             if (x === 0) {
                 return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
@@ -274,7 +276,9 @@
 
             while (num !== 1 && iterations < maxiterations) {
                 if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                    // Calculate average even if exceeding max safe integer, based on current sum and steps
+                    const avgVal = sumVal / (iterations + 1);
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
                 }
 
                 let next_num;
@@ -289,17 +293,18 @@
                 maxVal = Math.max(maxVal, next_num);
 
                 // Update sum, checking for potential overflow with very large numbers
-                // If sumVal + next_num would exceed MAX_SAFE_INTEGER, cap it or mark as too large
-                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) { // Check for potential overflow
+                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) {
                     sumVal = Number.MAX_SAFE_INTEGER; // Indicate it's too large
                 } else {
                     sumVal += next_num;
                 }
 
                 if (visitedNumbersMap.has(next_num)) {
+                    // Calculate average for cycle, based on current sum and steps
+                    const avgVal = sumVal / (iterations + 1);
                     const cycleStartIndex = visitedNumbersMap.get(next_num);
                     const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
                 }
                 visitedNumbersMap.set(next_num, output.length);
 
@@ -308,10 +313,13 @@
                 iterations++;
             }
 
+            // Calculate average at the end of the sequence
+            const avgVal = sumVal / (iterations + 1); // +1 because output.length includes the starting number
+
             if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
             }
         };
 
@@ -444,6 +452,7 @@
         const gridContainer = document.getElementById('gridContainer');
         const sequenceRangeInfo = document.getElementById('sequenceRangeInfo'); // New element for main slicer display
         const sequenceSumInfo = document.getElementById('sequenceSumInfo'); // New element for main slicer display
+        const sequenceAvgInfo = document.getElementById('sequenceAvgInfo'); // New element for main slicer display
 
         // Update speed value display
         animationSpeedSlider.addEventListener('input', () => {
@@ -530,7 +539,8 @@
                                     type: result.type,
                                     minVal: result.minVal, // min value in sequence
                                     maxVal: result.maxVal,  // max value in sequence
-                                    sumVal: result.sumVal   // New: sum of sequence values
+                                    sumVal: result.sumVal,   // sum of sequence values
+                                    avgVal: result.avgVal    // average of sequence values
                                 });
                                 generatedCount++;
                             }
@@ -586,7 +596,7 @@
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}<br>Sum: ${bu.sumVal > Number.MAX_SAFE_INTEGER ? 'Too Large' : bu.sumVal.toLocaleString()}`;
+                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}<br>Sum: ${bu.sumVal > Number.MAX_SAFE_INTEGER -1 ? 'Too Large' : bu.sumVal.toLocaleString()}<br>Average: ${bu.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
                 gridItemDiv.appendChild(infoDiv);
 
                 // Add "View in Main Explorer" button
@@ -629,6 +639,10 @@
             const nineNetCanvas = document.getElementById('nineNetCanvas'); // This is the main single canvas at the top
             const divColorBox = document.getElementById('divColorBox');
             const mulColorBox = document.getElementById('mulColorBox');
+            const sequenceRangeInfo = document.getElementById('sequenceRangeInfo');
+            const sequenceSumInfo = document.getElementById('sequenceSumInfo');
+            const sequenceAvgInfo = document.getElementById('sequenceAvgInfo');
+
 
             // Set color boxes
             divColorBox.style.backgroundColor = divColor;
@@ -641,8 +655,9 @@
                 if (result.type === "error") {
                     sequenceInfo.textContent = `Error: ${result.message}`;
                     sequenceNumbersDiv.textContent = '';
-                    sequenceRangeInfo.textContent = ''; // Clear range info on error
-                    sequenceSumInfo.textContent = ''; // Clear sum info on error
+                    sequenceRangeInfo.textContent = '';
+                    sequenceSumInfo.textContent = '';
+                    sequenceAvgInfo.textContent = '';
                     nineNetCanvas.style.display = 'none';
                 } else {
                     let typeText = result.type.replace(/_/g, ' ');
@@ -655,8 +670,9 @@
                     }
                     sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
                     sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
-                    sequenceRangeInfo.textContent = `Range: ${result.minVal} to ${result.maxVal}`; // Display range
-                    sequenceSumInfo.textContent = `Sum: ${result.sumVal > Number.MAX_SAFE_INTEGER ? 'Too Large' : result.sumVal.toLocaleString()}`; // Display sum
+                    sequenceRangeInfo.textContent = `Range: ${result.minVal} to ${result.maxVal}`;
+                    sequenceSumInfo.textContent = `Sum: ${result.sumVal > Number.MAX_SAFE_INTEGER -1 ? 'Too Large' : result.sumVal.toLocaleString()}`;
+                    sequenceAvgInfo.textContent = `Average: ${result.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
                     drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
                     nineNetCanvas.style.display = 'block'; // Ensure it's visible
                 }
@@ -664,33 +680,28 @@
                 paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
                 sequenceInfo.textContent = '';
                 sequenceNumbersDiv.textContent = '';
-                sequenceRangeInfo.textContent = ''; // Clear range info
-                sequenceSumInfo.textContent = ''; // Clear sum info
+                sequenceRangeInfo.textContent = '';
+                sequenceSumInfo.textContent = '';
+                sequenceAvgInfo.textContent = '';
                 nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
             }
 
             // Event listener for apply filters button
             applyFiltersButton.addEventListener('click', applyAndDrawFilters);
 
-            // Initial draw of bulk universes (if no specific sequence loaded via URL)
-            if (isNaN(n) || isNaN(x) || isNaN(y) || isNaN(z)) {
-                 applyAndDrawFilters();
-            }
+            // Initial draw of bulk universes (always happens regardless of URL params)
+            applyAndDrawFilters(); // This will populate the grid with default ranges if no specific sequence was loaded
 
             // Adjust canvas size if needed for responsiveness (for the single canvas at the top)
             function resizeMainCanvas() {
                 const containerWidth = nineNetCanvas.parentElement.clientWidth;
-                // Set a max width to prevent it from getting too large, but allow it to shrink
                 const desiredDisplayWidth = Math.min(containerWidth * 0.9, NINE_NET_DRAW_WIDTH);
-                // Set CSS width, height auto maintains aspect ratio
                 nineNetCanvas.style.width = `${desiredDisplayWidth}px`;
                 nineNetCanvas.style.height = 'auto'; // Important for aspect ratio
                 // Redraw only if a sequence was loaded via URL
                 if (!isNaN(n) && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
                     const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
                     if (result.type !== "error") {
-                        // No need to change internal width/height here, they are fixed.
-                        // Just redraw to ensure it looks good after CSS scaling.
                         drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
                     }
                 }
