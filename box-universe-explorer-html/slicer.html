@@ -170,6 +170,8 @@
         <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
         <!-- New element for average -->
         <p class="sequence-avg-info text-gray-400 text-sm mb-2" id="sequenceAvgInfo"></p>
+        <!-- New element for standard deviation -->
+        <p class="sequence-stddev-info text-gray-400 text-sm mb-2" id="sequenceStdDevInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
         <!-- Single 9-net canvas (for direct URL viewing) -->
@@ -275,10 +277,36 @@
             let sumVal = num; // Initialize sum with the starting number
 
             while (num !== 1 && iterations < maxiterations) {
-                if (Math.abs(num) > Number.MAX_SAFE_INTEGER) {
-                    // Calculate average even if exceeding max safe integer, based on current sum and steps
+                // --- MAX NUMBER SAFETY BARRIER ---
+                // Check if the current number exceeds JavaScript's safe integer limit or becomes non-finite
+                if (Math.abs(num) > Number.MAX_SAFE_INTEGER || !Number.isFinite(num)) {
                     const avgVal = sumVal / (iterations + 1);
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
+                    // Standard Deviation calculation
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
                 }
 
                 let next_num;
@@ -287,6 +315,38 @@
                 } else {
                     next_num = (Math.abs(y) || 3) * num + (z || 1);
                 }
+
+                // --- Additional robust check for next_num after calculation ---
+                if (!Number.isFinite(next_num) || Math.abs(next_num) > Number.MAX_SAFE_INTEGER) {
+                    const avgVal = sumVal / (iterations + 1);
+                     // Standard Deviation calculation
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+                }
+
 
                 // Update min/max values
                 minVal = Math.min(minVal, next_num);
@@ -300,11 +360,36 @@
                 }
 
                 if (visitedNumbersMap.has(next_num)) {
-                    // Calculate average for cycle, based on current sum and steps
                     const avgVal = sumVal / (iterations + 1);
+                    // Standard Deviation calculation
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+
                     const cycleStartIndex = visitedNumbersMap.get(next_num);
                     const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
                 }
                 visitedNumbersMap.set(next_num, output.length);
 
@@ -313,13 +398,37 @@
                 iterations++;
             }
 
-            // Calculate average at the end of the sequence
+            // Calculate average and standard deviation at the end of the sequence
             const avgVal = sumVal / (iterations + 1); // +1 because output.length includes the starting number
+            let stdDevVal = 0;
+            if (output.length > 1) {
+                const mean = avgVal;
+                const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                    const diff = val - mean;
+                    const squaredDiff = diff * diff;
+                    if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                        return Number.MAX_SAFE_INTEGER;
+                    }
+                    return acc + squaredDiff;
+                }, 0);
+
+                if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                    stdDevVal = "Too Large";
+                } else {
+                    const variance = sumOfSquaredDifferences / output.length;
+                    const stdDev = Math.sqrt(variance);
+                    if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                        stdDevVal = "Too Large";
+                    } else {
+                        stdDevVal = stdDev;
+                    }
+                }
+            }
 
             if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
             } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal };
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
             }
         };
 
@@ -453,6 +562,8 @@
         const sequenceRangeInfo = document.getElementById('sequenceRangeInfo'); // New element for main slicer display
         const sequenceSumInfo = document.getElementById('sequenceSumInfo'); // New element for main slicer display
         const sequenceAvgInfo = document.getElementById('sequenceAvgInfo'); // New element for main slicer display
+        const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo'); // New element for main slicer display
+
 
         // Update speed value display
         animationSpeedSlider.addEventListener('input', () => {
@@ -540,7 +651,8 @@
                                     minVal: result.minVal, // min value in sequence
                                     maxVal: result.maxVal,  // max value in sequence
                                     sumVal: result.sumVal,   // sum of sequence values
-                                    avgVal: result.avgVal    // average of sequence values
+                                    avgVal: result.avgVal,    // average of sequence values
+                                    stdDev: result.stdDev     // standard deviation of sequence values
                                 });
                                 generatedCount++;
                             }
@@ -596,7 +708,7 @@
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal} to ${bu.maxVal}<br>Sum: ${bu.sumVal > Number.MAX_SAFE_INTEGER -1 ? 'Too Large' : bu.sumVal.toLocaleString()}<br>Average: ${bu.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal.toLocaleString()} to ${bu.maxVal.toLocaleString()}<br>Sum: ${typeof bu.sumVal === 'number' ? bu.sumVal.toLocaleString() : bu.sumVal}<br>Average: ${typeof bu.avgVal === 'number' ? bu.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : bu.avgVal}<br>Std Dev: ${typeof bu.stdDev === 'number' ? bu.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : bu.stdDev}`;
                 gridItemDiv.appendChild(infoDiv);
 
                 // Add "View in Main Explorer" button
@@ -642,6 +754,7 @@
             const sequenceRangeInfo = document.getElementById('sequenceRangeInfo');
             const sequenceSumInfo = document.getElementById('sequenceSumInfo');
             const sequenceAvgInfo = document.getElementById('sequenceAvgInfo');
+            const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo');
 
 
             // Set color boxes
@@ -658,21 +771,23 @@
                     sequenceRangeInfo.textContent = '';
                     sequenceSumInfo.textContent = '';
                     sequenceAvgInfo.textContent = '';
+                    sequenceStdDevInfo.textContent = '';
                     nineNetCanvas.style.display = 'none';
                 } else {
                     let typeText = result.type.replace(/_/g, ' ');
                     if (result.type === "reached_max_iterations") {
                         typeText += ` - Ended at ${result.finalNum}`;
                     } else if (result.type === "exceeded_max_safe_integer") {
-                        typeText += ` - Ended at ${result.finalNum} (Exceeded safe integer limit)`;
+                        typeText += ` - Ended at ${result.finalNum} (Exceeded safe integer limit or became infinite)`;
                     } else if (result.type === "cycle") {
                         typeText += ` - Cycle: ${result.cycle.join(' → ')}`;
                     }
                     sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
                     sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
-                    sequenceRangeInfo.textContent = `Range: ${result.minVal} to ${result.maxVal}`;
-                    sequenceSumInfo.textContent = `Sum: ${result.sumVal > Number.MAX_SAFE_INTEGER -1 ? 'Too Large' : result.sumVal.toLocaleString()}`;
-                    sequenceAvgInfo.textContent = `Average: ${result.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 })}`;
+                    sequenceRangeInfo.textContent = `Range: ${result.minVal.toLocaleString()} to ${result.maxVal.toLocaleString()}`;
+                    sequenceSumInfo.textContent = `Sum: ${typeof result.sumVal === 'number' ? result.sumVal.toLocaleString() : result.sumVal}`;
+                    sequenceAvgInfo.textContent = `Average: ${typeof result.avgVal === 'number' ? result.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.avgVal}`;
+                    sequenceStdDevInfo.textContent = `Standard Deviation: ${typeof result.stdDev === 'number' ? result.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.stdDev}`;
                     drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
                     nineNetCanvas.style.display = 'block'; // Ensure it's visible
                 }
@@ -683,6 +798,7 @@
                 sequenceRangeInfo.textContent = '';
                 sequenceSumInfo.textContent = '';
                 sequenceAvgInfo.textContent = '';
+                sequenceStdDevInfo.textContent = '';
                 nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
             }
 
