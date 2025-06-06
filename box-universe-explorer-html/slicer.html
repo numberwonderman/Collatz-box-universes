@@ -26,7 +26,8 @@
             box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* shadow-xl */
             text-align: center;
             max-width: 90%; /* Responsive width */
-            margin-bottom: 2rem; /* Space below the main controls container */
+            margin-bottom: 2rem;
+            width: 100%; /* Ensure it takes full width up to max-width */
         }
         /* Adjusted canvas styling for consistency across the app */
         canvas {
@@ -90,7 +91,8 @@
             font-weight: 600;
         }
         .slideshow-controls select,
-        .slideshow-controls input[type="range"] {
+        .slideshow-controls input[type="range"],
+        .slideshow-controls input[type="number"] { /* Added number input styling */
             background-color: #4a5568;
             border: 1px solid #64748b;
             color: #e2e8f0;
@@ -157,6 +159,13 @@
         .grid-item button:hover {
             background-color: #21a1f1;
         }
+        /* Custom styling for the gold star/indicator */
+        .gold-star {
+            color: gold; /* Or use an emoji like '⭐' in the HTML directly */
+            font-size: 1.25rem; /* text-xl */
+            margin-left: 0.25rem; /* ml-1 */
+            display: inline-block; /* To align with text */
+        }
     </style>
 </head>
 <body>
@@ -209,28 +218,36 @@
         <button id="toggleSlideshow" class="px-4 py-2">Play Slideshow</button>
 
         <div class="flex flex-col items-center">
-            <label>N Range:</label>
+            <label class="flex items-center gap-2">N Range:
+                <span id="n-star" class="gold-star hidden">⭐</span>
+            </label>
             <div class="flex gap-2">
                 <input type="number" id="nMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
                 <input type="number" id="nMax" value="50" min="1" class="w-20 p-2 rounded-md text-center">
             </div>
         </div>
         <div class="flex flex-col items-center">
-            <label>X Range:</label>
+            <label class="flex items-center gap-2">X Range:
+                <span id="x-star" class="gold-star hidden">⭐</span>
+            </label>
             <div class="flex gap-2">
                 <input type="number" id="xMin" value="2" min="1" class="w-20 p-2 rounded-md text-center">
                 <input type="number" id="xMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
             </div>
         </div>
         <div class="flex flex-col items-center">
-            <label>Y Range:</label>
+            <label class="flex items-center gap-2">Y Range:
+                <span id="y-star" class="gold-star hidden">⭐</span>
+            </label>
             <div class="flex gap-2">
                 <input type="number" id="yMin" value="3" min="1" class="w-20 p-2 rounded-md text-center">
                 <input type="number" id="yMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
             </div>
         </div>
         <div class="flex flex-col items-center">
-            <label>Z Range:</label>
+            <label class="flex items-center gap-2">Z Range:
+                <span id="z-star" class="gold-star hidden">⭐</span>
+            </label>
             <div class="flex gap-2">
                 <input type="number" id="zMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
                 <input type="number" id="zMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
@@ -319,7 +336,7 @@
                 // --- Additional robust check for next_num after calculation ---
                 if (!Number.isFinite(next_num) || Math.abs(next_num) > Number.MAX_SAFE_INTEGER) {
                     const avgVal = sumVal / (iterations + 1);
-                     // Standard Deviation calculation
+                       // Standard Deviation calculation
                     let stdDevVal = 0;
                     if (output.length > 1) {
                         const mean = avgVal;
@@ -559,27 +576,51 @@
         const zMaxInput = document.getElementById('zMax');
         const applyFiltersButton = document.getElementById('applyFilters');
         const gridContainer = document.getElementById('gridContainer');
+        const nineNetCanvas = document.getElementById('nineNetCanvas'); // Main display canvas
+        const paramDisplay = document.getElementById('paramDisplay'); // Main display text
+        const sequenceInfo = document.getElementById('sequenceInfo'); // Main display text
+        const sequenceNumbersDiv = document.getElementById('sequenceNumbers'); // Main display sequence numbers
         const sequenceRangeInfo = document.getElementById('sequenceRangeInfo'); // New element for main slicer display
         const sequenceSumInfo = document.getElementById('sequenceSumInfo'); // New element for main slicer display
         const sequenceAvgInfo = document.getElementById('sequenceAvgInfo'); // New element for main slicer display
         const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo'); // New element for main slicer display
+        // There is no mainCanvasContainer in slicer.html itself, it's just the main canvas element.
+        // const mainCanvasContainer = document.getElementById('mainCanvasContainer'); 
+
+        // Gold star elements for slicer
+        const nStarSlicer = document.getElementById('n-star'); 
+        const xStarSlicer = document.getElementById('x-star');
+        const yStarSlicer = document.getElementById('y-star');
+        const zStarSlicer = document.getElementById('z-star');
 
 
         // Update speed value display
         animationSpeedSlider.addEventListener('input', () => {
-            speedValueSpan.textContent = animationSpeedSlider.value;
+            if (speedValueSpan) speedValueSpan.textContent = animationSpeedSlider.value;
         });
 
+        // Function to toggle slideshow playback
         toggleSlideshowButton.addEventListener('click', () => {
             if (isSlideshowPlaying) {
                 clearInterval(slideshowInterval);
-                toggleSlideshowButton.textContent = 'Play Slideshow';
+                if (toggleSlideshowButton) toggleSlideshowButton.textContent = 'Play Slideshow';
                 isSlideshowPlaying = false;
             } else {
-                toggleSlideshowButton.textContent = 'Stop Slideshow';
+                // Before starting, make sure we have universes to cycle through
+                if (filteredBoxUniverses.length === 0) {
+                    applyAndDrawFilters(); // Generate if not already present
+                    if (filteredBoxUniverses.length === 0) {
+                        // Still no universes, show an error or message
+                        console.warn("No universes to play slideshow with. Adjust filter ranges.");
+                        return;
+                    }
+                }
+
+                if (toggleSlideshowButton) toggleSlideshowButton.textContent = 'Stop Slideshow';
                 isSlideshowPlaying = true;
                 
                 const axis = animationAxisSelect.value;
+                // Initialize currentAnimationValue to the min of the selected axis
                 if (axis === 'N') {
                     currentAnimationValue = parseInt(nMinInput.value);
                 } else if (axis === 'X') {
@@ -622,12 +663,13 @@
 
             currentAnimationValue++;
 
-            if (currentAnimationValue > maxVal) {
+            if (inputElement && currentAnimationValue > maxVal) { // Check inputElement for null
                 currentAnimationValue = minVal;
             }
 
-            inputElement.value = currentAnimationValue;
+            if (inputElement) inputElement.value = currentAnimationValue; // Check inputElement for null
             applyAndDrawFilters(); // Re-apply filters and redraw the canvas with the new parameter
+            updateGoldStarVisibilitySlicer(); // Update stars after input changes via animation
         }
 
         // Function to generate a set of Box Universes based on specified ranges
@@ -663,167 +705,291 @@
             return tempUniverses;
         }
 
-        // Function to get current filter values from inputs
+        // Function to get current filter values from inputs (COMPLETED)
         function getFilterValues() {
             return {
                 nMin: parseInt(nMinInput.value) || 1,
-                nMax: parseInt(nMaxInput.value) || Infinity,
+                nMax: parseInt(nMaxInput.value) || 50, // Default if empty
                 xMin: parseInt(xMinInput.value) || 1,
-                xMax: parseInt(xMaxInput.value) || Infinity,
+                xMax: parseInt(xMaxInput.value) || 5,
                 yMin: parseInt(yMinInput.value) || 1,
-                yMax: parseInt(yMaxInput.value) || Infinity,
+                yMax: parseInt(yMaxInput.value) || 5,
                 zMin: parseInt(zMinInput.value) || 1,
-                zMax: parseInt(zMaxInput.value) || Infinity
+                zMax: parseInt(zMaxInput.value) || 5
             };
         }
 
-        // Function to get current filter values from inputs and apply them
+        // Function to display a specific universe in the main view
+        function displayMainUniverse(universe) {
+            if (!paramDisplay || !sequenceInfo || !sequenceNumbersDiv || !sequenceRangeInfo || !sequenceSumInfo || !sequenceAvgInfo || !sequenceStdDevInfo || !nineNetCanvas) {
+                console.error("Missing one or more main display elements.");
+                return;
+            }
+
+            paramDisplay.textContent = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}`;
+            let typeText = universe.type.replace(/_/g, ' ');
+            if (universe.type === "cycle") {
+                typeText += ` (Cycle: ${universe.cycle.join(' → ')})`;
+            } else if (universe.type === "reached_max_iterations" || universe.type === "exceeded_max_safe_integer") {
+                typeText += ` (Final: ${universe.finalNum})`;
+            }
+            sequenceInfo.textContent = `Steps: ${universe.steps} | Type: ${typeText}`;
+            sequenceNumbersDiv.textContent = universe.sequence.join(' → ');
+
+            // Display statistics
+            sequenceRangeInfo.textContent = `Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
+            sequenceSumInfo.textContent = `Sum: ${universe.sumVal === "Too Large" ? 'Too Large' : universe.sumVal.toLocaleString()}`;
+            sequenceAvgInfo.textContent = `Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+            sequenceStdDevInfo.textContent = `StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : universe.stdDev}`;
+
+
+            drawNineNetCanvas(nineNetCanvas, universe.sequence, universe.X, divColor, mulColor);
+        }
+
+        // Function to apply filters and draw the grid of universes (COMPLETED)
         function applyAndDrawFilters() {
             const filters = getFilterValues();
-            allBoxUniverses = generateBoxUniverses(
+            filteredBoxUniverses = generateBoxUniverses(
                 filters.nMin, filters.nMax,
                 filters.xMin, filters.xMax,
                 filters.yMin, filters.yMax,
                 filters.zMin, filters.zMax
             );
-            filteredBoxUniverses = allBoxUniverses; // For now, no further filtering
-            drawAllBoxUniverses();
-        }
 
-        // --- DRAWING FUNCTION FOR BULK UNIVERSES ---
-        function drawAllBoxUniverses() {
-            gridContainer.innerHTML = ''; // Clear previous grid items
+            if (!gridContainer) {
+                console.error("Grid container not found. Cannot apply filters.");
+                return;
+            }
+            gridContainer.innerHTML = ''; // Clear existing grid items
 
-            filteredBoxUniverses.forEach((bu) => {
-                const gridItemDiv = document.createElement('div');
-                gridItemDiv.className = 'grid-item';
+            if (filteredBoxUniverses.length === 0) {
+                gridContainer.innerHTML = '<p class="text-gray-400 text-center col-span-full">No universes found for the given ranges. Try adjusting the filters.</p>';
+                // Clear main display if no universes are found for filtered view
+                if (paramDisplay) paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
+                if (sequenceInfo) sequenceInfo.textContent = '';
+                if (sequenceNumbersDiv) sequenceNumbersDiv.textContent = '';
+                if (nineNetCanvas) nineNetCanvas.getContext('2d').clearRect(0, 0, nineNetCanvas.width, nineNetCanvas.height);
+                if (sequenceRangeInfo) sequenceRangeInfo.textContent = '';
+                if (sequenceSumInfo) sequenceSumInfo.textContent = '';
+                if (sequenceAvgInfo) sequenceAvgInfo.textContent = '';
+                if (sequenceStdDevInfo) sequenceStdDevInfo.textContent = '';
+                
+                // There is no mainCanvasContainer in slicer.html. The main canvas itself can be shown/hidden.
+                if (nineNetCanvas) nineNetCanvas.style.display = 'none'; 
+                return;
+            }
+
+            // Display the first universe in the main canvas if it's the initial load or filters changed
+            // Only update the main display if it's not currently showing a URL-loaded sequence,
+            // or if the currently displayed URL sequence is outside the new filter range.
+            const urlParams = new URLSearchParams(window.location.search); // Use URLSearchParams
+            const urlN = parseInt(urlParams.get('n'));
+            const urlX = parseInt(urlParams.get('x'));
+            const urlY = parseInt(urlParams.get('y'));
+            const urlZ = parseInt(urlParams.get('z'));
+
+            const isUrlLoaded = !isNaN(urlN) && !isNaN(urlX) && !isNaN(urlY) && !isNaN(urlZ);
+            let updateMainDisplay = true;
+
+            if (isUrlLoaded) {
+                // Check if the URL-loaded sequence is still within the new filter range
+                const currentMainUniverse = { N: urlN, X: urlX, Y: urlY, Z: urlZ };
+                const isStillInFilter = filteredBoxUniverses.some(u => 
+                    u.N === currentMainUniverse.N && 
+                    u.X === currentMainUniverse.X && 
+                    u.Y === currentMainUniverse.Y && 
+                    u.Z === currentMainUniverse.Z
+                );
+                if (isStillInFilter) {
+                    updateMainDisplay = false; // Don't change the main display if URL-loaded is still valid
+                }
+            }
+            
+            if (updateMainDisplay && filteredBoxUniverses.length > 0) {
+                displayMainUniverse(filteredBoxUniverses[0]);
+            }
+
+
+            filteredBoxUniverses.forEach(universe => {
+                const gridItem = document.createElement('div');
+                gridItem.className = 'grid-item';
 
                 const canvasElement = document.createElement('canvas');
-                // Set internal canvas resolution to the correct 9-net drawing size
+                // Set canvas internal resolution to match drawing constants
                 canvasElement.width = NINE_NET_DRAW_WIDTH;
                 canvasElement.height = NINE_NET_DRAW_HEIGHT;
-                gridItemDiv.appendChild(canvasElement);
+                // CSS max-width and height:auto handle display sizing
+                canvasElement.className = 'grid-item-canvas'; // Class for consistent styling
 
-                drawNineNetCanvas(canvasElement, bu.sequence, bu.X, divColor, mulColor);
+                drawNineNetCanvas(canvasElement, universe.sequence, universe.X, divColor, mulColor);
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${bu.N}, X=${bu.X}, Y=${bu.Y}, Z=${bu.Z}<br>Steps: ${bu.steps}, Type: ${bu.type.replace(/_/g, ' ')}<br>Range: ${bu.minVal.toLocaleString()} to ${bu.maxVal.toLocaleString()}<br>Sum: ${typeof bu.sumVal === 'number' ? bu.sumVal.toLocaleString() : bu.sumVal}<br>Average: ${typeof bu.avgVal === 'number' ? bu.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : bu.avgVal}<br>Std Dev: ${typeof bu.stdDev === 'number' ? bu.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : bu.stdDev}`;
-                gridItemDiv.appendChild(infoDiv);
+                infoDiv.innerHTML = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}<br>`;
+                let typeText = universe.type.replace(/_/g, ' ');
+                if (universe.type === "cycle") {
+                    typeText += ` (Cycle)`;
+                } else if (universe.type === "reached_max_iterations" || universe.type === "exceeded_max_safe_integer") {
+                    typeText += ` (Final: ${universe.finalNum !== undefined ? universe.finalNum.toLocaleString() : 'N/A'})`;
+                }
+                infoDiv.innerHTML += `Steps: ${universe.steps} | Type: ${typeText}`;
+                infoDiv.innerHTML += `<br>Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
+                infoDiv.innerHTML += `<br>Sum: ${universe.sumVal === "Too Large" ? 'Too Large' : universe.sumVal.toLocaleString()}`;
+                infoDiv.innerHTML += `<br>Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+                infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : universe.stdDev}`;
 
-                // Add "View in Main Explorer" button
-                const viewInMainBtn = document.createElement('button');
-                viewInMainBtn.textContent = 'View in Main Explorer';
-                viewInMainBtn.addEventListener('click', () => {
-                    const url = `index.html?n=${bu.N}&x=${bu.X}&y=${bu.Y}&z=${bu.Z}`;
-                    window.open(url, '_blank'); // Open index.html in a new tab with parameters
+
+                const viewButton = document.createElement('button');
+                viewButton.textContent = 'View in Main';
+                viewButton.addEventListener('click', () => {
+                    displayMainUniverse(universe);
                 });
-                gridItemDiv.appendChild(viewInMainBtn);
 
-                gridContainer.appendChild(gridItemDiv);
+                gridItem.appendChild(canvasElement);
+                gridItem.appendChild(infoDiv);
+                gridItem.appendChild(viewButton);
+                gridContainer.appendChild(gridItem);
             });
 
-            if (filteredBoxUniverses.length === 0) {
-                const noResults = document.createElement('p');
-                noResults.className = 'text-center text-gray-400 p-4';
-                noResults.textContent = 'No Box Universes found for the current filter.';
-                gridContainer.appendChild(noResults);
-            }
+            updateGoldStarVisibilitySlicer(); // Update stars after filters are applied
         }
 
-        // Main logic for slicer.html
-        document.addEventListener('DOMContentLoaded', () => {
+        // Function to update the gold star visibility in Slicer
+        function updateGoldStarVisibilitySlicer() {
+            // Ensure inputs exist before trying to read their values
+            const xVal = xMinInput ? parseInt(xMinInput.value) : NaN; 
+            const yVal = yMinInput ? parseInt(yMinInput.value) : NaN;
+            const zVal = zMinInput ? parseInt(zMinInput.value) : NaN;
+
+            const isStandardCollatz = (xVal === 2 && yVal === 3 && zVal === 1);
+
+            // Hide/show stars based on the min values matching standard Collatz
+            if (xStarSlicer) xStarSlicer.style.display = (xVal === 2) ? 'inline-block' : 'none';
+            if (yStarSlicer) yStarSlicer.style.display = (yVal === 3) ? 'inline-block' : 'none';
+            if (zStarSlicer) zStarSlicer.style.display = (zVal === 1) ? 'inline-block' : 'none';
+
+            // N-star is always hidden as N doesn't define the rule
+            if (nStarSlicer) nStarSlicer.style.display = 'none';
+        }
+
+
+        // Event listener for apply filters button
+        if (applyFiltersButton) applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+
+        // Add event listeners to input fields to update gold star visibility
+        // These will update the stars as the user types/changes values
+        if (nMinInput) nMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (xMinInput) xMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (yMinInput) yMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (zMinInput) zMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+
+
+        // Initial setup on page load
+        window.addEventListener('DOMContentLoaded', () => {
             const params = getUrlParams();
             const n = parseInt(params.n);
             const x = parseInt(params.x);
             const y = parseInt(params.y);
             const z = parseInt(params.z);
-            const urlDivColor = params.divColor;
-            const urlMulColor = params.mulColor;
 
-            // Apply colors from URL if present
-            if (urlDivColor) divColor = urlDivColor;
-            if (urlMulColor) mulColor = urlMulColor;
-
-            const paramDisplay = document.getElementById('paramDisplay');
-            const sequenceInfo = document.getElementById('sequenceInfo');
-            const sequenceNumbersDiv = document.getElementById('sequenceNumbers');
-            const nineNetCanvas = document.getElementById('nineNetCanvas'); // This is the main single canvas at the top
+            // Update color boxes based on initial values (defaults or URL)
             const divColorBox = document.getElementById('divColorBox');
             const mulColorBox = document.getElementById('mulColorBox');
-            const sequenceRangeInfo = document.getElementById('sequenceRangeInfo');
-            const sequenceSumInfo = document.getElementById('sequenceSumInfo');
-            const sequenceAvgInfo = document.getElementById('sequenceAvgInfo');
-            const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo');
+            if (divColorBox) divColorBox.style.backgroundColor = divColor;
+            if (mulColorBox) mulColorBox.style.backgroundColor = mulColor;
 
-
-            // Set color boxes
-            divColorBox.style.backgroundColor = divColor;
-            mulColorBox.style.backgroundColor = mulColor;
-
+            // If URL parameters are present, display that single universe in the main canvas
             if (!isNaN(n) && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
-                paramDisplay.textContent = `N=${n}, X=${x}, Y=${y}, Z=${z}`;
+                // Set current animation values to URL values if they were provided
+                if (nMinInput) nMinInput.value = n;
+                if (nMaxInput) nMaxInput.value = n; // Set max to N to ensure it stays in range
+                if (xMinInput) xMinInput.value = x;
+                if (xMaxInput) xMaxInput.value = x;
+                if (yMinInput) yMinInput.value = y;
+                if (yMaxInput) yMaxInput.value = y;
+                if (zMinInput) zMinInput.value = z;
+                if (zMaxInput) zMaxInput.value = z;
+                
                 const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
-
-                if (result.type === "error") {
-                    sequenceInfo.textContent = `Error: ${result.message}`;
-                    sequenceNumbersDiv.textContent = '';
-                    sequenceRangeInfo.textContent = '';
-                    sequenceSumInfo.textContent = '';
-                    sequenceAvgInfo.textContent = '';
-                    sequenceStdDevInfo.textContent = '';
-                    nineNetCanvas.style.display = 'none';
+                if (result.type !== "error") {
+                    displayMainUniverse({ N: n, X: x, Y: y, Z: z, ...result });
                 } else {
-                    let typeText = result.type.replace(/_/g, ' ');
-                    if (result.type === "reached_max_iterations") {
-                        typeText += ` - Ended at ${result.finalNum}`;
-                    } else if (result.type === "exceeded_max_safe_integer") {
-                        typeText += ` - Ended at ${result.finalNum} (Exceeded safe integer limit or became infinite)`;
-                    } else if (result.type === "cycle") {
-                        typeText += ` - Cycle: ${result.cycle.join(' → ')}`;
-                    }
-                    sequenceInfo.textContent = `Steps: ${result.steps} (Type: ${typeText})`;
-                    sequenceNumbersDiv.textContent = Array.isArray(result.sequence) ? result.sequence.join(' → ') : 'Invalid sequence data';
-                    sequenceRangeInfo.textContent = `Range: ${result.minVal.toLocaleString()} to ${result.maxVal.toLocaleString()}`;
-                    sequenceSumInfo.textContent = `Sum: ${typeof result.sumVal === 'number' ? result.sumVal.toLocaleString() : result.sumVal}`;
-                    sequenceAvgInfo.textContent = `Average: ${typeof result.avgVal === 'number' ? result.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.avgVal}`;
-                    sequenceStdDevInfo.textContent = `Standard Deviation: ${typeof result.stdDev === 'number' ? result.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.stdDev}`;
-                    drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
-                    nineNetCanvas.style.display = 'block'; // Ensure it's visible
+                    // Handle error for URL-loaded sequence
+                    if (paramDisplay) paramDisplay.textContent = `Error for N=${n}, X=${x}, Y=${y}, Z=${z}`;
+                    if (sequenceInfo) sequenceInfo.textContent = result.message;
+                    if (sequenceNumbersDiv) sequenceNumbersDiv.textContent = '';
+                    if (nineNetCanvas) nineNetCanvas.getContext('2d').clearRect(0, 0, nineNetCanvas.width, nineNetCanvas.height);
+                    if (sequenceRangeInfo) sequenceRangeInfo.textContent = '';
+                    if (sequenceSumInfo) sequenceSumInfo.textContent = '';
+                    if (sequenceAvgInfo) sequenceAvgInfo.textContent = '';
+                    if (sequenceStdDevInfo) sequenceStdDevInfo.textContent = '';
                 }
+                if (nineNetCanvas) nineNetCanvas.style.display = 'block'; // Ensure main canvas is visible
             } else {
-                paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
-                sequenceInfo.textContent = '';
-                sequenceNumbersDiv.textContent = '';
-                sequenceRangeInfo.textContent = '';
-                sequenceSumInfo.textContent = '';
-                sequenceAvgInfo.textContent = '';
-                sequenceStdDevInfo.textContent = '';
-                nineNetCanvas.style.display = 'none'; // Hide single canvas if no params
-            }
+                // If no parameters, perform initial draw with default values for the main canvas
+                // Use a default universe to display initially if no URL params
+                const defaultN = nMinInput ? parseInt(nMinInput.value) : 1; // Default fallback
+                const defaultX = xMinInput ? parseInt(xMinInput.value) : 2;
+                const defaultY = yMinInput ? parseInt(yMinInput.value) : 3;
+                const defaultZ = zMinInput ? parseInt(zMinInput.value) : 1;
 
-            // Event listener for apply filters button
-            applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+                const defaultResult = generalizedCollatz(defaultN, defaultX, defaultY, defaultZ, MAX_ITERATIONS);
+                if (defaultResult.type !== "error") {
+                    displayMainUniverse({ N: defaultN, X: defaultX, Y: defaultY, Z: defaultZ, ...defaultResult });
+                } else {
+                     // Handle error for default initial sequence
+                    if (paramDisplay) paramDisplay.textContent = `Error with default sequence N=${defaultN}, X=${defaultX}, Y=${defaultY}, Z=${defaultZ}`;
+                    if (sequenceInfo) sequenceInfo.textContent = defaultResult.message;
+                    if (sequenceNumbersDiv) sequenceNumbersDiv.textContent = '';
+                    if (nineNetCanvas) nineNetCanvas.getContext('2d').clearRect(0, 0, nineNetCanvas.width, nineNetCanvas.height);
+                    if (sequenceRangeInfo) sequenceRangeInfo.textContent = '';
+                    if (sequenceSumInfo) sequenceSumInfo.textContent = '';
+                    if (sequenceAvgInfo) sequenceAvgInfo.textContent = '';
+                    if (sequenceStdDevInfo) sequenceStdDevInfo.textContent = '';
+                }
+            }
 
             // Initial draw of bulk universes (always happens regardless of URL params)
             applyAndDrawFilters(); // This will populate the grid with default ranges if no specific sequence was loaded
 
             // Adjust canvas size if needed for responsiveness (for the single canvas at the top)
             function resizeMainCanvas() {
-                const containerWidth = nineNetCanvas.parentElement.clientWidth;
+                if (!nineNetCanvas || !paramDisplay) { // Crucial checks for elements
+                    return; 
+                }
+                const containerWidth = nineNetCanvas.parentElement ? nineNetCanvas.parentElement.clientWidth : NINE_NET_DRAW_WIDTH;
                 const desiredDisplayWidth = Math.min(containerWidth * 0.9, NINE_NET_DRAW_WIDTH);
                 nineNetCanvas.style.width = `${desiredDisplayWidth}px`;
                 nineNetCanvas.style.height = 'auto'; // Important for aspect ratio
-                // Redraw only if a sequence was loaded via URL
-                if (!isNaN(n) && !isNaN(x) && !isNaN(y) && !isNaN(z)) {
-                    const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
+
+                // Redraw if there's currently a sequence displayed (e.g., from URL or initial default)
+                // This prevents redrawing an empty canvas if an error occurred or no params were given
+                const currentNtext = paramDisplay.textContent.split(',')[0];
+                const currentNMatch = currentNtext ? currentNtext.match(/N=(\d+)/) : null;
+                const currentN = currentNMatch ? parseInt(currentNMatch[1]) : NaN;
+
+                const currentXtext = paramDisplay.textContent.split(',')[1];
+                const currentXMatch = currentXtext ? currentXtext.match(/X=(\d+)/) : null;
+                const currentX = currentXMatch ? parseInt(currentXMatch[1]) : NaN;
+                
+                const currentYtext = paramDisplay.textContent.split(',')[2];
+                const currentYMatch = currentYtext ? currentYtext.match(/Y=(\d+)/) : null;
+                const currentY = currentYMatch ? parseInt(currentYMatch[1]) : NaN;
+
+                const currentZtext = paramDisplay.textContent.split(',')[3];
+                const currentZMatch = currentZtext ? currentZtext.match(/Z=(\d+)/) : null;
+                const currentZ = currentZMatch ? parseInt(currentZMatch[1]) : NaN;
+
+                if (!isNaN(currentN) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && nineNetCanvas.style.display !== 'none') {
+                    const result = generalizedCollatz(currentN, currentX, currentY, currentZ, MAX_ITERATIONS);
                     if (result.type !== "error") {
-                        drawNineNetCanvas(nineNetCanvas, result.sequence, x, divColor, mulColor);
+                        drawNineNetCanvas(nineNetCanvas, result.sequence, currentX, divColor, mulColor);
                     }
                 }
             }
             window.addEventListener('resize', resizeMainCanvas);
             resizeMainCanvas(); // Initial resize
+            updateGoldStarVisibilitySlicer(); // Initial call to set gold star visibility on page load
         });
     </script>
 </body>
