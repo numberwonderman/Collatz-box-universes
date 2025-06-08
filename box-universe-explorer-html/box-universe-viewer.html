@@ -1,0 +1,886 @@
+import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
+import * as THREE from 'three';
+import { Cuboid, RotateCw, ZoomIn, ZoomOut, Hand } from 'lucide-react';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+
+
+// Placeholder for Firebase/Firestore imports.
+// These would be dynamically provided in the Canvas environment at runtime.
+// const __app_id = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+// const __firebase_config = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+// import { initializeApp } from 'firebase/app';
+// import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
+// import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, where, addDoc, getDocs } from 'firebase/firestore';
+
+// Mock Firebase for local development/demonstration without actual Firebase setup
+const mockFirestore = {
+  collection: (path) => ({
+    doc: (id) => ({
+      get: async () => ({
+        exists: false,
+        data: () => null,
+      }),
+      set: async (data) => console.log('Mock Firestore: setDoc', path, id, data),
+      update: async (data) => console.log('Mock Firestore: updateDoc', path, id, data),
+    }),
+    add: async (data) => console.log('Mock Firestore: addDoc', path, data),
+  }),
+  // Mock onSnapshot for real-time updates
+  onSnapshot: (queryRef, callback) => {
+    console.log('Mock Firestore: onSnapshot attached to', queryRef);
+    // Simulate initial data load
+    // callback({ docs: [] });
+    // Return an unsubscribe function
+    return () => console.log('Mock Firestore: onSnapshot unsubscribed');
+  },
+};
+
+const mockAuth = {
+  currentUser: { uid: 'mock-user-id' },
+  signInAnonymously: async () => ({ user: { uid: 'mock-user-id' } }),
+  signInWithCustomToken: async (auth, token) => ({ user: { uid: 'mock-user-id' } }),
+  // Ensure onAuthStateChanged is defined directly within mockAuth
+  onAuthStateChanged: (callback) => {
+    console.log('Mock Auth: onAuthStateChanged called');
+    // Simulate an immediate user state change
+    callback({ uid: 'mock-user-id' }); // Simulate signed-in user
+    return () => console.log('Mock Auth: onAuthStateChanged unsubscribed'); // Unsubscribe function
+  },
+};
+
+const db = mockFirestore;
+const auth = mockAuth;
+
+// Helper to generate a UUID (for mock user ID if needed)
+const crypto = window.crypto || window.msCrypto; // For IE 11
+const generateUUID = () => {
+  if (crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  } else {
+    // Fallback for browsers that don't support crypto.randomUUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+};
+
+
+// Function to display a message box instead of alert()
+const showMessageBox = (message) => {
+  const messageBox = document.createElement('div');
+  messageBox.className = 'fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 p-4';
+  messageBox.innerHTML = `
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+      <p class="text-gray-800 text-lg mb-4">${message}</p>
+      <button id="closeMessageBox" class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-all duration-200">
+        OK
+      </button>
+    </div>
+  `;
+  document.body.appendChild(messageBox);
+
+  document.getElementById('closeMessageBox').onclick = () => {
+    document.body.removeChild(messageBox);
+  };
+};
+
+// Main App Component
+const App = () => {
+  const mountRef = useRef(null);
+  const rendererRef = useRef(null);
+  const sceneRef = useRef(null);
+  const cameraRef = useRef(null);
+  const controlsRef = useRef(null); // Reference for OrbitControls instance
+  const animationFrameId = useRef(null);
+  const rotationAngle = useRef(0);
+  const raycaster = useRef(new THREE.Raycaster()); // Raycaster for interactions
+  const mouse = useRef(new THREE.Vector2()); // Mouse coordinates
+  const faceMeshes = useRef([]); // To store references to the face meshes for raycasting
+
+  const [collatzRules, setCollatzRules] = useState(() => {
+    // Initialize with default Collatz rules (3n+1/2 for odd, n/2 for even)
+    // Represented as {X, Y, Z, appliesToParity}
+    // A 3x3 grid for each of the 6 faces = 54 rules
+    const rules = Array(6).fill(0).map(() =>
+      Array(9).fill(0).map(() => ({ X: 3, Y: 1, Z: 2, appliesToParity: 'odd' }))
+    );
+    // Example: Set some common even rules on face 0
+    rules[0][0] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' }; // Corresponds to n/2
+    rules[0][1] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][2] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][3] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][4] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][5] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][6] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][7] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+    rules[0][8] = { X: 1, Y: 0, Z: 2, appliesToParity: 'even' };
+
+    // Set a classic collatz rule (3n+1) on face 0, cell 4 (center)
+    rules[0][4] = { X: 3, Y: 1, Z: 1, appliesToParity: 'odd' }; // Classic 3n+1 for odd numbers
+
+    // Populate other faces with varied rules for demonstration
+    rules[1][4] = { X: 5, Y: 1, Z: 1, appliesToParity: 'odd' }; // 5n+1 for odd
+    rules[2][4] = { X: 2, Y: 1, Z: 3, appliesToParity: 'both' }; // 2n+3 for all
+    rules[3][4] = { X: 4, Y: 1, Z: 1, appliesToParity: 'even' }; // 4n+1 for even
+    rules[4][4] = { X: 3, Y: 2, Z: 1, appliesToParity: 'odd' }; // 3n+2 for odd
+    rules[5][4] = { X: 2, Y: 1, Z: 0, appliesToParity: 'both' }; // 2n for all
+
+    return rules;
+  });
+
+  const [currentNumber, setCurrentNumber] = useState(7);
+  const [sequenceLimit, setSequenceLimit] = useState(50);
+  const [currentFaceIndex, setCurrentFaceIndex] = useState(0); // Which face is active for input
+  const [currentCellIndex, setCurrentCellIndex] = useState(0); // Which cell on the active face is active
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true); // New loading state for Firebase auth
+  const [isThreeJsInitialized, setIsThreeJsInitialized] = useState(false); // State to track Three.js readiness
+  const [isDomReady, setIsDomReady] = useState(false); // New state to explicitly track DOM readiness
+
+  console.log("App component mounted.");
+
+  // Use useLayoutEffect to ensure mountRef.current is available immediately after DOM updates
+  useLayoutEffect(() => {
+    if (mountRef.current) {
+      console.log("useLayoutEffect: mountRef.current is available. Setting isDomReady to true.");
+      setIsDomReady(true);
+    }
+  }, []); // Empty dependency array means this runs once after initial DOM render
+
+  // Firebase Initialization and Auth
+  useEffect(() => {
+    const initFirebase = async () => {
+      try {
+        // The following lines would be uncommented if Firebase is actually configured
+        // const app = initializeApp(__firebase_config);
+        // const authInstance = getAuth(app);
+        // const dbInstance = getFirestore(app);
+
+        // For mockAuth, it's directly available
+        auth.onAuthStateChanged((user) => { // Directly call onAuthStateChanged from the mockAuth object
+          if (user) {
+            setUserId(user.uid);
+            console.log("Firebase Auth Ready. User ID:", user.uid);
+          } else {
+            setUserId(generateUUID()); // Fallback for mock or unauthenticated
+            console.log("Firebase Auth Ready. Anonymous User ID:", userId);
+          }
+          setLoading(false); // Auth is ready
+        });
+      } catch (error) {
+        console.error("Firebase initialization error:", error);
+        showMessageBox(`Firebase error: ${error.message}`);
+        setLoading(false); // Stop loading even on error
+      }
+    };
+
+    initFirebase();
+  }, []); // Run once on component mount
+
+  // Firestore operations (simplified for demonstration)
+  const saveCollatzRules = useCallback(async () => {
+    if (!userId) {
+      console.warn("User ID not available for saving rules.");
+      return;
+    }
+    setLoading(true);
+    try {
+      // Data will be stored under /artifacts/{appId}/public/data/collatzRules/{userId}
+      // This path is just an example for public data that is unique per user to prevent collision.
+      // For actual Firebase:
+      // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+      // const docRef = doc(db.collection(`/artifacts/${appId}/public/data/collatzRules`), userId);
+      const docRef = db.collection('collatzRules').doc(userId); // Mock Firestore
+      await docRef.set({ rules: collatzRules }, { merge: true });
+      showMessageBox('Rules saved successfully!');
+    } catch (error) {
+      console.error("Error saving rules:", error);
+      showMessageBox(`Error saving rules: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [collatzRules, userId]);
+
+  const loadCollatzRules = useCallback(async () => {
+    if (!userId) {
+      console.warn("User ID not available for loading rules.");
+      return;
+    }
+    setLoading(true);
+    try {
+      // For actual Firebase:
+      // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+      // const docRef = doc(db.collection(`/artifacts/${appId}/public/data/collatzRules`), userId);
+      const docRef = db.collection('collatzRules').doc(userId); // Mock Firestore
+      const docSnap = await docRef.get();
+      if (docSnap.exists) { // Mock assumes exists is a boolean
+        setCollatzRules(docSnap.data().rules);
+        showMessageBox('Rules loaded successfully!');
+      } else {
+        showMessageBox('No saved rules found for this user. Using default.');
+      }
+    } catch (error) {
+      console.error("Error loading rules:", error);
+      showMessageBox(`Error loading rules: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  // Three.js Scene Setup, now dependent on isDomReady
+  useEffect(() => {
+    // Only proceed if DOM is ready and mountRef.current is confirmed
+    if (!isDomReady || !mountRef.current) {
+      console.log("useEffect [isDomReady]: DOM not ready or mountRef.current is null. Aborting Three.js setup.");
+      return;
+    }
+
+    console.log("useEffect [isDomReady]: Starting Three.js setup (DOM is ready).");
+
+    // Clear previous scene
+    if (sceneRef.current) {
+      console.log("useEffect: Clearing existing Three.js scene.");
+      // Dispose of geometries, materials, and textures to prevent memory leaks
+      sceneRef.current.traverse((object) => {
+        if (object.isMesh) {
+          object.geometry.dispose();
+          if (Array.isArray(object.material)) {
+            object.material.forEach(material => material.dispose());
+          } else {
+            object.material.dispose();
+          }
+        }
+      });
+      // Remove all children from the scene
+      while(sceneRef.current.children.length > 0){
+        sceneRef.current.remove(sceneRef.current.children[0]);
+      }
+      sceneObjects.current = [];
+      faceMeshes.current = []; // Clear face meshes too
+    }
+
+    // Scene
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
+    scene.background = new THREE.Color(0x1a202c); // Dark background to match app theme
+    console.log("Scene created:", sceneRef.current);
+
+
+    // Camera
+    const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+    camera.position.z = 5;
+    cameraRef.current = camera;
+    console.log("Camera created:", cameraRef.current);
+
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+    // Ensure the renderer canvas is appended only once
+    if (mountRef.current.firstChild) {
+      mountRef.current.removeChild(mountRef.current.firstChild);
+    }
+    mountRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
+    console.log("Renderer created and appended:", rendererRef.current);
+
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
+    scene.add(ambientLight);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+    directionalLight.position.set(0, 1, 1);
+    scene.add(directionalLight);
+    console.log("Lights added to scene.");
+
+    // OrbitControls for user interaction
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; // Animate damping
+    controls.dampingFactor = 0.25;
+    controls.screenSpacePanning = false;
+    controls.maxPolarAngle = Math.PI / 2; // Limit vertical rotation
+    controlsRef.current = controls;
+    console.log("OrbitControls initialized:", controlsRef.current);
+
+    // Handle window resize
+    const handleResize = () => {
+      if (mountRef.current && cameraRef.current && rendererRef.current) {
+        const width = mountRef.current.clientWidth;
+        const height = mountRef.current.clientHeight;
+        rendererRef.current.setSize(width, height);
+        cameraRef.current.aspect = width / height;
+        cameraRef.current.updateProjectionMatrix();
+        controlsRef.current.update(); // Update controls on resize
+        console.log("Canvas resized to:", width, "x", height);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Click handler for interaction with 3D elements
+    const onCanvasClick = (event) => {
+      // Calculate mouse position in normalized device coordinates (-1 to +1)
+      const rect = rendererRef.current.domElement.getBoundingClientRect();
+      mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.current.y = - ((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      // Update the picking ray with the camera and mouse position
+      raycaster.current.setFromCamera(mouse.current, cameraRef.current);
+
+      // Calculate objects intersecting the picking ray (only check face meshes)
+      const intersects = raycaster.current.intersectObjects(faceMeshes.current, false);
+
+      if (intersects.length > 0) {
+        const intersectedObject = intersects[0].object;
+        const intersectedFaceIndex = intersectedObject.userData.faceIndex; // Our custom face index (0-5)
+        const geometryFaceIndex = intersects[0].faceIndex; // The index of the triangle within the PlaneGeometry (0-17)
+
+        // Map the triangle index to the 0-8 cell index on the 3x3 grid
+        const subCellIndex = Math.floor(geometryFaceIndex / 2);
+
+        // Retrieve the Collatz rule for the clicked face and cell
+        const rule = collatzRules[intersectedFaceIndex][subCellIndex];
+
+        console.log(`Clicked on Face ${intersectedFaceIndex}, Cell ${subCellIndex}. Rule: X=${rule.X}, Y=${rule.Y}, Z=${rule.Z}, Parity: ${rule.appliesToParity}`);
+
+        // Construct URL for slicer3d.html (renamed to box-universe-viewer.html)
+        // Pass current N, as slicer3d explores N for a given rule.
+        const url = `slicer3d.html?n=${currentNumber}&x=${rule.X}&y=${rule.Y}&z=${rule.Z}`;
+        window.open(url, '_blank'); // Open in a new tab
+      }
+    };
+    rendererRef.current.domElement.addEventListener('pointerdown', onCanvasClick);
+
+
+    // Initial drawing of the cube structure
+    drawCubeStructure();
+    console.log("Initial cube structure drawn.");
+
+    // Set Three.js as initialized once everything is set up
+    setIsThreeJsInitialized(true);
+    console.log("useEffect: Three.js setup complete. isThreeJsInitialized set to true.");
+
+
+    return () => {
+      console.log("useEffect cleanup [isDomReady]: Disposing Three.js objects.");
+      window.removeEventListener('resize', handleResize);
+      if (rendererRef.current && rendererRef.current.domElement) {
+        rendererRef.current.domElement.removeEventListener('pointerdown', onCanvasClick); // Remove listener
+      }
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        console.log("Animation frame canceled.");
+      }
+      if (controlsRef.current) {
+        controlsRef.current.dispose(); // Dispose controls
+        console.log("OrbitControls disposed.");
+      }
+      if (rendererRef.current && mountRef.current && rendererRef.current.domElement) {
+        mountRef.current.removeChild(rendererRef.current.domElement);
+        rendererRef.current.dispose(); // Dispose renderer
+        console.log("Renderer disposed and removed from DOM.");
+      }
+      // Ensure all Three.js objects are properly disposed
+      if (sceneRef.current) {
+        sceneRef.current.traverse((object) => {
+          if (object.isMesh) {
+            object.geometry.dispose();
+            if (Array.isArray(object.material)) {
+              object.material.forEach(material => material.dispose());
+            } else {
+              object.material.dispose();
+            }
+          }
+        });
+        console.log("Scene objects (geometries/materials) disposed.");
+      }
+      setIsThreeJsInitialized(false); // Reset initialization state on unmount
+      faceMeshes.current = []; // Clear face meshes ref on cleanup
+      console.log("useEffect cleanup: isThreeJsInitialized set to false.");
+    };
+  }, [isDomReady, collatzRules, currentNumber]); // Add collatzRules and currentNumber to dependencies for cleanup and click handler
+
+
+  // Draw the 3D Cube Structure and 3x3 grids on each face
+  const drawCubeStructure = useCallback(() => {
+    if (!sceneRef.current) {
+        console.warn("drawCubeStructure: sceneRef.current is null. Cannot draw cube structure.");
+        return;
+    }
+    console.log("drawCubeStructure: Drawing cube structure.");
+
+    // Clear existing scene objects (except lights, camera)
+    sceneObjects.current.forEach(obj => {
+      if (obj.parent) obj.parent.remove(obj); // Remove from scene
+      if (obj.geometry) obj.geometry.dispose(); // Dispose geometry
+      if (obj.material) { // Dispose material
+        if (Array.isArray(obj.material)) {
+          obj.material.forEach(material => material.dispose());
+        } else {
+          obj.material.dispose();
+        }
+      }
+    });
+    sceneObjects.current = [];
+    faceMeshes.current = []; // Ensure this is cleared when redrawing structure
+    console.log("Existing scene objects cleared.");
+
+    const cubeSize = 3; // Overall size of the main cube
+    const faceGeometry = new THREE.PlaneGeometry(cubeSize, cubeSize, 3, 3); // 3x3 segments for faces
+    const edgeMaterial = new THREE.LineBasicMaterial({ color: 0x888888, linewidth: 2 });
+
+    // Helper to create a face and its grid lines
+    const createFace = (normal, color, position, faceIdx) => { // Added faceIdx parameter
+      const material = new THREE.MeshLambertMaterial({ color: color, side: THREE.DoubleSide, transparent: true, opacity: 0.8 });
+      const face = new THREE.Mesh(faceGeometry, material);
+      face.position.copy(position);
+      face.lookAt(normal.clone().add(position)); // Align face with normal
+      face.userData = { isFace: true, faceIndex: faceIdx }; // Store custom face index
+      sceneRef.current.add(face);
+      sceneObjects.current.push(face);
+      faceMeshes.current.push(face); // Add to faceMeshes for raycasting
+
+      // Add grid lines (3x3) on each face
+      const gridHelper = new THREE.GridHelper(cubeSize, 3, 0x000000, 0x000000); // Lines are black
+      gridHelper.position.copy(position);
+      gridHelper.position.add(normal.clone().multiplyScalar(0.001)); // Offset slightly to avoid z-fighting
+      
+      // Correctly orient gridHelper based on the face normal
+      if (normal.y === 1 || normal.y === -1) { // Top or Bottom face (XY plane)
+          gridHelper.rotation.x = Math.PI / 2; // Rotate to be horizontal
+          gridHelper.rotation.y = 0;
+          gridHelper.rotation.z = 0;
+      } else if (normal.x === 1 || normal.x === -1) { // Right or Left face (YZ plane)
+          gridHelper.rotation.x = 0;
+          gridHelper.rotation.y = Math.PI / 2; // Rotate to be vertical along Y-axis
+          gridHelper.rotation.z = 0;
+      } else if (normal.z === 1 || normal.z === -1) { // Front or Back face (XY plane)
+          gridHelper.rotation.x = 0;
+          gridHelper.rotation.y = 0;
+          gridHelper.rotation.z = 0;
+      }
+      
+      sceneRef.current.add(gridHelper);
+      sceneObjects.current.push(gridHelper);
+    };
+
+    // Define face normals and positions
+    const halfSize = cubeSize / 2;
+    createFace(new THREE.Vector3(0, 0, 1), 0xff0000, new THREE.Vector3(0, 0, halfSize), 0); // Front (Red)
+    createFace(new THREE.Vector3(0, 0, -1), 0x00ff00, new THREE.Vector3(0, 0, -halfSize), 1); // Back (Green)
+    createFace(new THREE.Vector3(0, 1, 0), 0x0000ff, new THREE.Vector3(0, halfSize, 0), 2); // Top (Blue)
+    createFace(new THREE.Vector3(0, -1, 0), 0xffff00, new THREE.Vector3(0, -halfSize, 0), 3); // Bottom (Yellow)
+    createFace(new THREE.Vector3(1, 0, 0), 0xff00ff, new THREE.Vector3(halfSize, 0, 0), 4); // Right (Magenta)
+    createFace(new THREE.Vector3(-1, 0, 0), 0x00ffff, new THREE.Vector3(-halfSize, 0, 0), 5); // Left (Cyan)
+
+    // Add main cube edges for clarity
+    const edges = new THREE.EdgesGeometry(new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize));
+    const line = new THREE.LineSegments(edges, edgeMaterial);
+    sceneRef.current.add(line);
+    sceneObjects.current.push(line);
+    console.log("Cube and grid lines added.");
+
+  }, []); // No dependencies, so this runs once after initial render.
+
+  // Apply Collatz Rule
+  const applyCollatzRule = useCallback((n, rule) => {
+    let result = n;
+    const isEven = n % 2 === 0;
+
+    // Add check for Z (divisor) being zero
+    if (rule.Z === 0) {
+      console.error("Collatz rule error: Z (divisor) cannot be zero.");
+      showMessageBox("Collatz rule error: Z (divisor) cannot be zero. Sequence terminated.");
+      return n; // Return current number to stop sequence progression on error
+    }
+
+    if (rule.appliesToParity === 'even' && isEven) {
+      result = (rule.X * n + rule.Y) / rule.Z;
+    } else if (rule.appliesToParity === 'odd' && !isEven) {
+      result = (rule.X * n + rule.Y) / rule.Z;
+    } else if (rule.appliesToParity === 'both') { // Rule applies regardless of parity
+      result = (rule.X * n + rule.Y) / rule.Z;
+    } else {
+      // If parity doesn't match the rule, the number remains unchanged.
+      console.warn(`Rule for parity ${rule.appliesToParity} does not apply to number ${n} (isEven: ${isEven}). Number will not change.`);
+      return n; // Return original number to prevent sequence from progressing if rule doesn't apply
+    }
+
+    if (isNaN(result) || !isFinite(result)) {
+        console.error("Collatz rule resulted in NaN or Infinity:", { n, rule, result });
+        showMessageBox("Sequence diverged or resulted in an invalid number!");
+        return n; // Return original number to prevent NaN from propagating
+    }
+    return result;
+  }, []);
+
+  // Generate and Visualize Sequence
+  const generateAndVisualizeSequence = useCallback(() => {
+    console.log("generateAndVisualizeSequence: Button clicked.");
+    console.log("generateAndVisualizeSequence: Current sceneRef.current:", sceneRef.current, "isThreeJsInitialized:", isThreeJsInitialized);
+
+    // This check should prevent the error if sceneRef.current is truly null
+    if (!sceneRef.current || !isThreeJsInitialized) {
+      console.warn("generateAndVisualizeSequence: Three.js scene not ready or initialized. Aborting.");
+      setIsAnimating(false); // Ensure animation state is reset
+      showMessageBox("3D scene not ready. Please wait a moment after page load.");
+      return;
+    }
+
+    if (isAnimating) {
+        console.log("generateAndVisualizeSequence: Animation already in progress. Aborting.");
+        return;
+    }
+    setIsAnimating(true);
+    console.log("generateAndVisualizeSequence: isAnimating set to true.");
+
+    const currentRules = collatzRules[currentFaceIndex][currentCellIndex];
+    let num = currentNumber;
+    const sequence = [num];
+    const pathPoints = [];
+
+    // Visualization of the sequence *within* the selected cell/cube
+    // This part is a placeholder for the "Collatz curve" idea
+    // It currently simulates a small spiral path within the center of the chosen cell.
+    const cubeSize = 3;
+    const cellWidth = cubeSize / 3; // Each cell is 1/3rd of the main cube's face width
+    const halfCell = cellWidth / 2;
+
+    // Base positions for each face's center (relative to the main cube's center)
+    const faceCenters = [
+      new THREE.Vector3(0, 0, cubeSize / 2),    // Front (+Z)
+      new THREE.Vector3(0, 0, -cubeSize / 2),   // Back (-Z)
+      new THREE.Vector3(0, cubeSize / 2, 0),    // Top (+Y)
+      new THREE.Vector3(0, -cubeSize / 2, 0),   // Bottom (-Y)
+      new THREE.Vector3(cubeSize / 2, 0, 0),    // Right (+X)
+      new THREE.Vector3(-cubeSize / 2, 0, 0)    // Left (-X)
+    ];
+
+    const currentFaceCenter = faceCenters[currentFaceIndex];
+
+    // Calculate offset for the selected cell within its face
+    // Rows and columns are 0-indexed (0 to 2)
+    const colIdx = currentCellIndex % 3; // 0, 1, 2
+    const rowIdx = Math.floor(currentCellIndex / 3); // 0, 1, 2
+
+    // Local coordinates within the face plane, relative to face center
+    // -1.5 to 1.5 range for the whole face (size 3)
+    // Map 0-2 to -1, 0, 1 for relative position within the 3x3 grid
+    const localX = (colIdx - 1) * cellWidth + (colIdx === 0 ? -halfCell : colIdx === 1 ? 0 : halfCell);
+    const localY = (1 - rowIdx) * cellWidth + (rowIdx === 0 ? halfCell : rowIdx === 1 ? 0 : -halfCell); // Y-axis inverted for row 0 at top
+
+    // Create a temporary vector for local position on the face plane
+    let localPos = new THREE.Vector3();
+
+    // Determine the orientation and then calculate the global position
+    if (currentFaceIndex === 0) { // Front (+Z)
+      localPos.set(localX, localY, 0); // Z is 0 in local face plane
+    } else if (currentFaceIndex === 1) { // Back (-Z)
+      localPos.set(-localX, localY, 0); // Invert X for back face if viewing from front
+    } else if (currentFaceIndex === 2) { // Top (+Y)
+      localPos.set(localX, 0, localY); // Y is 0 in local face plane, map Z to Y
+    } else if (currentFaceIndex === 3) { // Bottom (-Y)
+      localPos.set(localX, 0, -localY); // Y is 0 in local face plane, map Z to Y
+    } else if (currentFaceIndex === 4) { // Right (+X)
+      localPos.set(0, localY, -localX); // X is 0 in local face plane, map X to Z
+    } else if (currentFaceIndex === 5) { // Left (-X)
+      localPos.set(0, localY, localX); // X is 0 in local face plane, map X to Z
+    }
+
+    // Add the local position to the face's global center
+    const initialGlobalPos = currentFaceCenter.clone().add(localPos);
+
+    pathPoints.push(initialGlobalPos);
+
+    for (let i = 0; i < sequenceLimit; i++) {
+      let prevNum = num;
+      num = applyCollatzRule(num, currentRules); // This is where the Z=0 check takes effect
+      sequence.push(num);
+
+      // If applyCollatzRule detected an error (e.g., Z=0), num might have been returned as previous num, terminating sequence
+      if (num === prevNum && i > 0 && currentRules.Z === 0) {
+        showMessageBox("Sequence terminated due to division by zero (Z=0).");
+        break; // Exit the loop if error
+      }
+      
+      // Simulate a small spiral path originating from the cell's center
+      const angle = i * Math.PI / 8; // Slower spiral
+      const radius = (i / sequenceLimit) * (cellWidth / 4); // Grow radius within cell
+      
+      // Calculate offset based on face orientation
+      let offset = new THREE.Vector3();
+      if (currentFaceIndex === 0) { // Front (+Z)
+        offset.set(radius * Math.cos(angle), radius * Math.sin(angle), i * 0.001); // Small Z-offset
+      } else if (currentFaceIndex === 1) { // Back (-Z)
+        offset.set(-radius * Math.cos(angle), radius * Math.sin(angle), -i * 0.001);
+      } else if (currentFaceIndex === 2) { // Top (+Y)
+        offset.set(radius * Math.cos(angle), i * 0.001, radius * Math.sin(angle));
+      } else if (currentFaceIndex === 3) { // Bottom (-Y)
+        offset.set(radius * Math.cos(angle), -i * 0.001, -radius * Math.sin(angle));
+      } else if (currentFaceIndex === 4) { // Right (+X)
+        offset.set(i * 0.001, radius * Math.sin(angle), radius * Math.cos(angle));
+      } else if (currentFaceIndex === 5) { // Left (-X)
+        offset.set(-i * 0.001, radius * Math.sin(angle), -radius * Math.cos(angle));
+      }
+
+      const currentPos = initialGlobalPos.clone().add(offset);
+      pathPoints.push(currentPos);
+
+      if (num === 1) {
+        showMessageBox(`Sequence converged to 1 in ${i + 1} steps within the cell!`);
+        break;
+      }
+      if (Math.abs(num) > 1000000000) { // arbitrary large number for divergence
+        showMessageBox(`Sequence diverged to ${num} within the cell!`);
+        break;
+      }
+      if (prevNum === num && i > 0) { // Check for stagnation (e.g., if Z=0 or rule doesn't apply), i>0 to prevent false positive on first step
+        showMessageBox(`Sequence stagnated at ${num} within the cell.`);
+        break;
+      }
+    }
+
+    console.log("generateAndVisualizeSequence: Attempting to remove existing path.");
+    const existingPath = sceneRef.current.getObjectByName('collatzPath');
+    console.log("generateAndVisualizeSequence: existingPath found:", existingPath);
+    if (existingPath) {
+      sceneRef.current.remove(existingPath);
+      sceneObjects.current = sceneObjects.current.filter(obj => obj.name !== 'collatzPath');
+      existingPath.geometry.dispose();
+      existingPath.material.dispose();
+      console.log("Previous path removed and disposed.");
+    }
+
+    // Create path visualization
+    if (pathPoints.length > 1) { // Only draw if there's a path
+      const curve = new THREE.CatmullRomCurve3(pathPoints);
+      const points = curve.getPoints(Math.max(2, sequence.length * 2)); // More points for smoother curve based on sequence length
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({ color: 0xffa500, linewidth: 3 }); // Orange path
+      const line = new THREE.Line(geometry, material);
+      line.name = 'collatzPath';
+      sceneRef.current.add(line);
+      sceneObjects.current.push(line);
+      console.log("generateAndVisualizeSequence: New path created and added.");
+    } else {
+      showMessageBox("Sequence could not generate a path (perhaps limit too low or initial number/rule caused immediate issue).");
+      console.warn("generateAndVisualizeSequence: Path points insufficient for drawing.");
+    }
+
+    setIsAnimating(false);
+    console.log("Generated Sequence:", sequence);
+    console.log("generateAndVisualizeSequence: Animation finished. isAnimating set to false.");
+
+  }, [currentNumber, sequenceLimit, currentFaceIndex, currentCellIndex, collatzRules, isAnimating, applyCollatzRule, isThreeJsInitialized]); // Add isThreeJsInitialized to dependencies
+
+  // Main animation loop
+  const animate = useCallback(() => {
+    animationFrameId.current = requestAnimationFrame(animate);
+    if (rendererRef.current && sceneRef.current && cameraRef.current && controlsRef.current) {
+      controlsRef.current.update(); // Update controls in the animation loop
+      // Optional: Add a slight continuous rotation to the scene for visual appeal
+      // sceneRef.current.rotation.y += 0.001; // Slower rotation
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (mountRef.current) {
+      // Start the animation loop when component mounts
+      animate();
+      console.log("Animation loop started.");
+    }
+    return () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        console.log("Animation loop canceled during cleanup.");
+      }
+    };
+  }, [animate]);
+
+  // Function to update a specific rule
+  const updateRule = (faceIdx, cellIdx, newValues) => {
+    setCollatzRules(prevRules => {
+      const newRules = JSON.parse(JSON.stringify(prevRules)); // Deep copy
+      newRules[faceIdx][cellIdx] = { ...newRules[faceIdx][cellIdx], ...newValues };
+      return newRules;
+    });
+  };
+
+  // Helper to get rule for active cell
+  const activeRule = collatzRules[currentFaceIndex][currentCellIndex];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white text-xl">
+        Loading Box Universe...
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col md:flex-row h-screen bg-gray-950 text-gray-100 font-inter antialiased">
+      {/* 3D Canvas */}
+      <div
+        ref={mountRef}
+        className="flex-1 bg-gray-900 rounded-lg shadow-lg m-4 overflow-hidden relative"
+      >
+        {/* Visual cues for interaction */}
+        <div className="absolute top-4 left-4 p-2 bg-gray-800 bg-opacity-70 rounded-lg text-sm text-gray-300">
+          <Hand className="inline-block mr-2" size={16} />
+          Drag to rotate, Scroll to zoom. Click faces to view in Slicer.
+        </div>
+        {/* Three.js Initialization Status Indicator */}
+        <div className="absolute bottom-4 left-4 p-2 bg-gray-800 bg-opacity-70 rounded-lg text-sm text-gray-300">
+          3D Status: {isThreeJsInitialized ? <span className="text-green-400">Ready</span> : <span className="text-red-400">Initializing...</span>}
+        </div>
+      </div>
+
+      {/* Controls Panel */}
+      <div className="w-full md:w-96 bg-gray-800 p-6 space-y-6 flex flex-col justify-between rounded-t-xl md:rounded-l-none md:rounded-r-xl shadow-lg m-4 md:my-4 md:mr-4">
+        <div>
+          <h2 className="text-3xl font-bold text-blue-400 mb-6 border-b border-blue-600 pb-3">
+            Box Universe Explorer
+          </h2>
+
+          <div className="space-y-4">
+            {/* User ID display */}
+            <div className="text-sm text-gray-400">
+              User ID: <span className="font-mono text-blue-300 break-all">{userId || 'N/A'}</span>
+            </div>
+
+            {/* Face and Cell Selection */}
+            <div className="flex items-center space-x-4">
+              <label htmlFor="faceSelect" className="block text-sm font-medium text-gray-300 w-16">Face:</label>
+              <select
+                id="faceSelect"
+                value={currentFaceIndex}
+                onChange={(e) => setCurrentFaceIndex(parseInt(e.target.value))}
+                className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                {Array(6).fill(0).map((_, i) => (
+                  <option key={i} value={i}>Face {i + 1}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center space-x-4">
+              <label htmlFor="cellSelect" className="block text-sm font-medium text-gray-300 w-16">Cell:</label>
+              <select
+                id="cellSelect"
+                value={currentCellIndex}
+                onChange={(e) => setCurrentCellIndex(parseInt(e.target.value))}
+                className="flex-1 p-2 bg-gray-700 border border-gray-600 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                {Array(9).fill(0).map((_, i) => (
+                  <option key={i} value={i}>Cell {i + 1} (Grid Pos: [{Math.floor(i / 3)}, {i % 3}])</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Current Number Input */}
+            <div>
+              <label htmlFor="currentNumber" className="block text-sm font-medium text-gray-300">Starting Number:</label>
+              <input
+                type="number"
+                id="currentNumber"
+                value={currentNumber}
+                onChange={(e) => setCurrentNumber(parseInt(e.target.value) || 0)}
+                className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+            </div>
+
+            {/* Sequence Limit Input */}
+            <div>
+              <label htmlFor="sequenceLimit" className="block text-sm font-medium text-gray-300">Iteration Limit:</label>
+              <input
+                type="number"
+                id="sequenceLimit"
+                value={sequenceLimit}
+                onChange={(e) => setSequenceLimit(parseInt(e.target.value) || 0)}
+                className="mt-1 block w-full p-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              />
+            </div>
+
+            {/* Collatz Rule Inputs */}
+            <div className="bg-gray-700 p-4 rounded-md shadow-inner space-y-3">
+              <h3 className="text-lg font-semibold text-gray-200 border-b border-gray-500 pb-2">Rule for Active Cell:</h3>
+              <div>
+                <label htmlFor="ruleX" className="block text-sm font-medium text-gray-300">X (Multiplier):</label>
+                <input
+                  type="number"
+                  id="ruleX"
+                  value={activeRule.X}
+                  onChange={(e) => updateRule(currentFaceIndex, currentCellIndex, { X: parseInt(e.target.value) || 0 })}
+                  className="mt-1 block w-full p-2 bg-gray-600 border border-gray-500 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="ruleY" className="block text-sm font-medium text-gray-300">Y (Addend):</label>
+                <input
+                  type="number"
+                  id="ruleY"
+                  value={activeRule.Y}
+                  onChange={(e) => updateRule(currentFaceIndex, currentCellIndex, { Y: parseInt(e.target.value) || 0 })}
+                  className="mt-1 block w-full p-2 bg-gray-600 border border-gray-500 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="ruleZ" className="block text-sm font-medium text-gray-300">Z (Divisor):</label>
+                <input
+                  type="number"
+                  id="ruleZ"
+                  value={activeRule.Z}
+                  onChange={(e) => updateRule(currentFaceIndex, currentCellIndex, { Z: parseInt(e.target.value) || 1 })}
+                  className="mt-1 block w-full p-2 bg-gray-600 border border-gray-500 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
+              <div>
+                <label htmlFor="appliesToParity" className="block text-sm font-medium text-gray-300">Applies to Parity:</label>
+                <select
+                  id="appliesToParity"
+                  value={activeRule.appliesToParity}
+                  onChange={(e) => updateRule(currentFaceIndex, currentCellIndex, { appliesToParity: e.target.value })}
+                  className="mt-1 block w-full p-2 bg-gray-600 border border-gray-500 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="even">Even Numbers Only</option>
+                  <option value="odd">Odd Numbers Only</option>
+                  <option value="both">Both Even & Odd</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="mt-6 space-y-3">
+          <button
+            onClick={generateAndVisualizeSequence}
+            disabled={isAnimating || loading || !isThreeJsInitialized}
+            className={`w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white transition-colors duration-200 transform ${isAnimating || loading || !isThreeJsInitialized ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 hover:scale-105'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+          >
+            <Cuboid className="inline-block mr-3 text-lg" /> {/* Changed to Cuboid */}
+            {isAnimating ? 'Animating...' : (isThreeJsInitialized ? 'Generate & Visualize' : 'Initializing 3D Scene...')}
+          </button>
+          <div className="flex space-x-3">
+            <button
+              onClick={saveCollatzRules}
+              disabled={loading}
+              className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+              Save Rules
+            </button>
+            <button
+              onClick={loadCollatzRules}
+              disabled={loading}
+              className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+            >
+              Load Rules
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default App;
