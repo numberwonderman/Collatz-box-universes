@@ -131,7 +131,7 @@
                 // Do not show an alert here on input events, only on button click for user experience
                 return null;
             }
-            if (Y === 0 && Z === 0) { // Avoid infinite loop or division by zero for odd case (Y*n+Z)
+            if (Y === 0 && Z === 0) { // Avoid infinite loop or trivial operation for odd case (Y*n+Z)
                  // Do not show an alert here on input events, only on button click for user experience
                  return null;
             }
@@ -154,16 +154,16 @@
             let currentN = startN;
             let steps = 0;
             let maxValue = startN;
+            let stoppingTime = -1; // -1 indicates not yet found
+            let isParadoxical = false;
+
             const maxIterations = 10000; // Cap to prevent infinite loops in display
 
-            // Check for potential cycles if Y*n+Z < n or n/X < n not guaranteed.
-            // For now, use a set to detect immediate cycles
+            // Use a set to detect immediate cycles
             const visited = new Set();
             visited.add(startN);
 
             // Heuristic for possible infinite loops/divergence in generalized Collatz
-            // This is a simplification; a full proof for generalized Collatz is hard.
-            // We cap iterations and check for large values.
             const divergenceThreshold = 1e15; // Arbitrary large number
 
             while (currentN !== 1 && steps < maxIterations) {
@@ -178,23 +178,33 @@
                     maxValue = currentN;
                 }
 
+                // Check for stopping time: first time sequence value drops below startN
+                if (stoppingTime === -1 && currentN < startN) {
+                    stoppingTime = steps;
+                }
+                
+                // Check for paradoxical behavior: sequence exceeds startN AFTER stopping time has been reached
+                if (stoppingTime !== -1 && currentN > startN) {
+                    isParadoxical = true;
+                }
+
                 // If number grows too large, assume divergence
                 if (currentN > divergenceThreshold) {
-                    return { sequence, binaryPath, steps, maxValue, status: 'Divergent' };
+                    return { sequence, binaryPath, steps, maxValue, status: 'Divergent', stoppingTime, isParadoxical };
                 }
 
                 // Check for cycles
                 if (visited.has(currentN)) {
-                    return { sequence, binaryPath, steps, maxValue, status: 'Cycle Detected' };
+                    return { sequence, binaryPath, steps, maxValue, status: 'Cycle Detected', stoppingTime, isParadoxical };
                 }
                 visited.add(currentN);
             }
 
             // After loop, if it reached 1
             if (currentN === 1) {
-                return { sequence, binaryPath, steps, maxValue, status: 'Converged to 1' };
+                return { sequence, binaryPath, steps, maxValue, status: 'Converged to 1', stoppingTime, isParadoxical };
             } else {
-                return { sequence, binaryPath, steps, maxValue, status: 'Max Iterations Reached' };
+                return { sequence, binaryPath, steps, maxValue, status: 'Max Iterations Reached', stoppingTime, isParadoxical };
             }
         }
 
@@ -253,13 +263,14 @@
 
         // --- Update UI ---
         function updateUI(sequenceInfo) {
-            const { sequence, steps, maxValue, status } = sequenceInfo;
+            const { sequence, steps, maxValue, status, stoppingTime, isParadoxical } = sequenceInfo;
             statsOutput.innerHTML = `
                 <p><strong>Status:</strong> ${status}</p>
                 <p><strong>Steps to ${sequence[sequence.length - 1]}:</strong> ${steps}</p>
                 <p><strong>Max Value Reached:</strong> ${maxValue.toLocaleString()}</p>
                 <p><strong>Sequence Start:</strong> ${sequence[0]}</p>
-                <p><strong>Sequence End:</strong> ${sequence[sequence.length - 1]}</p>
+                <p><strong>Stopping Time:</strong> ${stoppingTime === -1 ? 'Not Found (did not drop below start)' : stoppingTime}</p>
+                <p><strong>Is Paradoxical:</strong> ${isParadoxical ? 'Yes' : 'No'}</p>
                 <p class="text-sm text-gray-400 mt-2">
                     Note: For display, the sequence is truncated to ${Math.min(sequence.length, 50)} terms.
                     Full sequence length: ${sequence.length}.
@@ -298,8 +309,6 @@
                 updateGoldStar(); // Check for gold star on generation
             } else {
                 // Show alert for invalid parameters if generate button is clicked
-                // This alert is now triggered only when the generate button is clicked,
-                // avoiding alerts on every input change.
                 const currentN = parseInt(inputN.value);
                 const currentX = parseInt(inputX.value);
                 const currentY = parseInt(inputY.value);
@@ -386,8 +395,7 @@
         let lastBinaryPath = [];
         // The event listener for generateBtn already updates lastBinaryPath.
         // No need to duplicate here.
-//change
+
     </script>
-    
 </body>
 </html>
