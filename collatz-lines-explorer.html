@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collatz Line Universe Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a202c; /* Dark background */
+            color: #e2e8f0; /* Light text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+            background-color: #000; /* Black canvas background for firework effect */
+            width: 100%;
+            height: 60vh; /* Responsive height */
+            max-width: 800px; /* Max width for larger screens */
+        }
+        .control-panel {
+            background-color: #2d3748;
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            width: 100%;
+            max-width: 800px;
+        }
+        .input-group label {
+            min-width: 40px;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        input[type="number"] {
+            background-color: #4a5568;
+            border: 1px solid #64748b;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="message-box" class="message-box"></div>
+
+    <div class="control-panel">
+        <h1 class="text-3xl font-bold text-center text-indigo-400 mb-4">Collatz Line Universe Explorer</h1>
+        <p class="text-center text-gray-300 mb-6">
+            Visualize generalized Collatz sequences as dynamic, colorful lines in 3D space.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="input-group flex flex-col">
+                <label for="inputN" class="text-gray-300 text-sm font-semibold mb-1">N (Start):</label>
+                <input type="number" id="inputN" value="27" min="1" class="w-full">
+            </div>
+            <div class="input-group flex flex-col">
+                <label for="inputX" class="text-gray-300 text-sm font-semibold mb-1">X (Divisor):</label>
+                <input type="number" id="inputX" value="2" min="1" class="w-full">
+            </div>
+            <div class="input-group flex flex-col">
+                <label for="inputY" class="text-gray-300 text-sm font-semibold mb-1">Y (Multiplier):</label>
+                <input type="number" id="inputY" value="3" min="1" class="w-full">
+            </div>
+            <div class="input-group flex flex-col">
+                <label for="inputZ" class="text-gray-300 text-sm font-semibold mb-1">Z (Adder):</label>
+                <input type="number" id="inputZ" value="1" min="0" class="w-full">
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4">
+            <button id="generateBtn" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                Generate Line Sequence
+            </button>
+            <button id="clearBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white">
+                Clear Scene
+            </button>
+        </div>
+    </div>
+
+    <canvas id="collatzLinesCanvas"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // --- Global Variables for Three.js Scene ---
+        let scene, camera, renderer, controls;
+        let pointsGeometry = null; 
+        let pointsMaterial = null; 
+        let pointsMesh = null; 
+        let animationFrameId; 
+        
+        // Global object to hold animated state, ensuring correct closure access
+        let appState = {
+            currentSequenceData: null, 
+            currentSequenceIndex: 0, 
+            lastDrawTime: 0 
+        };
+
+        const MAX_SEGMENT_LENGTH = 2.0; 
+        const POINT_SIZE = 1.0; // Back to a smaller size for a "line" effect
+        const ANIMATION_INTERVAL = 50; // Re-enabled animation interval for drawing effect
+        const MAX_ITERATIONS = 500; 
+
+        // --- Message Box Utility ---
+        function showMessage(message, type = 'info', duration = 3000) {
+            const messageBox = document.getElementById('message-box');
+            messageBox.textContent = message;
+            messageBox.style.backgroundColor = type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0, 0, 0, 0.7)';
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        // --- Generalized Collatz Function ---
+        const generalizedCollatz = (n, x, y, z, maxSteps) => {
+            console.log(`Collatz: N=${n}, X=${x}, Y=${y}, Z=${z}, MaxSteps=${maxSteps}`);
+            if (x === 0) {
+                return { sequence: [], type: "error", message: "X (divisor) cannot be zero." };
+            }
+            if (y === 0 && z === 0 && n % Math.abs(x) !== 0) {
+                 return { sequence: [], type: "error", message: "For non-divisible numbers, Y and Z cannot both be zero. This would result in an infinite loop or trivial operation." };
+            }
+
+            let currentN = n;
+            const sequence = [currentN];
+            const visited = new Set();
+            visited.add(currentN);
+
+            for (let steps = 0; steps < maxSteps; steps++) {
+                let nextN;
+
+                if (Math.abs(currentN) > Number.MAX_SAFE_INTEGER || !Number.isFinite(currentN)) {
+                    return { sequence: sequence, type: 'diverges_overflow', message: 'Sequence value exceeded safe integer limit before calculation.' };
+                }
+
+                if (currentN % Math.abs(x) === 0) {
+                    nextN = currentN / x;
+                } else {
+                    nextN = (Math.abs(y) || 3) * currentN + (z || 1);
+                }
+
+                if (Math.abs(nextN) > Number.MAX_SAFE_INTEGER || !Number.isFinite(nextN)) {
+                    return { sequence: sequence, type: 'diverges_overflow', message: 'Sequence value exceeded safe integer limit after calculation.' };
+                }
+
+                if (visited.has(nextN)) {
+                    sequence.push(nextN); 
+                    return { sequence: sequence, type: 'cycle', message: 'Cycle detected.' };
+                }
+                visited.add(nextN);
+                sequence.push(nextN);
+
+                currentN = nextN;
+                if (currentN === 1) {
+                    return { sequence: sequence, type: 'converges_to_1', message: 'Sequence converged to 1.' };
+                }
+            }
+            return { sequence: sequence, type: 'max_iterations_reached', message: 'Max iterations reached without convergence or cycle.' };
+        };
+
+        // --- Three.js Initialization ---
+        function initThreeJS() {
+            const canvas = document.getElementById('collatzLinesCanvas');
+            console.log("initThreeJS: Canvas element found:", canvas);
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x000000); 
+            console.log("initThreeJS: Scene created.");
+
+            // Add Axes Helper for visual reference
+            const axesHelper = new THREE.AxesHelper(5); 
+            scene.add(axesHelper);
+            console.log("initThreeJS: AxesHelper added.");
+
+
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 20); 
+            camera.lookAt(0, 0, 0); 
+            console.log("initThreeJS: Camera created and positioned at", camera.position);
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            console.log("initThreeJS: Renderer created with size", canvas.clientWidth, "x", canvas.clientHeight);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(5, 10, 7.5).normalize();
+            scene.add(directionalLight);
+            console.log("initThreeJS: Lighting added.");
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; 
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 0.1; 
+            controls.maxDistance = 2000; 
+            console.log("initThreeJS: OrbitControls added.");
+
+            window.addEventListener('resize', onWindowResize, false);
+            onWindowResize(); 
+            console.log("initThreeJS: Resize listener attached, initial resize called.");
+        }
+
+        // --- Window Resize Handler ---
+        function onWindowResize() {
+            const canvas = document.getElementById('collatzLinesCanvas');
+            if (canvas && camera && renderer) {
+                const parentWidth = canvas.parentElement.clientWidth;
+                const parentHeight = window.innerHeight * 0.6; 
+                
+                canvas.style.width = parentWidth + 'px';
+                canvas.style.height = parentHeight + 'px';
+
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                console.log("onWindowResize: Canvas resized to", canvas.clientWidth, "x", canvas.clientHeight);
+            }
+        }
+
+        // --- Scene Management ---
+        function clearScene() {
+            console.log("clearScene: Clearing dynamic visual elements.");
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (pointsMesh) {
+                scene.remove(pointsMesh);
+                if (pointsGeometry) pointsGeometry.dispose();
+                if (pointsMaterial) pointsMaterial.dispose();
+                pointsMesh = null;
+                pointsGeometry = null;
+                pointsMaterial = null;
+            }
+            // Reset appState
+            appState.currentSequenceData = null; 
+            appState.currentSequenceIndex = 0; 
+            appState.lastDrawTime = 0; 
+            console.log("clearScene: Dynamic elements cleared, animation reset.");
+        }
+
+        /**
+         * Generates the 3D path (array of Vector3 points) for a Collatz sequence.
+         * @param {Array<number>} sequence - The calculated Collatz sequence.
+         * @param {number} xVal - The X parameter used in the Collatz rule for parity checks.
+         * @returns {Array<THREE.Vector3>} An array of 3D points representing the path.
+         */
+        function generateLinePath(sequence, xVal) {
+            console.log("generateLinePath: Starting path generation for sequence length", sequence.length);
+            const points = [];
+            let currentX = 0, currentY = 0, currentZ = 0; 
+            let direction = new THREE.Vector3(1, 0, 0); 
+            
+            points.push(new THREE.Vector3(currentX, currentY, currentZ)); 
+            console.log(`Point 0: (${currentX.toFixed(2)}, ${currentY.toFixed(2)}, ${currentZ.toFixed(2)})`);
+
+            for (let i = 0; i < sequence.length - 1; i++) {
+                const currentVal = sequence[i];
+                const isDivisible = (currentVal % Math.abs(xVal) === 0);
+
+                const angleChange = Math.PI / 4 + (Math.random() * Math.PI / 8); 
+                const wobble = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.5, 
+                    (Math.random() - 0.5) * 0.5,
+                    (Math.random() - 0.5) * 0.5
+                );
+
+                if (isDivisible) {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), -angleChange); 
+                    direction.applyAxisAngle(new THREE.Vector3(1, 0, 0), (Math.random() - 0.5) * Math.PI / 16); 
+                } else {
+                    direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), angleChange);  
+                    direction.applyAxisAngle(new THREE.Vector3(0, 0, 1), (Math.random() - 0.5) * Math.PI / 16); 
+                }
+                
+                direction.add(wobble).normalize(); 
+
+                currentX += direction.x * MAX_SEGMENT_LENGTH;
+                currentY += direction.y * MAX_SEGMENT_LENGTH;
+                currentZ += direction.z * MAX_SEGMENT_LENGTH;
+
+                points.push(new THREE.Vector3(currentX, currentY, currentZ)); 
+                if (i < 5) { 
+                    console.log(`Point ${i+1}: (${currentX.toFixed(2)}, ${currentY.toFixed(2)}, ${currentZ.toFixed(2)})`);
+                }
+            }
+            console.log("generateLinePath: Generated", points.length, "points.");
+            return points;
+        }
+
+        // --- Animation Loop ---
+        function animateScene(time) {
+            animationFrameId = requestAnimationFrame(animateScene);
+            
+            if (controls) { 
+                controls.update();
+            }
+
+            // Logic to draw new point if there's a sequence and it's not fully drawn yet
+            if (appState.currentSequenceData && appState.currentSequenceData.points && appState.currentSequenceIndex < appState.currentSequenceData.points.length) { 
+                // Re-added the time-based condition to control drawing speed
+                if (time - appState.lastDrawTime > ANIMATION_INTERVAL) {
+                    appState.lastDrawTime = time; // Update last draw time
+                    
+                    // --- Drawing logic ---
+                    const pointsToRender = appState.currentSequenceData.points.slice(0, appState.currentSequenceIndex + 1); 
+                    
+                    if (pointsToRender.length > 0) {
+                        if (!pointsGeometry) {
+                            pointsGeometry = new THREE.BufferGeometry();
+                            pointsMaterial = new THREE.PointsMaterial({
+                                size: POINT_SIZE, 
+                                sizeAttenuation: true,
+                                transparent: true,
+                                opacity: 1,
+                                vertexColors: true, 
+                                alphaTest: 0.5
+                            });
+                            pointsMesh = new THREE.Points(pointsGeometry, pointsMaterial);
+                            scene.add(pointsMesh);
+                        }
+                        
+                        const positionsArray = new Float32Array(pointsToRender.length * 3);
+                        const colorsArray = new Float32Array(pointsToRender.length * 3);
+                        
+                        const color1 = new THREE.Color(0x00ff00); 
+                        const color2 = new THREE.Color(0xffa500); 
+
+                        for (let i = 0; i < pointsToRender.length; i++) {
+                            const point = pointsToRender[i];
+                            positionsArray[i * 3] = point.x;
+                            positionsArray[i * 3 + 1] = point.y;
+                            positionsArray[i * 3 + 2] = point.z;
+
+                            const val = appState.currentSequenceData.sequence[i]; 
+                            const isDivisible = (val % Math.abs(appState.currentSequenceData.x) === 0);
+                            const color = isDivisible ? color1 : color2;
+
+                            colorsArray[i * 3] = color.r;
+                            colorsArray[i * 3 + 1] = color.g;
+                            colorsArray[i * 3 + 2] = color.b;
+                        }
+
+                        pointsGeometry.setAttribute('position', new THREE.BufferAttribute(positionsArray, 3));
+                        pointsGeometry.setAttribute('color', new THREE.BufferAttribute(colorsArray, 3));
+                        pointsGeometry.setDrawRange(0, pointsToRender.length); 
+                        pointsGeometry.attributes.position.needsUpdate = true;
+                        pointsGeometry.attributes.color.needsUpdate = true;
+                        
+                        // console.log(`DEBUG_ANIMATE: Animated point ${appState.currentSequenceIndex + 1} / ${appState.currentSequenceData.points.length} rendered.`);
+                    }
+                    appState.currentSequenceIndex++; 
+                }
+            } else if (appState.currentSequenceData && appState.currentSequenceIndex >= appState.currentSequenceData.points.length) {
+                // Animation finished, ensure the full set of points is drawn (final frame)
+                if (pointsGeometry && pointsGeometry.drawRange.count < appState.currentSequenceData.points.length) {
+                    pointsGeometry.setDrawRange(0, appState.currentSequenceData.points.length);
+                    pointsGeometry.attributes.position.needsUpdate = true;
+                    pointsGeometry.attributes.color.needsUpdate = true;
+                    // console.log("DEBUG_ANIMATE: Animation finished. Ensured all points are drawn to the full sequence length.");
+                }
+            }
+            
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        // --- Event Listeners and UI Logic ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("DOMContentLoaded: Initializing app.");
+            initThreeJS(); 
+            // Initial call to start the animation loop; it will immediately check appState.currentSequenceData (which is null initially)
+            animateScene(performance.now()); 
+
+            const inputN = document.getElementById('inputN');
+            const inputX = document.getElementById('inputX');
+            const inputY = document.getElementById('inputY');
+            const inputZ = document.getElementById('inputZ');
+            const generateBtn = document.getElementById('generateBtn');
+            const clearBtn = document.getElementById('clearBtn');
+
+            generateBtn.addEventListener('click', () => {
+                console.log("Generate button clicked.");
+                const n = parseInt(inputN.value);
+                const x = parseInt(inputX.value);
+                const y = parseInt(inputY.value);
+                const z = parseInt(inputZ.value);
+
+                if (isNaN(n) || n <= 0) { showMessage("N (Start Number) must be a positive integer.", "error"); return; }
+                if (isNaN(x) || x === 0) { showMessage("X (Divisor) must be a non-zero integer.", "error"); return; }
+                if (isNaN(y)) { showMessage("Y (Multiplier) must be an integer.", "error"); return; }
+                if (isNaN(z)) { showMessage("Z (Adder) must be an integer.", "error"); return; }
+
+                clearScene(); 
+
+                const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
+                console.log("Collatz calculation result:", result);
+
+                if (result.type === "error" || result.type.startsWith("diverges_")) {
+                    showMessage(result.message, "error");
+                    return;
+                }
+
+                const pathPoints = generateLinePath(result.sequence, x);
+                
+                if (pathPoints.length === 0) { 
+                    showMessage("Sequence is too short to visualize. Try a different N.", "info");
+                    return;
+                }
+
+                // Deep clone the result object and update appState properties
+                appState.currentSequenceData = JSON.parse(JSON.stringify({ 
+                    sequence: result.sequence, 
+                    x: x, 
+                    points: pathPoints 
+                }));
+                appState.currentSequenceIndex = 0; 
+                appState.lastDrawTime = performance.now(); 
+                showMessage(`Generated: ${result.message}`);
+                console.log("Animation data set. Lines should start drawing.");
+
+                // --- CRITICAL FIX: Restart the animation loop to ensure correct closure ---
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                }
+                animationFrameId = requestAnimationFrame(animateScene); // Start a new loop
+            });
+
+            clearBtn.addEventListener('click', () => {
+                console.log("Clear button clicked.");
+                clearScene(); 
+                showMessage("Scene cleared.");
+            });
+        });
+    </script>
+</body>
+</html>
