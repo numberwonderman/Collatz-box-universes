@@ -73,3 +73,96 @@ This section outlines the vision for how `slicer3d.html` will evolve to support 
     * **Direct Ruleset Highlight:** URL parameters could directly highlight a specific "ruleset cube" in the Level 1 view upon page load.
     * **Auto-Sequence Animation:** URL parameters could automatically trigger the sequence animation for a specified number-cube within the Level 2 view upon page load, facilitating sharing of specific discoveries.
 * **Performance Optimization (via LOD):** The LOD strategy ensures that detailed sequence calculations and rendering are only performed when a specific ruleset is selected and explored, preventing performance bottlenecks when viewing the vast ruleset parameter space.
+* Box Universe Explorer: Project Overview
+
+Long-Term Mission Statement
+
+This project aims to explore and visualize generalized Collatz sequences from novel perspectives. Each unique sequence, contained within its 9-net visualization, represents a distinct "Box Universe." The goal is to build intuitive tools and models (like 9-nets and the data slicer) that reveal hidden patterns, behaviors, and relationships within the multi-dimensional parameter space (N, X, Y, Z) that defines these universes. This approach, stemming from an "outsider" perspective, seeks to provide a unique "visual intuition" and new context for the Collatz problem, potentially inspiring new hypotheses and facilitating deeper understanding.
+
+Current Project Files
+
+index.html (Box Universe Explorer - Quantitative Analysis Tool & Launchpad)
+
+Purpose:The main application for generating and visualizing generalized Collatz sequences using the 9-net representation. It allows users to input starting numbers and X, Y, Z parameters, calculate sequences, and view their history.
+
+Key Features:
+
+Customizable Generalized Collatz Rules
+
+Step-by-Step Sequence Generation with cycle and divergence detection
+
+Interactive 9-Net Visualization (Canvas-based)
+
+Color-coded sequence steps with customizable palettes
+
+History tracking and UI customization
+
+Launch links to slicer and 3D views
+
+slicer.html (2D Pseudo-3D Slicer - Qualitative Exploration Tool)
+
+Purpose:Explore the conceptual 4D parameter space (N, X, Y, Z) through filtered and animated visualization slices, each outputting a grid of 9-nets.
+
+Key Features:
+
+Range filtering for N, X, Y, Z
+
+Bulk rendering of 9-net visualizations
+
+Animated parameter slicing (e.g., vary Z while holding N, X, Y constant)
+
+Visual number truncation and clarity enhancements
+
+Custom color pickers and layout improvements
+
+collatz-dragon.html (Collatz Dragon Explorer - Directional Sequence Mapper)
+
+Purpose:Turn a sequence into a visual path using a binary-based dragon curve metaphor, where each rule step affects the drawing direction.
+
+Key Features:
+
+Collatz logic to binary path translation
+
+Canvas-based fractal/directional visualization
+
+Responsive layout with input validation
+
+Real-time statistics (max value, step count, etc.)
+
+Gold star for classic Collatz (X=2, Y=3, Z=1)
+
+Navigation links to slicer tools and box viewer
+
+box-universe-viewer.html (3D Box Universe Explorer - Multi-Level Intuition Tool)
+
+Purpose:Explore the (X, Y, Z) parameter space in 3D. Each cube represents a unique ruleset. Color-coded cubes communicate sequence behavior (convergence, cycles, divergence, classic).
+
+Key Features:
+
+Real-time 3D grid of (X, Y, Z) rulesets using Three.js
+
+Color-coded sequence behavior with cycle detection
+
+UI input for defining ranges of X, Y, Z and fixed N
+
+Firebase integration for user-specific data saving and retrieval
+
+Smooth camera, zoom, and orbital controls
+
+Sequence calculations optimized for performance and clarity
+
+Legend box visually describes cube colors and their meaning
+
+Classic Collatz highlighted
+
+How This Environment Helps Your Portfolio
+
+Organized Code: Each tool (HTML/JS/React) acts as a modular, maintainable building block
+
+Clear Documentation: Project goals, components, and design principles are clearly outlined
+
+Scalable Design: Each visualization targets a unique layer of the exploratory process
+
+Cross-Tool Integration: Shared parameter passing and visual consistency across views
+
+This evolving suite is both a computational research toolkit and an expressive portfolio centerpiece, showing off analytical, visual, and architectural thinking.
