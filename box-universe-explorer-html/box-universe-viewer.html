@@ -1,560 +1,521 @@
-import React, { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
-import * as THREE from 'three';
-import { Cuboid, RotateCw, ZoomIn, ZoomOut, Hand } from 'lucide-react'; // Import Lucide-React icons
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, query, where, addDoc, getDocs } from 'firebase/firestore';
-
-// Global variables for Firebase config and app ID, provided by the Canvas environment
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Initialize Firebase (will be done once)
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-
-// Constants for the Collatz ruleset visualization
-const BOX_SIZE = 1;
-const GRID_SIZE = 10; // Represents the range of X, Y, Z parameters
-const COLOR_MAP = {
-  converges: 0x00ff00, // Green for converging sequences
-  diverges: 0xff0000,  // Red for diverging sequences
-  cycles: 0x0000ff,    // Blue for sequences entering a cycle
-  unknown: 0x808080,   // Grey for unknown/uncalculated
-  classic: 0xffd700,   // Gold for the classic Collatz (X=2, Y=3, Z=1)
-};
-const MAX_ITERATIONS = 1000;
-const CYCLE_DETECTION_LIMIT = 500; // After this many steps, check for cycles
-
-// Helper function to calculate a generalized Collatz sequence
-const generalizedCollatz = (n, x, y, z, maxIterations = 1000, cycleDetectionLimit = 500) => {
-  if (n <= 0) return { sequence: [], type: 'error', message: 'N must be a positive integer' };
-  if (x === 0) return { sequence: [], type: 'error', message: 'X cannot be zero' };
-
-  let sequence = [n];
-  let current = n;
-  const history = new Set();
-  const historyArray = []; // To detect cycles in order
-
-  for (let i = 0; i < maxIterations; i++) {
-    if (current === 1 && x === 2 && y === 3 && z === 1) { // Standard Collatz convergence to 1
-      return { sequence, type: 'converges' };
-    }
-    if (history.has(current) && i > cycleDetectionLimit) {
-        // Detect cycle by checking if current element is already in historyArray
-        const cycleStartIndex = historyArray.indexOf(current);
-        if (cycleStartIndex !== -1) {
-            return { sequence, type: 'cycles', cycle: historyArray.slice(cycleStartIndex) };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Box Universe Viewer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter font for consistent typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #1a202c;
         }
-    }
-
-    history.add(current);
-    historyArray.push(current);
-
-    if (current % x === 0) {
-      current /= x;
-    } else {
-      current = current * y + z;
-    }
-    sequence.push(current);
-
-    if (sequence.length > maxIterations + 1) { // +1 because we push current first
-        return { sequence, type: 'diverges', message: 'Max iterations reached without convergence or cycle' };
-    }
-  }
-  return { sequence, type: 'diverges', message: 'Max iterations reached without convergence or cycle' };
-};
-
-// Function to get a unique user ID for Firestore
-const getUserId = (auth) => {
-    return auth.currentUser?.uid || crypto.randomUUID();
-};
-
-
-const App = () => {
-  // State for Collatz parameters
-  const [nValue, setNValue] = useState(7);
-  const [xMin, setXMin] = useState(1);
-  const [xMax, setXMax] = useState(5);
-  const [yMin, setYMin] = useState(1);
-  const [yMax, setYMax] = useState(5);
-  const [zMin, setZMin] = useState(0);
-  const [zMax, setZMax] = useState(5);
-
-  // State for 3D scene and animation
-  const mountRef = useRef(null);
-  const sceneRef = useRef(null);
-  const cameraRef = useRef(null);
-  const rendererRef = useRef(null);
-  const controlsRef = useRef(null);
-  const meshRefs = useRef({}); // Store references to cubes by their (x,y,z) key
-  const animationFrameId = useRef(null);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [isThreeJsInitialized, setIsThreeJsInitialized] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messageType, setMessageType] = useState(''); // 'success', 'error', 'info'
-  const [isAuthReady, setIsAuthReady] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState(null);
-
-  // Firestore instances
-  const dbRef = useRef(null);
-  const authRef = useRef(null);
-
-  // Message box display logic
-  const showMessage = useCallback((msg, type = 'info') => {
-    setMessage(msg);
-    setMessageType(type);
-    const timer = setTimeout(() => {
-      setMessage('');
-      setMessageType('');
-    }, 3000); // Message disappears after 3 seconds
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Firebase Initialization and Auth Listener
-  useEffect(() => {
-    const initializeFirebase = async () => {
-      try {
-        dbRef.current = db;
-        authRef.current = auth;
-
-        if (initialAuthToken) {
-          await signInWithCustomToken(auth, initialAuthToken);
-        } else {
-          await signInAnonymously(auth);
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
         }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <!-- This is the root div where your React app will be mounted -->
+    <div id="root" class="w-full flex flex-col items-center"></div>
 
-        onAuthStateChanged(auth, (user) => {
-          if (user) {
-            setCurrentUserId(user.uid);
-            setIsAuthReady(true);
-          } else {
-            setCurrentUserId(null);
-            setIsAuthReady(true); // Still set to true, as anonymous sign-in might fail silently in some cases.
-          }
-        });
-      } catch (error) {
-        console.error("Error initializing Firebase or signing in:", error);
-        showMessage("Failed to initialize Firebase.", "error");
-        setIsAuthReady(true); // Ensure auth ready is true even on error to unblock UI
-      }
-    };
+    <!-- React and ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX transformation in the browser. FOR DEVELOPMENT ONLY. -->
+    <script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Three.js CDN -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- OrbitControls - Using the 'js' version which attaches to window.THREE for global access -->
+    <script crossorigin src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- Your React application code goes here -->
+    <script type="text/babel">
+        // Access React hooks and functions from the global React object
+        const { useState, useRef, useEffect, useCallback, useLayoutEffect } = React;
 
-    initializeFirebase();
-  }, [initialAuthToken, showMessage]);
+        const appId = 'local-box-universe-app';
+        const firebaseConfig = {};
+        const initialAuthToken = null;
 
-  // Three.js scene initialization
-  useLayoutEffect(() => {
-    if (!mountRef.current || !isAuthReady) return; // Wait for auth to be ready
+        const BOX_SIZE = 1;
+        const GRID_SIZE = 10;
+        const COLOR_MAP = {
+            converges: 0x00ff00, // Green
+            diverges: 0xff0000, // Red
+            cycles: 0x0000ff, // Blue
+            unknown: 0x808080, // Grey
+            classic: 0xffd700, // Gold
+        };
+        const MAX_ITERATIONS = 1000;
+        const CYCLE_DETECTION_LIMIT = 500;
 
-    // Scene
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a202c); // Dark background
+        const generalizedCollatz = (n, x, y, z, maxIterations = 1000, cycleDetectionLimit = 500) => {
+            if (n <= 0) return { sequence: [], type: 'error', message: 'N must be a positive integer' };
+            if (x === 0) return { sequence: [], type: 'error', message: 'X cannot be zero' };
 
-    // Camera
-    const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
-    camera.position.z = GRID_SIZE * 2; // Position camera to see the entire grid initially
-    camera.position.y = GRID_SIZE / 2;
+            let sequence = [n];
+            let current = n;
+            const history = new Set();
+            const historyArray = [];
 
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    mountRef.current.appendChild(renderer.domElement);
+            for (let i = 0; i < maxIterations; i++) {
+                if (current === 1 && x === 2 && y === 3 && z === 1) {
+                    return { sequence, type: 'converges' };
+                }
+                if (history.has(current) && i > cycleDetectionLimit) {
+                    const cycleStartIndex = historyArray.indexOf(current);
+                    if (cycleStartIndex !== -1) {
+                        return { sequence, type: 'cycles', cycle: historyArray.slice(cycleStartIndex) };
+                    }
+                }
 
-    // OrbitControls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; // An animation loop is required when damping is enabled
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false;
-    controls.minDistance = 5;
-    controls.maxDistance = GRID_SIZE * 5;
-    controls.maxPolarAngle = Math.PI / 2; // Restrict vertical rotation
+                history.add(current);
+                historyArray.push(current);
 
-    sceneRef.current = scene;
-    cameraRef.current = camera;
-    rendererRef.current = renderer;
-    controlsRef.current = controls;
+                if (current % x === 0) {
+                    current /= x;
+                } else {
+                    current = current * y + z;
+                }
+                sequence.push(current);
 
-    const animate = () => {
-      animationFrameId.current = requestAnimationFrame(animate);
-      controls.update(); // Only required if controls.enableDamping is set to true
-      renderer.render(scene, camera);
-    };
-    animate();
+                if (sequence.length > maxIterations + 1) {
+                    return { sequence, type: 'diverges', message: 'Max iterations reached without convergence or cycle' };
+                }
+            }
+            return { sequence, type: 'diverges', message: 'Max iterations reached without convergence or cycle' };
+        };
 
-    const handleResize = () => {
-      if (mountRef.current) {
-        camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
-      }
-    };
-    window.addEventListener('resize', handleResize);
+        const App = () => {
+            const [nValue, setNValue] = useState(7);
+            const [xMin, setXMin] = useState(1);
+            const [xMax, setXMax] = useState(5);
+            const [yMin, setYMin] = useState(1);
+            const [yMax, setYMax] = useState(5);
+            const [zMin, setZMin] = useState(0);
+            const [zMax, setZMax] = useState(5);
 
-    setIsThreeJsInitialized(true);
-    setLoading(false);
+            const mountRef = useRef(null);
+            const sceneRef = useRef(null);
+            const cameraRef = useRef(null);
+            const rendererRef = useRef(null);
+            const controlsRef = useRef(null);
+            const meshRefs = useRef({});
+            const animationFrameId = useRef(null);
+            const [isAnimating, setIsAnimating] = useState(false);
+            const [loading, setLoading] = useState(true);
+            const [isThreeJsInitialized, setIsThreeJsInitialized] = useState(false);
+            const [message, setMessage] = useState('');
+            const [messageType, setMessageType] = useState('');
 
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (animationFrameId.current) {
-        cancelAnimationFrame(animationFrameId.current);
-      }
-      if (renderer.domElement) {
-        mountRef.current.removeChild(renderer.domElement);
-        renderer.dispose();
-      }
-      if (controls) {
-        controls.dispose();
-      }
-    };
-  }, [isAuthReady]); // Dependency on isAuthReady to ensure Firebase is ready
+            const [isAuthReady, setIsAuthReady] = useState(true); // Always true for local standalone
+            const [currentUserId, setCurrentUserId] = useState('local_user');
 
-  // Function to create or update a cube for a given ruleset (X, Y, Z)
-  const createOrUpdateCube = useCallback((x, y, z, type) => {
-    const key = `${x}-${y}-${z}`;
-    let mesh = meshRefs.current[key];
-    const materialColor = COLOR_MAP[type] || COLOR_MAP.unknown;
+            const showMessage = useCallback((msg, type = 'info') => {
+                setMessage(msg);
+                setMessageType(type);
+                const timer = setTimeout(() => {
+                    setMessage('');
+                    setMessageType('');
+                }, 3000);
+                return () => clearTimeout(timer);
+            }, []);
 
-    if (mesh) {
-      // Update existing cube color
-      (mesh.material).color.set(materialColor);
-    } else {
-      // Create new cube
-      const geometry = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
-      const material = new THREE.MeshPhongMaterial({ color: materialColor, flatShading: true });
-      mesh = new THREE.Mesh(geometry, material);
-      // Position cubes in a grid, offset to center around (0,0,0)
-      mesh.position.set(
-        (x - (xMin + xMax) / 2) * (BOX_SIZE + 0.2), // Add small gap
-        (y - (yMin + yMax) / 2) * (BOX_SIZE + 0.2),
-        (z - (zMin + zMax) / 2) * (BOX_SIZE + 0.2)
-      );
-      sceneRef.current.add(mesh);
-      meshRefs.current[key] = mesh;
-    }
+            // Three.js scene initialization
+            useLayoutEffect(() => {
+                console.log("useLayoutEffect: Starting initialization. mountRef.current:", mountRef.current, "isAuthReady:", isAuthReady);
+                if (!mountRef.current || !isAuthReady) {
+                    console.log("useLayoutEffect: Skipping initialization. mountRef or isAuthReady not ready.");
+                    return;
+                }
 
-    // Highlight classic Collatz (X=2, Y=3, Z=1)
-    if (x === 2 && y === 3 && z === 1) {
-      (mesh.material).color.set(COLOR_MAP.classic);
-    }
-  }, [xMin, xMax, yMin, yMax, zMin, zMax]);
+                console.log("useLayoutEffect: Initializing Three.js scene.");
 
-  // Function to clear all cubes from the scene
-  const clearCubes = useCallback(() => {
-    if (sceneRef.current) {
-      Object.values(meshRefs.current).forEach(mesh => {
-        if (mesh.geometry) mesh.geometry.dispose();
-        if (mesh.material) mesh.material.dispose();
-        sceneRef.current.remove(mesh);
-      });
-      meshRefs.current = {};
-    }
-  }, []);
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x1a202c);
 
-  // Main visualization logic: Generate cubes and determine their type
-  const generateCubes = useCallback(() => {
-    if (!sceneRef.current || !isThreeJsInitialized) {
-      showMessage("3D scene not initialized yet.", "error");
-      return;
-    }
-    setIsAnimating(true);
-    clearCubes(); // Clear previous cubes
+                const camera = new THREE.PerspectiveCamera(75, mountRef.current.clientWidth / mountRef.current.clientHeight, 0.1, 1000);
+                camera.position.z = GRID_SIZE * 2;
+                camera.position.y = GRID_SIZE / 2;
 
-    const promises = [];
-    for (let x = xMin; x <= xMax; x++) {
-      for (let y = yMin; y <= yMax; y++) {
-        for (let z = zMin; z <= zMax; z++) {
-          promises.push(
-            new Promise(resolve => {
-              // Using setTimeout to yield to the main thread and avoid freezing the UI
-              setTimeout(() => {
-                const result = generalizedCollatz(nValue, x, y, z, MAX_ITERATIONS, CYCLE_DETECTION_LIMIT);
-                createOrUpdateCube(x, y, z, result.type);
-                resolve();
-              }, 0); // Execute immediately but asynchronously
-            })
-          );
-        }
-      }
-    }
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                mountRef.current.appendChild(renderer.domElement);
+                console.log("Renderer created and appended to DOM.");
 
-    Promise.all(promises).then(() => {
-      setIsAnimating(false);
-      showMessage("Collatz Box Universe generated!", "success");
-    }).catch(error => {
-      console.error("Error generating cubes:", error);
-      showMessage("Error generating cubes.", "error");
-      setIsAnimating(false);
-    });
-  }, [nValue, xMin, xMax, yMin, yMax, zMin, zMax, clearCubes, createOrUpdateCube, isThreeJsInitialized, showMessage]);
+                const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.05;
+                controls.screenSpacePanning = false;
+                controls.minDistance = 5;
+                controls.maxDistance = GRID_SIZE * 5;
+                controls.maxPolarAngle = Math.PI / 2;
 
-  // Save Collatz Rules to Firestore
-  const saveCollatzRules = useCallback(async () => {
-    if (!isAuthReady || !currentUserId) {
-      showMessage("Authentication not ready. Please wait.", "error");
-      return;
-    }
+                sceneRef.current = scene;
+                cameraRef.current = camera;
+                rendererRef.current = renderer;
+                controlsRef.current = controls;
+                console.log("Scene, Camera, Renderer, Controls refs set.");
 
-    setLoading(true);
-    try {
-      // Private data: /artifacts/{appId}/users/{userId}/collatzRules
-      const rulesCollectionRef = collection(dbRef.current, `artifacts/${appId}/users/${currentUserId}/collatzRules`);
-      await addDoc(rulesCollectionRef, {
-        nValue,
-        xMin,
-        xMax,
-        yMin,
-        yMax,
-        zMin,
-        zMax,
-        timestamp: new Date(),
-      });
-      showMessage("Rules saved successfully!", "success");
-    } catch (e) {
-      console.error("Error adding document: ", e);
-      showMessage("Error saving rules.", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [nValue, xMin, xMax, yMin, yMax, zMin, zMax, isAuthReady, currentUserId, showMessage]);
+                // Lighting setup - Increased intensity for visibility
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Brighter ambient light
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Brighter directional light
+                directionalLight.position.set(5, 10, 7.5).normalize();
+                scene.add(directionalLight);
+                console.log("Lighting added to scene.");
 
-  // Load Collatz Rules from Firestore
-  const loadCollatzRules = useCallback(async () => {
-    if (!isAuthReady || !currentUserId) {
-      showMessage("Authentication not ready. Please wait.", "error");
-      return;
-    }
+                const animate = () => {
+                    animationFrameId.current = requestAnimationFrame(animate);
+                    controls.update();
+                    renderer.render(scene, camera);
+                };
+                animate();
+                console.log("Animation loop started.");
 
-    setLoading(true);
-    try {
-      // Private data: /artifacts/{appId}/users/{userId}/collatzRules
-      const rulesCollectionRef = collection(dbRef.current, `artifacts/${appId}/users/${currentUserId}/collatzRules`);
-      // For simplicity, let's load the most recent one. In a real app, you'd show a list.
-      const q = query(rulesCollectionRef, /* orderBy("timestamp", "desc"), */ where("timestamp", "!=", null)); // Using where for a simple query for now
-      const querySnapshot = await getDocs(q);
+                const handleResize = () => {
+                    if (mountRef.current) {
+                        camera.aspect = mountRef.current.clientWidth / mountRef.current.clientHeight;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(mountRef.current.clientWidth, mountRef.current.clientHeight);
+                        console.log("Window resized.");
+                    }
+                };
+                window.addEventListener('resize', handleResize);
 
-      if (!querySnapshot.empty) {
-        const latestDoc = querySnapshot.docs[0].data(); // Get the first one found
-        setNValue(latestDoc.nValue);
-        setXMin(latestDoc.xMin);
-        setXMax(latestDoc.xMax);
-        setYMin(latestDoc.yMin);
-        setYMax(latestDoc.yMax);
-        setZMin(latestDoc.zMin);
-        setZMax(latestDoc.zMax);
-        showMessage("Rules loaded successfully!", "success");
-      } else {
-        showMessage("No saved rules found.", "info");
-      }
-    } catch (e) {
-      console.error("Error loading documents: ", e);
-      showMessage("Error loading rules.", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthReady, currentUserId, showMessage]);
+                setIsThreeJsInitialized(true);
+                setLoading(false);
+                console.log("Three.js initialized state set to true, loading set to false.");
 
-  // Function to reset camera to initial position
-  const resetCamera = useCallback(() => {
-    if (cameraRef.current && controlsRef.current) {
-      cameraRef.current.position.set(0, GRID_SIZE / 2, GRID_SIZE * 2); // Initial camera position
-      controlsRef.current.target.set(0, 0, 0); // Point camera to the center of the grid
-      controlsRef.current.update(); // Update controls after changing camera position/target
-      showMessage("Camera reset!", "info");
-    }
-  }, []);
+                return () => {
+                    console.log("Cleaning up Three.js resources.");
+                    window.removeEventListener('resize', handleResize);
+                    if (animationFrameId.current) {
+                        cancelAnimationFrame(animationFrameId.current);
+                    }
+                    if (renderer.domElement) {
+                        // Check if parent node exists before attempting to removeChild
+                        if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
+                            mountRef.current.removeChild(renderer.domElement);
+                        }
+                        renderer.dispose();
+                    }
+                    if (controls) {
+                        controls.dispose();
+                    }
+                    // Dispose of scene children to free up memory (materials, geometries)
+                    if (scene.children) {
+                        scene.children.forEach(child => {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) child.material.dispose();
+                        });
+                    }
+                };
+            }, [isAuthReady]);
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center p-4 font-sans antialiased">
-      <div className="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 mb-8">
-        <h1 className="text-4xl font-extrabold text-center text-indigo-400 mb-6 drop-shadow-lg">
-          <Cuboid className="inline-block mr-3 text-5xl" />
-          Box Universe Viewer
-        </h1>
-        <p className="text-center text-gray-300 mb-8 text-lg">
-          Explore generalized Collatz sequences in a 3D parameter space (X, Y, Z). Each cube represents a unique ruleset.
-        </p>
+            const createOrUpdateCube = useCallback((x, y, z, type) => {
+                const key = `${x}-${y}-${z}`;
+                let mesh = meshRefs.current[key];
+                const materialColor = COLOR_MAP[type] || COLOR_MAP.unknown;
 
-        {message && (
-          <div className={`mb-4 p-3 rounded-md text-center ${
-            messageType === 'success' ? 'bg-green-500' :
-            messageType === 'error' ? 'bg-red-500' :
-            'bg-blue-500'
-          } text-white`}>
-            {message}
-          </div>
-        )}
+                if (mesh) {
+                    (mesh.material).color.set(materialColor);
+                } else {
+                    const geometry = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
+                    const material = new THREE.MeshPhongMaterial({ color: materialColor, flatShading: true });
+                    mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.set(
+                        (x - (xMin + xMax) / 2) * (BOX_SIZE + 0.2),
+                        (y - (yMin + yMax) / 2) * (BOX_SIZE + 0.2),
+                        (z - (zMin + zMax) / 2) * (BOX_SIZE + 0.2)
+                    );
+                    sceneRef.current.add(mesh);
+                    meshRefs.current[key] = mesh;
+                }
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
-            <label htmlFor="nValue" className="block text-gray-300 text-sm font-bold mb-2">
-              N (Starting Number):
-            </label>
-            <input
-              type="number"
-              id="nValue"
-              value={nValue}
-              onChange={(e) => setNValue(parseInt(e.target.value) || 1)}
-              min="1"
-              className="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-            />
-            <p className="text-xs text-gray-400 mt-2">The initial number for all sequences.</p>
-          </div>
+                if (x === 2 && y === 3 && z === 1) {
+                    (mesh.material).color.set(COLOR_MAP.classic);
+                }
+            }, [xMin, xMax, yMin, yMax, zMin, zMax]);
 
-          <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
-            <label htmlFor="xRange" className="block text-gray-300 text-sm font-bold mb-2">
-              X (Divisor) Range:
-            </label>
-            <div className="flex items-center space-x-3">
-              <input
-                type="number"
-                value={xMin}
-                onChange={(e) => setXMin(parseInt(e.target.value) || 1)}
-                min="1"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-              <span className="text-gray-300">-</span>
-              <input
-                type="number"
-                value={xMax}
-                onChange={(e) => setXMax(parseInt(e.target.value) || 1)}
-                min="1"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Range for the divisor parameter.</p>
-          </div>
+            const clearCubes = useCallback(() => {
+                console.log("Clearing cubes.");
+                if (sceneRef.current) {
+                    // Dispose of children meshes correctly
+                    while(sceneRef.current.children.length > 0){
+                        const child = sceneRef.current.children[0];
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                        sceneRef.current.remove(child);
+                    }
+                    meshRefs.current = {}; // Clear references after removal
+                }
+            }, []);
 
-          <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
-            <label htmlFor="yRange" className="block text-gray-300 text-sm font-bold mb-2">
-              Y (Multiplier) Range:
-            </label>
-            <div className="flex items-center space-x-3">
-              <input
-                type="number"
-                value={yMin}
-                onChange={(e) => setYMin(parseInt(e.target.value) || 1)}
-                min="1"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-              <span className="text-gray-300">-</span>
-              <input
-                type="number"
-                value={yMax}
-                onChange={(e) => setYMax(parseInt(e.target.value) || 1)}
-                min="1"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Range for the multiplier parameter.</p>
-          </div>
+            const generateCubes = useCallback(() => {
+                console.log("generateCubes called. isThreeJsInitialized:", isThreeJsInitialized);
+                if (!sceneRef.current || !isThreeJsInitialized) {
+                    showMessage("3D scene not initialized yet. Please wait.", "error");
+                    return;
+                }
+                setIsAnimating(true);
+                clearCubes();
 
-          <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
-            <label htmlFor="zRange" className="block text-gray-300 text-sm font-bold mb-2">
-              Z (Adder) Range:
-            </label>
-            <div className="flex items-center space-x-3">
-              <input
-                type="number"
-                value={zMin}
-                onChange={(e) => setZMin(parseInt(e.target.value) || 0)}
-                min="0"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-              <span className="text-gray-300">-</span>
-              <input
-                type="number"
-                value={zMax}
-                onChange={(e) => setZMax(parseInt(e.target.value) || 0)}
-                min="0"
-                className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-              />
-            </div>
-            <p className="text-xs text-gray-400 mt-2">Range for the adder parameter.</p>
-          </div>
-        </div>
+                const promises = [];
+                for (let x = xMin; x <= xMax; x++) {
+                    for (let y = yMin; y <= yMax; y++) {
+                        for (let z = zMin; z <= zMax; z++) {
+                            promises.push(
+                                new Promise(resolve => {
+                                    setTimeout(() => {
+                                        const result = generalizedCollatz(nValue, x, y, z, MAX_ITERATIONS, CYCLE_DETECTION_LIMIT);
+                                        createOrUpdateCube(x, y, z, result.type);
+                                        resolve();
+                                    }, 0);
+                                })
+                            );
+                        }
+                    }
+                }
 
-        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-          <button
-            onClick={generateCubes}
-            disabled={isAnimating || loading || !isThreeJsInitialized}
-            className={`flex-1 flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white shadow-lg transition-all duration-200 transform ${isAnimating || loading || !isThreeJsInitialized ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 hover:scale-105'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
-          >
-            <Cuboid className="inline-block mr-3 text-lg" />
-            {isAnimating ? 'Animating...' : (isThreeJsInitialized ? 'Generate & Visualize' : 'Initializing 3D Scene...')}
-          </button>
-          <div className="flex space-x-3">
-            <button
-              onClick={saveCollatzRules}
-              disabled={loading || !isAuthReady || !currentUserId}
-              className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-            >
-              Save Rules
-            </button>
-            <button
-              onClick={loadCollatzRules}
-              disabled={loading || !isAuthReady || !currentUserId}
-              className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-            >
-              Load Rules
-            </button>
-            <button
-              onClick={resetCamera}
-              disabled={loading || !isThreeJsInitialized}
-              className="flex-1 flex items-center justify-center px-4 py-2 border border-yellow-500 text-sm font-medium rounded-md text-yellow-300 bg-gray-700 hover:bg-yellow-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
-            >
-              <RotateCw className="inline-block mr-2 h-4 w-4" /> Reset View
-            </button>
-          </div>
-        </div>
-        {currentUserId && (
-             <p className="text-center text-sm text-gray-400 mt-4">
-                 Your User ID: <span className="font-mono text-gray-300 break-all">{currentUserId}</span>
-             </p>
-         )}
-      </div>
+                Promise.all(promises).then(() => {
+                    setIsAnimating(false);
+                    showMessage("Collatz Box Universe generated!", "success");
+                    console.log("Cubes generated successfully.");
+                }).catch(error => {
+                    console.error("Error generating cubes:", error);
+                    showMessage("Error generating cubes.", "error");
+                    setIsAnimating(false);
+                });
+            }, [nValue, xMin, xMax, yMin, yMax, zMin, zMax, clearCubes, createOrUpdateCube, isThreeJsInitialized, showMessage]);
 
-      <div ref={mountRef} className="w-full max-w-4xl aspect-video rounded-xl shadow-2xl bg-gray-700 overflow-hidden mb-8">
-        {/* Three.js scene will be rendered here */}
-        {!isThreeJsInitialized && (
-          <div className="flex items-center justify-center h-full text-gray-400 text-lg">
-            Loading 3D scene...
-          </div>
-        )}
-      </div>
+            // Automatically generate cubes when Three.js is initialized
+            useEffect(() => {
+                if (isThreeJsInitialized) {
+                    generateCubes();
+                }
+            }, [isThreeJsInitialized, generateCubes]); // Dependency on generateCubes to ensure it's the latest version
 
-      <div className="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6">
-        <h2 className="text-2xl font-bold text-center text-indigo-400 mb-4">Legend</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left">
-          <div className="flex items-center">
-            <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.converges.toString(16).padStart(6, '0')}` }}></span>
-            <p>Converges</p>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.diverges.toString(16).padStart(6, '0')}` }}></span>
-            <p>Diverges / Max Iterations</p>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.cycles.toString(16).padStart(6, '0')}` }}></span>
-            <p>Enters Cycle</p>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.unknown.toString(16).padStart(6, '0')}` }}></span>
-            <p>Unknown</p>
-          </div>
-          <div className="flex items-center">
-            <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.classic.toString(16).padStart(6, '0')}` }}></span>
-            <p>Classic Collatz (X=2, Y=3, Z=1)</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+            const resetCamera = useCallback(() => {
+                if (cameraRef.current && controlsRef.current) {
+                    cameraRef.current.position.set(0, GRID_SIZE / 2, GRID_SIZE * 2);
+                    controlsRef.current.target.set(0, 0, 0);
+                    controlsRef.current.update();
+                    showMessage("Camera reset!", "info");
+                }
+            }, []);
 
-export default App;
+            return (
+                <div className="min-h-screen bg-gray-900 text-gray-100 flex flex-col items-center p-4 font-sans antialiased">
+                    <div className="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 mb-8">
+                        <h1 className="text-4xl font-extrabold text-center text-indigo-400 mb-6 drop-shadow-lg">
+                            📦 Box Universe Viewer
+                        </h1>
+                        <p className="text-center text-gray-300 mb-8 text-lg">
+                            Explore generalized Collatz sequences in a 3D parameter space (X, Y, Z). Each cube represents a unique ruleset.
+                        </p>
+
+                        {message && (
+                            <div className={`mb-4 p-3 rounded-md text-center ${
+                                messageType === 'success' ? 'bg-green-500' :
+                                messageType === 'error' ? 'bg-red-500' :
+                                'bg-blue-500'
+                            } text-white`}>
+                                {message}
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                            <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
+                                <label htmlFor="nValue" className="block text-gray-300 text-sm font-bold mb-2">
+                                    N (Starting Number):
+                                </label>
+                                <input
+                                    type="number"
+                                    id="nValue"
+                                    value={nValue}
+                                    onChange={(e) => setNValue(parseInt(e.target.value) || 1)}
+                                    min="1"
+                                    className="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                />
+                                <p className="text-xs text-gray-400 mt-2">The initial number for all sequences.</p>
+                            </div>
+
+                            <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
+                                <label htmlFor="xRange" className="block text-gray-300 text-sm font-bold mb-2">
+                                    X (Divisor) Range:
+                                </label>
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="number"
+                                        value={xMin}
+                                        onChange={(e) => setXMin(parseInt(e.target.value) || 1)}
+                                        min="1"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                    <span className="text-gray-300">-</span>
+                                    <input
+                                        type="number"
+                                        value={xMax}
+                                        onChange={(e) => setXMax(parseInt(e.target.value) || 1)}
+                                        min="1"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2">Range for the divisor parameter.</p>
+                            </div>
+
+                            <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
+                                <label htmlFor="yRange" className="block text-gray-300 text-sm font-bold mb-2">
+                                    Y (Multiplier) Range:
+                                </label>
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="number"
+                                        value={yMin}
+                                        onChange={(e) => setYMin(parseInt(e.target.value) || 1)}
+                                        min="1"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                    <span className="text-gray-300">-</span>
+                                    <input
+                                        type="number"
+                                        value={yMax}
+                                        onChange={(e) => setYMax(parseInt(e.target.value) || 1)}
+                                        min="1"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2">Range for the multiplier parameter.</p>
+                            </div>
+
+                            <div className="bg-gray-700 p-5 rounded-lg shadow-inner">
+                                <label htmlFor="zRange" className="block text-gray-300 text-sm font-bold mb-2">
+                                    Z (Adder) Range:
+                                </label>
+                                <div className="flex items-center space-x-3">
+                                    <input
+                                        type="number"
+                                        value={zMin}
+                                        onChange={(e) => setZMin(parseInt(e.target.value) || 0)}
+                                        min="0"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                    <span className="text-gray-300">-</span>
+                                    <input
+                                        type="number"
+                                        value={zMax}
+                                        onChange={(e) => setZMax(parseInt(e.target.value) || 0)}
+                                        min="0"
+                                        className="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-400 mt-2">Range for the adder parameter.</p>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
+                            <button
+                                onClick={generateCubes}
+                                disabled={isAnimating || loading || !isThreeJsInitialized}
+                                className={`flex-1 flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white shadow-lg transition-all duration-200 transform ${isAnimating || loading || !isThreeJsInitialized ? 'bg-gray-600 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 hover:scale-105'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
+                            >
+                                📦 Generate & Visualize
+                            </button>
+
+                            {/* These Firebase-related buttons are commented out. */}
+                            {/*
+                            <div className="flex space-x-3">
+                                <button
+                                    onClick={saveCollatzRules}
+                                    disabled={loading || !isAuthReady || !currentUserId}
+                                    className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                >
+                                    Save Rules
+                                </button>
+                                <button
+                                    onClick={loadCollatzRules}
+                                    disabled={loading || !isAuthReady || !currentUserId}
+                                    className="flex-1 flex items-center justify-center px-4 py-2 border border-blue-500 text-sm font-medium rounded-md text-blue-300 bg-gray-700 hover:bg-blue-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+                                >
+                                    Load Rules
+                                </button>
+                            </div>
+                            */}
+
+                            <button
+                                onClick={resetCamera}
+                                disabled={loading || !isThreeJsInitialized}
+                                className="flex-1 flex items-center justify-center px-4 py-2 border border-yellow-500 text-sm font-medium rounded-md text-yellow-300 bg-gray-700 hover:bg-yellow-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
+                            >
+                                🔄 Reset View
+                            </button>
+                        </div>
+
+                        {/* The user ID display is commented out. */}
+                        {/*
+                        {currentUserId && (
+                            <p className="text-center text-sm text-gray-400 mt-4">
+                                Your User ID: <span className="font-mono text-gray-300 break-all">{currentUserId}</span>
+                            </p>
+                        )}
+                        */}
+                    </div>
+
+                    <div ref={mountRef} className="w-full max-w-4xl aspect-video rounded-xl shadow-2xl bg-gray-700 overflow-hidden mb-8">
+                        {/* Three.js scene will be rendered here */}
+                        {!isThreeJsInitialized && (
+                            <div className="flex items-center justify-center h-full text-gray-400 text-lg">
+                                Loading 3D scene...
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6">
+                        <h2 className="text-2xl font-bold text-center text-indigo-400 mb-4">Legend</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left">
+                            <div className="flex items-center">
+                                <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.converges.toString(16).padStart(6, '0')}` }}></span>
+                                <p>Converges</p>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.diverges.toString(16).padStart(6, '0')}` }}></span>
+                                <p>Diverges / Max Iterations</p>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.cycles.toString(16).padStart(6, '0')}` }}></span>
+                                <p>Enters Cycle</p>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.unknown.toString(16).padStart(6, '0')}` }}></span>
+                                <p>Unknown</p>
+                            </div>
+                            <div className="flex items-center">
+                                <span className="inline-block w-6 h-6 rounded-md mr-3" style={{ backgroundColor: `#${COLOR_MAP.classic.toString(16).padStart(6, '0')}` }}></span>
+                                <p>Classic Collatz (X=2, Y=3, Z=1)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Render the React App component into the #root div once the DOM is ready.
+        window.onload = function() {
+            ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App, null));
+        };
+    </script>
+</body>
+</html>
