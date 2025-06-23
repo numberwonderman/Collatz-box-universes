@@ -343,7 +343,14 @@
             pointLight.position.set(0, 20, 0);
             scene.add(pointLight);
 
-            // --- REMOVED DEBUGGING HELPERS (GridHelper and AxesHelper) ---
+            // --- ADDED DEBUGGING HELPERS (GridHelper and AxesHelper) ---
+            // These will help confirm the grid structure is laid out
+            const gridHelper = new THREE.GridHelper(10, 10); // Size 10, 10 divisions
+            scene.add(gridHelper);
+
+            const axesHelper = new THREE.AxesHelper(5); // Size 5 for axes (X=red, Y=green, Z=blue)
+            scene.add(axesHelper);
+
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -358,7 +365,7 @@
             window.addEventListener('resize', onWindowResize);
             animate();
 
-            console.log('Three.js initialized successfully with reduced lighting.');
+            console.log('Three.js initialized successfully with reduced lighting and helpers.');
         }
 
         // --- Three.js Animation Loop ---
@@ -415,8 +422,8 @@
             const objectsToRemove = [];
             scene.children.forEach(child => {
                 // Check if the object is a Mesh (our cubes) and not a helper or light
-                // Assuming no other meshes are added besides our cubes
-                if (child.isMesh && child.name === '') {
+                // Only remove meshes that are *not* a GridHelper or AxesHelper instance
+                if (child.isMesh) {
                     objectsToRemove.push(child);
                 }
             });
@@ -468,7 +475,7 @@
             for (let x = xMin; x <= xMax; x++) {
                 for (let y = yMin; y <= yMax; y++) {
                     for (let z = zMin; z <= zMax; z++) {
-                        // Directly call createOrUpdateCube without setTimeout
+                        // Directly call createOrUpdateCube
                         const result = generalizedCollatz(nValue, x, y, z, MAX_ITERATIONS, CYCLE_DETECTION_LIMIT);
                         createOrUpdateCube(x, y, z, result.type);
                     }
