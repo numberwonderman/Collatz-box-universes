@@ -80,6 +80,31 @@
             cursor: pointer;
             box-shadow: 0 0 5px rgba(99, 102, 241, 0.7);
         }
+        /* Style for color inputs */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            overflow: hidden; /* Hide default color picker border/shadow */
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        input[type="color"]::-moz-color-swatch-wrapper {
+            padding: 0;
+        }
+        input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: 0.5rem;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-200 to-purple-300 min-h-screen flex flex-col items-center justify-center p-4">
@@ -90,22 +115,36 @@
         <h1 class="text-3xl font-bold text-purple-800 mb-4 text-center">Box Universe Slicer 3D</h1>
         <p class="text-gray-700 mb-6 text-center">Explore generalized Collatz sequences in a 3D "Box Universe."</p>
 
+        <div class="mb-6 bg-purple-50 p-4 rounded-md shadow-sm">
+            <h2 class="text-lg font-semibold text-purple-800 mb-2">Generalized Collatz Rules:</h2>
+            <p class="text-gray-700 text-sm">
+                For a number $n$:
+            </p>
+            <ul class="list-disc list-inside text-gray-700 text-sm pl-4">
+                <li>If $n$ is divisible by <span class="font-bold text-green-700">X</span>, then $n \rightarrow n / X$</li>
+                <li>Else, $n \rightarrow (Y \times n) + Z$</li>
+            </ul>
+            <p class="text-gray-700 text-sm mt-2">
+                <span class="font-bold text-blue-700">N (Base)</span> defines the size of the cubic grid (N x N x N). Each cube represents a number from $0$ to $(N^3 - 1)$.
+            </p>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div class="flex flex-col items-center bg-blue-50 p-3 rounded-md shadow-sm">
-                <label class="text-sm font-medium text-blue-700">N (Base)</label>
-                <span id="display-n" class="text-xl font-bold text-blue-900"></span>
+                <label for="input-n" class="text-sm font-medium text-blue-700">N (Base)</label>
+                <input type="number" id="input-n" min="1" max="15" value="9" class="w-24 text-center text-xl font-bold text-blue-900 bg-transparent border-b-2 border-blue-300 focus:outline-none focus:border-blue-500">
             </div>
             <div class="flex flex-col items-center bg-green-50 p-3 rounded-md shadow-sm">
-                <label class="text-sm font-medium text-green-700">X (Divisor)</label>
-                <span id="display-x" class="text-xl font-bold text-green-900"></span>
+                <label for="input-x" class="text-sm font-medium text-green-700">X (Divisor)</label>
+                <input type="number" id="input-x" min="1" value="2" class="w-24 text-center text-xl font-bold text-green-900 bg-transparent border-b-2 border-green-300 focus:outline-none focus:border-green-500">
             </div>
             <div class="flex flex-col items-center bg-red-50 p-3 rounded-md shadow-sm">
-                <label class="text-sm font-medium text-red-700">Y (Multiplier)</label>
-                <span id="display-y" class="text-xl font-bold text-red-900"></span>
+                <label for="input-y" class="text-sm font-medium text-red-700">Y (Multiplier)</label>
+                <input type="number" id="input-y" min="0" value="3" class="w-24 text-center text-xl font-bold text-red-900 bg-transparent border-b-2 border-red-300 focus:outline-none focus:border-red-500">
             </div>
             <div class="flex flex-col items-center bg-yellow-50 p-3 rounded-md shadow-sm">
-                <label class="text-sm font-medium text-yellow-700">Z (Adder)</label>
-                <span id="display-z" class="text-xl font-bold text-yellow-900"></span>
+                <label for="input-z" class="text-sm font-medium text-yellow-700">Z (Adder)</label>
+                <input type="number" id="input-z" value="1" class="w-24 text-center text-xl font-bold text-yellow-900 bg-transparent border-b-2 border-yellow-300 focus:outline-none focus:border-yellow-500">
             </div>
         </div>
 
@@ -125,6 +164,17 @@
             <label for="slice-value" class="text-lg font-semibold text-gray-800">Slice Value:</label>
             <input type="range" id="slice-value" min="0" max="8" value="0" class="w-full md:w-64 accent-purple-500">
             <span id="slice-display" class="text-gray-700">0</span>
+        </div>
+
+        <div class="flex flex-col sm:flex-row justify-center gap-6 mb-6">
+            <div class="flex items-center gap-2 bg-gray-100 p-3 rounded-md shadow-sm">
+                <label for="even-color-picker" class="text-gray-700 font-medium">Even Numbers Color:</label>
+                <input type="color" id="even-color-picker" value="#ADD8E6">
+            </div>
+            <div class="flex items-center gap-2 bg-gray-100 p-3 rounded-md shadow-sm">
+                <label for="odd-color-picker" class="text-gray-700 font-medium">Odd Numbers Color:</label>
+                <input type="color" id="odd-color-picker" value="#FFA07A">
+            </div>
         </div>
 
         <div class="flex flex-wrap justify-center gap-4">
@@ -151,6 +201,9 @@
         let X_DIVISOR = 2; // Default X for n/X rule
         let Y_MULTIPLIER = 3; // Default Y for Y*n+Z rule
         let Z_ADDER = 1; // Default Z for Y*n+Z rule
+
+        let evenColor = new THREE.Color(0xadd8e6); // Default Light Blue
+        let oddColor = new THREE.Color(0xffa07a);  // Default Light Salmon
 
         let animationSpeed = 50; // Initial animation speed
         let currentSliceAxis = 'x'; // Default slice axis
@@ -197,17 +250,29 @@
 
         // --- Collatz Logic ---
         function generalizedCollatz(n, x, y, z) {
-            if (n <= 0) return []; // Sequences typically start with positive integers
+            if (n < 0) return []; // Sequences typically start with positive integers or zero
             let sequence = [n];
             let current = n;
             const MAX_ITERATIONS = 1000; // Prevent infinite loops for non-converging sequences
             let iterations = 0;
 
+            // Handle the case where current becomes 0 or 1, or enters a cycle quickly
+            // For x=1, n/x rule becomes identity, which might cause issues.
+            // If x is 0, division by zero occurs.
+            if (x === 0) {
+                showMessage("Error: Divisor X cannot be zero.", 3000);
+                return [];
+            }
+
             while (current !== 1 && iterations < MAX_ITERATIONS) {
-                if (current % x === 0) {
+                if (x !== 0 && current % x === 0) { // Check for x non-zero to prevent division by zero
                     current = current / x;
                 } else {
                     current = y * current + z;
+                }
+                // Avoid adding duplicate consecutive numbers if current repeats (e.g. 0/0 loop)
+                if (sequence.length > 0 && sequence[sequence.length - 1] === current) {
+                    break;
                 }
                 sequence.push(current);
                 iterations++;
@@ -235,16 +300,24 @@
             cubes.forEach(cube => scene.remove(cube));
             cubes = [];
 
+            // Get current colors from pickers
+            const currentEvenColor = new THREE.Color(document.getElementById('even-color-picker').value);
+            const currentOddColor = new THREE.Color(document.getElementById('odd-color-picker').value);
+
             // Create cubes for the N_BASE x N_BASE x N_BASE grid
             for (let i = 0; i < N_BASE; i++) {
                 for (let j = 0; j < N_BASE; j++) {
                     for (let k = 0; k < N_BASE; k++) {
-                        // Determine color based on (i, j, k)
-                        // This is a placeholder; you can define your own coloring logic
-                        let color = new THREE.Color(`hsl(${((i * N_BASE * N_BASE + j * N_BASE + k) * 10) % 360}, 70%, 60%)`);
+                        // Calculate the number represented by this cube based on its grid position
+                        // The mapping assumes x is least significant, then y, then z.
+                        const number = i + (j * N_BASE) + (k * N_BASE * N_BASE);
+
+                        // Determine color based on parity (even/odd) of the number
+                        let color = (number % 2 === 0) ? currentEvenColor : currentOddColor;
+                        
                         const cube = createCube(i, j, k, color);
                         if (cube) { // Ensure cube was created successfully
-                            cube.userData.originalIndex = (i * N_BASE * N_BASE + j * N_BASE + k); // Store original index for coloring
+                            cube.userData.originalIndex = number; // Store the actual number it represents
                             cube.userData.gridX = i; // Store grid coordinates
                             cube.userData.gridY = j;
                             cube.userData.gridZ = k;
@@ -256,18 +329,27 @@
 
         function getCoordinatesForNumber(n) {
             // Map a number 'n' to (x, y, z) coordinates within the N_BASE grid
+            // This needs to be consistent with how numbers are mapped to positions in create9NetCubes
             const x = n % N_BASE;
             const y = Math.floor((n / N_BASE) % N_BASE);
             const z = Math.floor((n / (N_BASE * N_BASE)) % N_BASE);
+
+            // If the number is outside the N_BASE^3 range, its coordinates will be adjusted to stay within bounds
+            // This makes sure the visualization doesn't break, though the cube won't perfectly map to the original number if it's too large.
+            // For now, let's keep it simple and assume numbers will mostly be within the grid.
+            // For numbers outside the visualized grid, this will return coordinates that wrap around.
             return { x, y, z };
         }
 
         function updatePathVisualization() {
-            if (activePath.length === 0) return;
+            // Get current colors from pickers for resetting
+            const currentEvenColor = new THREE.Color(document.getElementById('even-color-picker').value);
+            const currentOddColor = new THREE.Color(document.getElementById('odd-color-picker').value);
 
-            // Reset all cube colors to their original 9-net color or default
+            // Reset all cube colors to their original parity-based color
             cubes.forEach(cube => {
-                const originalColor = new THREE.Color(`hsl(${((cube.userData.originalIndex) * 10) % 360}, 70%, 60%)`);
+                const number = cube.userData.originalIndex;
+                const originalColor = (number % 2 === 0) ? currentEvenColor : currentOddColor;
                 cube.material.color.copy(originalColor);
                 cube.material.opacity = 0.8;
             });
@@ -275,17 +357,20 @@
             // Highlight cubes along the active path
             for (let i = 0; i <= pathIndex; i++) {
                 const num = activePath[i];
-                const { x, y, z } = getCoordinatesForNumber(num);
+                // Check if the number is within the current grid (0 to N_BASE^3 - 1)
+                if (num >= 0 && num < (N_BASE * N_BASE * N_BASE)) {
+                    const { x, y, z } = getCoordinatesForNumber(num);
 
-                const targetCube = cubes.find(cube =>
-                    cube.userData.gridX === x &&
-                    cube.userData.gridY === y &&
-                    cube.userData.gridZ === z
-                );
+                    const targetCube = cubes.find(cube =>
+                        cube.userData.gridX === x &&
+                        cube.userData.gridY === y &&
+                        cube.userData.gridZ === z
+                    );
 
-                if (targetCube) {
-                    targetCube.material.color.set(0xff0000); // Highlight in red
-                    targetCube.material.opacity = 1.0;
+                    if (targetCube) {
+                        targetCube.material.color.set(0xff0000); // Highlight in red
+                        targetCube.material.opacity = 1.0;
+                    }
                 }
             }
         }
@@ -300,7 +385,9 @@
 
             // Camera
             camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
-            camera.position.set(0, 0, 0); // Start at center for FPS controls
+            // Position camera slightly back and up to see the grid from an angle
+            camera.position.set(N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7);
+            camera.lookAt(scene.position);
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
@@ -316,9 +403,11 @@
             scene.add(directionalLight);
 
             // Grid and Axes Helpers (for orientation)
-            const gridHelper = new THREE.GridHelper(N_BASE * TOTAL_CUBE_SIZE, N_BASE); // Grid adapts to N_BASE
+            // Adjust grid and axes to be slightly larger than the max possible grid size for better visibility
+            const helperSize = N_BASE * TOTAL_CUBE_SIZE * 1.5; // Make helpers larger than the grid
+            const gridHelper = new THREE.GridHelper(helperSize, N_BASE * 2); // N_BASE * 2 divisions for more detail
             scene.add(gridHelper);
-            const axesHelper = new THREE.AxesHelper(N_BASE * TOTAL_CUBE_SIZE / 2); // Axes adapt to N_BASE
+            const axesHelper = new THREE.AxesHelper(helperSize / 2); // Axes adapt to grid size
             scene.add(axesHelper);
 
             // Initialize PointerLockControls
@@ -326,7 +415,10 @@
 
             // Event listener to lock pointer on canvas click
             canvas.addEventListener('click', () => {
-                controls.lock();
+                // If the pointer is not already locked, lock it
+                if (!controls.isLocked) {
+                    controls.lock();
+                }
             });
 
             // Handle PointerLockControls events
@@ -351,52 +443,64 @@
 
         function onWindowResize() {
             const canvas = document.getElementById('collatzCanvas');
-            // Make sure the canvas size is correctly set from CSS or explicitly here
-            // It's better to get clientWidth/clientHeight from its parent container if it's responsive
-            const container = document.getElementById('collatzCanvas').parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            // Dynamically set canvas size within its container/max limits
+            const parentWidth = canvas.parentElement.clientWidth;
+            const parentHeight = window.innerHeight * 0.7; // Use 70% of window height or adjust as needed
+
+            let newWidth = parentWidth;
+            let newHeight = parentHeight;
+
+            // Maintain aspect ratio or ensure it fits within max-width/height if defined in CSS
+            if (newWidth > 800) newWidth = 800; // Match max-width from CSS
+            if (newHeight > 800) newHeight = 800; // Match max-height from CSS
+
+            canvas.width = newWidth;
+            canvas.height = newHeight;
 
             if (camera) {
-                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.aspect = canvas.width / canvas.height;
                 camera.updateProjectionMatrix();
             }
             if (renderer) {
-                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                renderer.setSize(canvas.width, canvas.height);
             }
         }
 
         function onKeyDown(event) {
-            switch (event.code) {
-                case 'KeyW':
-                    moveForward = true;
-                    break;
-                case 'KeyA':
-                    moveLeft = true;
-                    break;
-                case 'KeyS':
-                    moveBackward = true;
-                    break;
-                case 'KeyD':
-                    moveRight = true;
-                    break;
+            if (controls.isLocked) { // Only move if pointer is locked
+                switch (event.code) {
+                    case 'KeyW':
+                        moveForward = true;
+                        break;
+                    case 'KeyA':
+                        moveLeft = true;
+                        break;
+                    case 'KeyS':
+                        moveBackward = true;
+                        break;
+                    case 'KeyD':
+                        moveRight = true;
+                        break;
+                }
             }
         }
 
         function onKeyUp(event) {
-            switch (event.code) {
-                case 'KeyW':
-                    moveForward = false;
-                    break;
-                case 'KeyA':
-                    moveLeft = false;
-                    break;
-                case 'KeyS':
-                    moveBackward = false;
-                    break;
-                case 'KeyD':
-                    moveRight = false;
-                    break;
+            if (controls.isLocked) { // Only stop movement if pointer is locked
+                switch (event.code) {
+                    case 'KeyW':
+                        moveForward = false;
+                        break;
+                    case 'KeyA':
+                        moveLeft = false;
+                        break;
+                    case 'KeyS':
+                        moveBackward = false;
+                        break;
+                    case 'KeyD':
+                        moveRight = false;
+                        break;
+                }
             }
         }
 
@@ -408,31 +512,30 @@
             const time = performance.now();
             const delta = (time - prevTime) / 1000; // time since last frame in seconds
 
-            velocity.x -= velocity.x * 10.0 * delta;
-            velocity.z -= velocity.z * 10.0 * delta;
+            if (controls.isLocked) {
+                velocity.x -= velocity.x * 10.0 * delta;
+                velocity.z -= velocity.z * 10.0 * delta;
 
-            if (moveForward) velocity.z -= MOVEMENT_SPEED * delta;
-            if (moveBackward) velocity.z += MOVEMENT_SPEED * delta;
-            if (moveLeft) velocity.x -= MOVEMENT_SPEED * delta;
-            if (moveRight) velocity.x += MOVEMENT_SPEED * delta;
+                if (moveForward) velocity.z -= MOVEMENT_SPEED * delta;
+                if (moveBackward) velocity.z += MOVEMENT_SPEED * delta;
+                if (moveLeft) velocity.x -= MOVEMENT_SPEED * delta;
+                if (moveRight) velocity.x += MOVEMENT_SPEED * delta;
 
-            // Apply movement
-            controls.moveRight(-velocity.x);
-            controls.moveForward(-velocity.z);
-
+                // Apply movement
+                controls.moveRight(-velocity.x);
+                controls.moveForward(-velocity.z);
+            }
             prevTime = time;
 
             // Update path visualization based on animation speed
-            if (activePath.length > 0 && pathIndex < activePath.length - 1) {
-                // Ensure a reasonable delay between steps for animation speed
-                if (Date.now() % (100 - animationSpeed + 1) < 10) { // Add 1 to avoid division by zero if speed is 100
+            if (activePath.length > 0 && pathIndex < activePath.length) {
+                // Adjust this value to control animation speed more directly.
+                // Lower value means faster animation. (100 - speed + 1) makes 100 fastest, 1 slowest.
+                const speedFactor = 100 - animationSpeed + 1; // 1 (fastest) to 100 (slowest)
+                if (Date.now() % speedFactor < 10) { // Small number to make it animate every few frames
                     pathIndex++;
                     updatePathVisualization();
                 }
-            } else if (activePath.length > 0 && pathIndex === activePath.length - 1) {
-                // Path animation complete, reset for next click or loop
-                // For now, just stop animation, can add loop logic later
-                // If you want it to loop, reset pathIndex = 0 here and clear previous path highlights
             }
 
             // Apply slicing effect
@@ -442,9 +545,11 @@
                 let shouldBeVisible = true;
 
                 // Cube's grid indices relative to (0,0,0) starting point
-                const gridX = Math.round(cube.position.x / TOTAL_CUBE_SIZE + offsetForCentering);
-                const gridY = Math.round(cube.position.y / TOTAL_CUBE_SIZE + offsetForCentering);
-                const gridZ = Math.round(cube.position.z / TOTAL_CUBE_SIZE + offsetForCentering);
+                // Recalculate gridX, Y, Z based on cube's current world position
+                // This ensures slicing works correctly even if camera moves, as it's based on cube's actual position
+                const gridX = Math.round((cube.position.x / TOTAL_CUBE_SIZE) + offsetForCentering);
+                const gridY = Math.round((cube.position.y / TOTAL_CUBE_SIZE) + offsetForCentering);
+                const gridZ = Math.round((cube.position.z / TOTAL_CUBE_SIZE) + offsetForCentering);
 
                 if (currentSliceAxis === 'x' && gridX !== currentSliceValue) {
                     shouldBeVisible = false;
@@ -467,48 +572,65 @@
         // Parse URL parameters on load and set initial values
         function initializeFromUrlParams() {
             const params = getUrlParams();
+            const inputN = document.getElementById('input-n');
+            const inputX = document.getElementById('input-x');
+            const inputY = document.getElementById('input-y');
+            const inputZ = document.getElementById('input-z');
+            const evenColorPicker = document.getElementById('even-color-picker');
+            const oddColorPicker = document.getElementById('odd-color-picker');
+            const sliceValueInput = document.getElementById('slice-value');
+            const speedSlider = document.getElementById('speed-slider');
+
             if (params.n) {
                 N_BASE = parseInt(params.n);
-                document.getElementById('display-n').textContent = N_BASE;
+                inputN.value = N_BASE;
             } else {
-                document.getElementById('display-n').textContent = N_BASE;
+                inputN.value = N_BASE;
             }
             if (params.x) {
                 X_DIVISOR = parseInt(params.x);
-                document.getElementById('display-x').textContent = X_DIVISOR;
+                inputX.value = X_DIVISOR;
             } else {
-                document.getElementById('display-x').textContent = X_DIVISOR;
+                inputX.value = X_DIVISOR;
             }
             if (params.y) {
                 Y_MULTIPLIER = parseInt(params.y);
-                document.getElementById('display-y').textContent = Y_MULTIPLIER;
+                inputY.value = Y_MULTIPLIER;
             } else {
-                document.getElementById('display-y').textContent = Y_MULTIPLIER;
+                inputY.value = Y_MULTIPLIER;
             }
             if (params.z) {
                 Z_ADDER = parseInt(params.z);
-                document.getElementById('display-z').textContent = Z_ADDER;
+                inputZ.value = Z_ADDER;
             } else {
-                document.getElementById('display-z').textContent = Z_ADDER;
+                inputZ.value = Z_ADDER;
+            }
+
+            if (params.evenColor) {
+                evenColorPicker.value = '#' + params.evenColor;
+                evenColor.set(evenColorPicker.value);
+            }
+            if (params.oddColor) {
+                oddColorPicker.value = '#' + params.oddColor;
+                oddColor.set(oddColorPicker.value);
             }
 
             // Update GRID_SIZE based on the new N_BASE after parsing params
             GRID_SIZE = N_BASE;
 
             // Update slice range max based on N_BASE
-            const sliceValueInput = document.getElementById('slice-value');
             sliceValueInput.max = N_BASE - 1;
             if (params.slice) {
                 currentSliceValue = parseInt(params.slice);
+                // Ensure value is within bounds of new N_BASE
                 if (currentSliceValue >= N_BASE || currentSliceValue < 0) {
                     currentSliceValue = 0;
                 }
                 sliceValueInput.value = currentSliceValue;
-                document.getElementById('slice-display').textContent = currentSliceValue;
             } else {
                 sliceValueInput.value = 0;
-                document.getElementById('slice-display').textContent = 0;
             }
+            document.getElementById('slice-display').textContent = currentSliceValue; // Update display
 
             if (params.axis) {
                 currentSliceAxis = params.axis;
@@ -517,9 +639,9 @@
 
             if (params.speed) {
                 animationSpeed = parseInt(params.speed);
-                document.getElementById('speed-slider').value = animationSpeed;
-                document.getElementById('speed-value').textContent = animationSpeed;
+                speedSlider.value = animationSpeed;
             }
+            document.getElementById('speed-value').textContent = animationSpeed; // Update display
         }
 
         // Execute code when the DOM is fully loaded
@@ -528,11 +650,66 @@
             initThreeJS();
             animate(); // Start animation loop after init
 
-            // This button now primarily helps to unlock the pointer or reset camera position
+            // Event listeners for rule inputs
+            document.getElementById('input-n').addEventListener('change', (event) => {
+                const newN = parseInt(event.target.value);
+                if (newN > 0) { // N_BASE must be at least 1
+                    N_BASE = newN;
+                    GRID_SIZE = N_BASE; // Update GRID_SIZE
+                    create9NetCubes(); // Recreate grid with new size
+                    // Update slice slider max when N_BASE changes
+                    const sliceValueInput = document.getElementById('slice-value');
+                    sliceValueInput.max = N_BASE - 1;
+                    if (currentSliceValue >= N_BASE || currentSliceValue < 0) {
+                        currentSliceValue = 0;
+                        sliceValueInput.value = currentSliceValue;
+                        document.getElementById('slice-display').textContent = currentSliceValue;
+                    }
+                    showMessage(`Grid size (N) set to ${N_BASE}.`);
+                } else {
+                    event.target.value = N_BASE; // Revert to old value if invalid
+                    showMessage("N (Base) must be a positive integer.", 3000);
+                }
+            });
+
+            document.getElementById('input-x').addEventListener('change', (event) => {
+                const newX = parseInt(event.target.value);
+                if (newX !== 0) { // X cannot be 0 to prevent division by zero
+                    X_DIVISOR = newX;
+                    showMessage(`X (Divisor) set to ${X_DIVISOR}.`);
+                } else {
+                    event.target.value = X_DIVISOR; // Revert to old value if invalid
+                    showMessage("X (Divisor) cannot be zero.", 3000);
+                }
+            });
+            document.getElementById('input-y').addEventListener('change', (event) => {
+                Y_MULTIPLIER = parseInt(event.target.value);
+                showMessage(`Y (Multiplier) set to ${Y_MULTIPLIER}.`);
+            });
+            document.getElementById('input-z').addEventListener('change', (event) => {
+                Z_ADDER = parseInt(event.target.value);
+                showMessage(`Z (Adder) set to ${Z_ADDER}.`);
+            });
+
+            // Event listeners for color pickers
+            document.getElementById('even-color-picker').addEventListener('input', (event) => {
+                evenColor.set(event.target.value);
+                create9NetCubes(); // Recreate cubes with new colors
+                updatePathVisualization(); // Update path colors if active
+            });
+
+            document.getElementById('odd-color-picker').addEventListener('input', (event) => {
+                oddColor.set(event.target.value);
+                create9NetCubes(); // Recreate cubes with new colors
+                updatePathVisualization(); // Update path colors if active
+            });
+
+
             document.getElementById('reset-view-btn').addEventListener('click', () => {
                 controls.unlock(); // Release pointer lock
-                camera.position.set(0, 0, 0); // Reset camera to origin
-                camera.lookAt(scene.position); // Look at center
+                // Reset camera to a good default viewing angle
+                camera.position.set(N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7);
+                camera.lookAt(scene.position);
                 showMessage("View reset! Click canvas to re-lock pointer for movement.");
             });
 
@@ -541,13 +718,15 @@
                 const currentX = X_DIVISOR;
                 const currentY = Y_MULTIPLIER;
                 const currentZ = Z_ADDER;
+                const currentEvenColorHex = document.getElementById('even-color-picker').value.substring(1); // Remove #
+                const currentOddColorHex = document.getElementById('odd-color-picker').value.substring(1); // Remove #
 
                 const currentSliceAxisVal = currentSliceAxis;
                 const currentSliceValueVal = currentSliceValue;
                 const currentSpeed = animationSpeed;
 
                 const baseUrl = window.location.origin + window.location.pathname;
-                const shareUrl = `${baseUrl}?n=${currentN}&x=${currentX}&y=${currentY}&z=${currentZ}&axis=${currentSliceAxisVal}&slice=${currentSliceValueVal}&speed=${currentSpeed}`;
+                const shareUrl = `${baseUrl}?n=${currentN}&x=${currentX}&y=${currentY}&z=${currentZ}&evenColor=${currentEvenColorHex}&oddColor=${currentOddColorHex}&axis=${currentSliceAxisVal}&slice=${currentSliceValueVal}&speed=${currentSpeed}`;
 
                 // Copy to clipboard
                 const tempInput = document.createElement('textarea');
@@ -570,10 +749,11 @@
                 currentSliceAxis = event.target.value;
                 const sliceValueInput = document.getElementById('slice-value');
                 sliceValueInput.max = N_BASE - 1; // Max value depends on N_BASE
-                if (currentSliceValue >= N_BASE || currentSliceValue < 0) { // Ensure value is within bounds
+                // Ensure currentSliceValue is within new bounds
+                if (currentSliceValue >= N_BASE || currentSliceValue < 0) {
                     currentSliceValue = 0;
+                    sliceValueInput.value = currentSliceValue;
                 }
-                sliceValueInput.value = currentSliceValue;
                 document.getElementById('slice-display').textContent = currentSliceValue;
             });
 
@@ -589,7 +769,9 @@
             if (controls.isLocked) {
                 // If locked, the click should trigger pointer lock functionality.
                 // We don't want to start sequence animation while actively moving.
-                return;
+                // However, Three.js PointerLockControls already handles pointer lock on click.
+                // If a click happens *while locked*, it means the user clicked on something *within* the canvas.
+                // So, we proceed with raycasting.
             }
 
             const raycaster = new THREE.Raycaster();
@@ -605,9 +787,7 @@
 
             if (intersects.length > 0) {
                 const intersectedCube = intersects[0].object;
-                const { gridX, gridY, gridZ } = intersectedCube.userData; // Use stored grid coordinates
-
-                const startingNumber = gridX + gridY * N_BASE + gridZ * N_BASE * N_BASE;
+                const startingNumber = intersectedCube.userData.originalIndex;
 
                 activePath = generalizedCollatz(startingNumber, X_DIVISOR, Y_MULTIPLIER, Z_ADDER);
                 pathIndex = 0; // Reset animation
