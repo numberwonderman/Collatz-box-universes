@@ -30,9 +30,27 @@
         .dragon-icon {
             filter: drop-shadow(0 0 5px #f6e0b7); /* Subtle glow for the dragon */
         }
+        /* Message box styling */
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            display: none;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            text-align: center;
+        }
     </style>
 </head>
 <body class="p-4 min-h-screen flex flex-col items-center justify-center">
+
+    <div id="message-box" class="message-box"></div>
 
     <div class="max-w-4xl w-full bg-gray-800 p-8 rounded-xl shadow-2xl mb-8 border border-gray-700">
         <h1 class="text-4xl font-extrabold text-center text-indigo-400 mb-6 flex items-center justify-center">
@@ -110,14 +128,25 @@
         const collatzCanvas = document.getElementById('collatzCanvas');
         const statsOutput = document.getElementById('statsOutput');
         const goldStar = document.getElementById('goldStar');
+        const messageBox = document.getElementById('message-box'); // Get message box element
 
         // Link buttons
         const linkSlicer = document.getElementById('linkSlicer');
-        const linkSlicer3D = document.getElementById('linkSlicer3D');
+        const linkSlicer3D = document.getElementById('linkSlicer3D'); // This button links to the 3D FPS program
         const linkBoxViewer = document.getElementById('linkBoxViewer');
 
         // Canvas context
         const ctx = collatzCanvas.getContext('2d');
+
+        // --- Message Box Utility ---
+        function showMessage(message, type = 'info', duration = 3000) {
+            messageBox.textContent = message;
+            messageBox.style.backgroundColor = type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0, 0, 0, 0.7)';
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
 
         // --- Helper Function to Get Parameters ---
         function getParameters() {
@@ -127,14 +156,28 @@
             const Z = parseInt(inputZ.value);
 
             // Validate inputs
-            if (isNaN(N) || N <= 0 || isNaN(X) || X <= 0 || isNaN(Y) || Y <= 0 || isNaN(Z) || Z < 0) {
-                // Do not show an alert here on input events, only on button click for user experience
+            if (isNaN(N) || N <= 0) {
+                showMessage("N (Start Number) must be a positive integer.", "error");
                 return null;
             }
-            if (Y === 0 && Z === 0) { // Avoid infinite loop or trivial operation for odd case (Y*n+Z)
-                 // Do not show an alert here on input events, only on button click for user experience
+            if (isNaN(X) || X === 0) { // X must be non-zero
+                showMessage("X (Divisor) must be a non-zero integer.", "error");
+                return null;
+            }
+            if (isNaN(Y)) { 
+                showMessage("Y (Multiplier) must be an integer.", "error");
+                return null;
+            }
+            if (isNaN(Z)) {
+                showMessage("Z (Adder) must be an integer.", "error");
+                return null;
+            }
+            // Special case check for Y=0 and Z=0 for non-divisible numbers
+            if (Y === 0 && Z === 0 && N % X !== 0) {
+                 showMessage("For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop.", "error");
                  return null;
             }
+            
             return { N, X, Y, Z };
         }
 
@@ -168,6 +211,12 @@
 
             while (currentN !== 1 && steps < maxIterations) {
                 const { next, parity } = generalizedCollatzStep(currentN, X, Y, Z);
+                
+                // Check for divergence due to overflow *before* adding to sequence
+                if (Math.abs(next) > Number.MAX_SAFE_INTEGER || !Number.isFinite(next)) {
+                    return { sequence, binaryPath, steps, maxValue, status: 'Divergent (Overflow)', stoppingTime, isParadoxical };
+                }
+
                 sequence.push(next);
                 binaryPath.push(parity);
 
@@ -222,7 +271,8 @@
             let angle = 0; // Initial direction (e.g., pointing right)
 
             // Length of each segment, scaled by path length
-            const segmentLength = Math.min(canvasWidth, canvasHeight) / (binaryPath.length * 3); // Adjust factor for better fit
+            // Adjusted factor based on typical dragon curve length characteristics
+            const segmentLength = Math.min(canvasWidth, canvasHeight) / (binaryPath.length > 0 ? binaryPath.length * 2 : 10); // Adjust factor for better fit, prevent division by zero
 
             ctx.beginPath();
             ctx.moveTo(x, y);
@@ -231,11 +281,11 @@
             ctx.lineWidth = 1; // Thin line for detail
 
             binaryPath.forEach((turn) => {
-                // '0' (even rule) -> turn left, '1' (odd rule) -> turn right
-                // Adjust angle for each step. Using 90 degrees for a classic fractal turn.
-                if (turn === 0) { // Even rule applied: turn left
+                // '0' (divisible by X) -> turn left, '1' (not divisible by X) -> turn right
+                // Using 90 degrees (Math.PI / 2) for a classic fractal turn.
+                if (turn === 0) { // Divisible rule applied: turn left
                     angle -= Math.PI / 2; // -90 degrees
-                } else { // Odd rule applied: turn right
+                } else { // Multiply/Add rule applied: turn right
                     angle += Math.PI / 2; // +90 degrees
                 }
 
@@ -266,7 +316,7 @@
             const { sequence, steps, maxValue, status, stoppingTime, isParadoxical } = sequenceInfo;
             statsOutput.innerHTML = `
                 <p><strong>Status:</strong> ${status}</p>
-                <p><strong>Steps to ${sequence[sequence.length - 1]}:</strong> ${steps}</p>
+                <p><strong>Steps to ${sequence[sequence.length - 1] === 1 ? '1' : sequence[sequence.length - 1]}:</strong> ${steps}</p>
                 <p><strong>Max Value Reached:</strong> ${maxValue.toLocaleString()}</p>
                 <p><strong>Sequence Start:</strong> ${sequence[0]}</p>
                 <p><strong>Stopping Time:</strong> ${stoppingTime === -1 ? 'Not Found (did not drop below start)' : stoppingTime}</p>
@@ -283,42 +333,31 @@
 
         // --- Gold Star Visibility ---
         function updateGoldStar() {
-            const params = getParameters();
-            // Only proceed if parameters are valid
-            if (params) {
-                const { X, Y, Z } = params;
-                if (X === 2 && Y === 3 && Z === 1) {
-                    goldStar.classList.remove('hidden');
-                } else {
-                    goldStar.classList.add('hidden');
-                }
+            // We need to check inputs here without triggering error messages if called from input events
+            const N = parseInt(inputN.value);
+            const X = parseInt(inputX.value);
+            const Y = parseInt(inputY.value);
+            const Z = parseInt(inputZ.value);
+
+            // Only show gold star if all are valid and match classic Collatz
+            if (!isNaN(N) && N > 0 && !isNaN(X) && X !== 0 && !isNaN(Y) && !isNaN(Z) &&
+                (Y !== 0 || Z !== 0 || N % X === 0) && // Ensure Y=0,Z=0 is only allowed if N%X==0
+                X === 2 && Y === 3 && Z === 1) {
+                goldStar.classList.remove('hidden');
             } else {
-                // If parameters are invalid, hide the gold star
                 goldStar.classList.add('hidden');
             }
         }
 
         // --- Event Listeners ---
         generateBtn.addEventListener('click', () => {
-            const params = getParameters();
+            const params = getParameters(); // This will now show messages directly if validation fails
             if (params) {
                 const sequenceInfo = generateCollatzSequence(params.N, params.X, params.Y, params.Z);
                 lastBinaryPath = sequenceInfo.binaryPath; // Store the path
                 drawCollatzDragon(lastBinaryPath);
                 updateUI(sequenceInfo);
                 updateGoldStar(); // Check for gold star on generation
-            } else {
-                // Show alert for invalid parameters if generate button is clicked
-                const currentN = parseInt(inputN.value);
-                const currentX = parseInt(inputX.value);
-                const currentY = parseInt(inputY.value);
-                const currentZ = parseInt(inputZ.value);
-
-                if (isNaN(currentN) || currentN <= 0 || isNaN(currentX) || currentX <= 0 || isNaN(currentY) || currentY <= 0 || isNaN(currentZ) || currentZ < 0) {
-                     alert("Please enter valid positive numbers for N, X, Y. Z can be 0 or positive.");
-                } else if (currentY === 0 && currentZ === 0) {
-                     alert("For odd numbers, Y and Z cannot both be zero. This would result in an undefined or trivial operation.");
-                }
             }
         });
 
@@ -328,31 +367,33 @@
         inputX.addEventListener('input', updateGoldStar);
         inputY.addEventListener('input', updateGoldStar);
         inputZ.addEventListener('input', updateGoldStar);
-        inputN.addEventListener('input', updateGoldStar); // Also check N input change
+        inputN.addEventListener('input', updateGoldStar);
 
 
         // --- Program Link Logic ---
         function generateLinkURL(programName) {
             const params = getParameters();
             if (!params) {
-                alert("Please ensure all parameters (N, X, Y, Z) are valid before trying to link to other programs.");
-                return '#'; // Return a dummy link if parameters are invalid
+                // getParameters will now show a message; we just return a dummy link.
+                return '#';
             }
 
             const { N, X, Y, Z } = params;
             // Assuming your programs are in the same directory or accessible via relative path
-            const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); // Get base URL of current page
+            // The path needs to go UP one level, then down to the target file.
+            const baseUrlParts = window.location.href.split('/');
+            const rootUrl = baseUrlParts.slice(0, baseUrlParts.length - 2).join('/'); // Goes up two levels to "Collatz-box-universes"
 
             let url = '';
             switch (programName) {
                 case 'slicer':
-                    url = `${baseUrl}/slicer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                    url = `${rootUrl}/slicer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
-                case 'slicer3d':
-                    url = `${baseUrl}/slicerr3d.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                case 'slicer3d_fps': 
+                    url = `${rootUrl}/box-universe-fps.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
                 case 'boxviewer':
-                    url = `${baseUrl}/box-universe-viewer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                    url = `${rootUrl}/box-universe-viewer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
                 default:
                     url = '#';
@@ -360,17 +401,20 @@
             return url;
         }
 
-        linkSlicer.addEventListener('click', () => {
+        linkSlicer.addEventListener('click', (event) => { 
+            event.preventDefault(); 
             const url = generateLinkURL('slicer');
             if (url !== '#') window.open(url, '_blank');
         });
 
-        linkSlicer3D.addEventListener('click', () => {
-            const url = generateLinkURL('slicer3d');
+        linkSlicer3D.addEventListener('click', (event) => { 
+            event.preventDefault(); 
+            const url = generateLinkURL('slicer3d_fps'); // Use the new case name
             if (url !== '#') window.open(url, '_blank');
         });
 
-        linkBoxViewer.addEventListener('click', () => {
+        linkBoxViewer.addEventListener('click', (event) => { 
+            event.preventDefault(); 
             const url = generateLinkURL('boxviewer');
             if (url !== '#') window.open(url, '_blank');
         });
