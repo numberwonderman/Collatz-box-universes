@@ -21,17 +21,17 @@
             margin: 0 auto;
             border-radius: 0.75rem; /* Rounded corners */
         }
-        .input-group label {
+       .input-group label {
             min-width: 40px;
         }
-        .control-panel {
+       .control-panel {
             background-color: #2d3748; /* Darker panel background */
         }
-        .dragon-icon {
+       .dragon-icon {
             filter: drop-shadow(0 0 5px #f6e0b7); /* Subtle glow for the dragon */
         }
         /* Message box styling */
-        .message-box {
+       .message-box {
             position: fixed;
             top: 20px;
             left: 50%;
@@ -175,7 +175,7 @@
             // Special case check for Y=0 and Z=0 for non-divisible numbers
             if (Y === 0 && Z === 0 && N % X !== 0) {
                  showMessage("For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop.", "error");
-                 return null;
+                return null;
             }
             
             return { N, X, Y, Z };
@@ -379,21 +379,25 @@
             }
 
             const { N, X, Y, Z } = params;
-            // Assuming your programs are in the same directory or accessible via relative path
-            // The path needs to go UP one level, then down to the target file.
-            const baseUrlParts = window.location.href.split('/');
-            const rootUrl = baseUrlParts.slice(0, baseUrlParts.length - 2).join('/'); // Goes up two levels to "Collatz-box-universes"
+
+            // Define the base URL for your GitHub Pages repository
+            // Replace 'numberwonderman' with your actual GitHub username
+            // and 'Collatz-box-universes' with your actual repository name
+            const githubPagesBaseUrl = "https://numberwonderman.github.io/Collatz-box-universes/";
 
             let url = '';
             switch (programName) {
                 case 'slicer':
-                    url = `${rootUrl}/slicer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                    // Links directly to the slicer.html in the root of the GitHub Pages site
+                    url = `${githubPagesBaseUrl}slicer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
                 case 'slicer3d_fps': 
-                    url = `${rootUrl}/box-universe-fps.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                    // Links directly to box-universe-fps.html in the root of the GitHub Pages site
+                    url = `${githubPagesBaseUrl}box-universe-fps.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
                 case 'boxviewer':
-                    url = `${rootUrl}/box-universe-viewer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
+                    // Links directly to box-universe-viewer.html in the root of the GitHub Pages site
+                    url = `${githubPagesBaseUrl}box-universe-viewer.html?n=${N}&x=${X}&y=${Y}&z=${Z}`;
                     break;
                 default:
                     url = '#';
@@ -409,7 +413,7 @@
 
         linkSlicer3D.addEventListener('click', (event) => { 
             event.preventDefault(); 
-            const url = generateLinkURL('slicer3d_fps'); // Use the new case name
+            const url = generateLinkURL('slicer3d_fps');
             if (url !== '#') window.open(url, '_blank');
         });
 
@@ -437,9 +441,6 @@
 
         // Store the last drawn binary path to redraw on resize
         let lastBinaryPath = [];
-        // The event listener for generateBtn already updates lastBinaryPath.
-        // No need to duplicate here.
-
     </script>
 </body>
 </html>
