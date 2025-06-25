@@ -3,114 +3,823 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collatz Box Universes - Main Hub</title>
-    <!-- Tailwind CSS CDN for styling -->
+    <title>Collatz Box Universes - Main Hub & Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* Custom scrollbar for history div */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
         body {
             font-family: 'Inter', sans-serif;
-            /* Using a dark gradient background similar to your other projects */
+            /* Using a dark gradient background consistent with other projects */
             background: linear-gradient(to bottom right, #1a202c, #2d3748);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 1.5rem; /* Increased padding for better spacing */
-            color: #e2e8f0; /* Light text color */
+            padding: 1.5rem;
+            color: #f8fafc;
         }
-        /* Styling for the main container (glassmorphism effect) */
+        /* Glassmorphism style for the main container */
         .glass-container {
-            background-color: rgba(255, 255, 255, 0.1); /* White with opacity */
-            backdrop-filter: blur(15px); /* Stronger blur for glass effect */
-            border-radius: 1.5rem; /* More rounded corners */
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); /* Softer, deeper shadow */
-            border: 1px solid rgba(255, 255, 255, 0.2); /* Lighter border for definition */
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        /* Custom styling for buttons to give them a modern, clickable feel */
+        /* Project Mission statement styling */
+        p.project-mission {
+            max-width: 700px;
+            text-align: center;
+            font-size: 0.9em;
+            color: #c0c0c0;
+            margin-top: -15px;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        /* Custom styling for standard input fields */
+        input[type="number"],
+        input[type="color"] {
+            -webkit-appearance: none; /* Remove default browser styling for number inputs */
+            -moz-appearance: none;
+            appearance: none;
+        }
+        /* Styling for the gold star/indicator */
+        .gold-star {
+            color: gold;
+            font-size: 1.25rem;
+            margin-left: 0.25rem;
+            display: inline-block;
+        }
+        /* Styling for disabled button */
+        .disabled-btn {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        /* Custom styling for navigation buttons */
         .project-button {
-            background-color: rgba(66, 153, 225, 0.8); /* Light blue, slightly transparent */
+            background-color: rgba(66, 153, 225, 0.8);
             transition: all 0.3s ease;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border: none; /* Remove default border */
-            text-align: left; /* Align text to the left */
-            padding-left: 1.5rem; /* More padding on the left */
+            border: none;
+            text-align: left;
+            padding-left: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.75rem; /* Space between icon and text */
-            min-height: 4rem; /* Ensure consistent button height */
+            gap: 0.75rem;
+            min-height: 4rem;
         }
         .project-button:hover {
-            background-color: rgba(49, 130, 206, 0.9); /* Darker blue on hover */
-            transform: translateY(-3px); /* Lift effect on hover */
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+            background-color: rgba(49, 130, 206, 0.9);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
         }
         .project-button:active {
-            transform: translateY(0); /* Press down effect on click */
+            transform: translateY(0);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
         .project-button i {
-            font-size: 1.5rem; /* Larger icons */
-            color: #fbd38d; /* Gold/yellowish color for icons */
+            font-size: 1.5rem;
+            color: #fbd38d;
         }
         .project-button span {
-            font-size: 1.125rem; /* text-lg */
-            font-weight: 600; /* font-semibold */
-            flex-grow: 1; /* Allow text to take available space */
+            font-size: 1.125rem;
+            font-weight: 600;
+            flex-grow: 1;
+        }
+        /* Print Styles */
+        @media print {
+            button,
+            input,
+            label,
+            #errorMessage,
+            .project-button, /* Hide navigation buttons on print */
+            h1 { /* Adjust main title for print */
+                font-size: 2em !important;
+                color: black !important;
+                text-align: center;
+            }
+            p.project-mission, .text-sm, .text-lg {
+                color: #333 !important;
+            }
+            #runsHistory canvas {
+                display: none;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                margin: 0;
+            }
+            .glass-container {
+                background-color: white !important;
+                box-shadow: none !important;
+                border: none !important;
+                backdrop-filter: none !important;
+                padding: 1rem !important;
+            }
+            #historyContainer {
+                display: block !important;
+                background-color: transparent !important;
+                border: none !important;
+                box-shadow: none !important;
+            }
+            #runsHistory {
+                max-height: none !important;
+                overflow-y: visible !important;
+            }
+            .bg-blue-800.bg-opacity-40,
+            .bg-blue-900.bg-opacity-60 {
+                background-color: #f8f8f8 !important;
+                border: 1px solid #ddd !important;
+                color: #333 !important;
+            }
+            .text-blue-200, .text-blue-300, .text-blue-100, .text-white {
+                color: #333 !important;
+            }
         }
     </style>
 </head>
 <body class="bg-gray-900">
 
-    <div class="glass-container p-8 sm:p-10 w-full max-w-2xl">
-        <h1 class="text-4xl sm:text-5xl font-extrabold text-center text-white mb-6 leading-tight">
+    <div class="glass-container p-8 sm:p-10 w-full max-w-4xl">
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-center text-white mb-6 drop-shadow-lg">
             Collatz Box Universes
         </h1>
-        <p class="text-center text-gray-300 text-lg sm:text-xl mb-10 leading-relaxed max-w-lg mx-auto">
-            A collection of interactive tools for visualizing and exploring generalized Collatz sequences.
-            Dive into the fractal beauty of numbers!
+
+        <p class="project-mission">
+            Explore and visualize generalized Collatz sequences to discover hidden
+            patterns, foster intuition, and gain new perspectives on dynamical systems.
+            A journey of visual discovery beyond traditional analysis.
         </p>
 
-        <div class="grid grid-cols-1 gap-6">
-            <!-- Collatz Dragon Explorer Button -->
-            <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    onclick="navigateToProgram('collatz-dragon.html')">
-                <i class="fas fa-dragon"></i>
-                <span>Collatz Dragon Explorer</span>
-            </button>
-
-            <!-- Box Universe FPS / 3D Slicer Button -->
-            <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-green-400"
-                    onclick="navigateToProgram('box-universe-fps.html')">
-                <i class="fas fa-cube"></i>
-                <span>Box Universe FPS (3D Slicer)</span>
-            </button>
-
-            <!-- 9-Net Slicer Button -->
-            <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                    onclick="navigateToProgram('slicer.html')">
-                <i class="fas fa-grip"></i>
-                <span>9-Net Slicer</span>
-            </button>
-
-            <!-- Box Universe Explorer Button -->
-            <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                    onclick="navigateToProgram('box-universe-viewer.html')">
-                <i class="fas fa-box-open"></i>
-                <span>Box Universe Explorer (Main)</span>
-            </button>
-
-            <!-- Collatz Lines Explorer Button -->
-            <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-400"
-                    onclick="navigateToProgram('collatz-lines-explorer.html')">
-                <i class="fas fa-chart-line"></i>
-                <span>Collatz Lines Explorer</span>
-            </button>
+        <div class="mb-8 text-white text-lg leading-relaxed text-center">
+            <p class="mb-3">
+                Explore your generalized Collatz sequence where the rules are defined by X, Y, and Z coordinates.
+            </p>
+            <p class="font-semibold text-xl mb-4">
+                Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
+            </p>
+            <p class="text-sm text-blue-200">
+                (Standard Collatz uses X=2, Y=3, Z=1)
+            </p>
         </div>
+
+        <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <div class="flex items-center">
+                <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="x-star" class="gold-star">⭐</span>
+            </div>
+            <div class="flex items-center">
+                <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="y-star" class="gold-star">⭐</span>
+            </div>
+            <div class="flex items-center">
+                <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
+                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                <span id="z-star" class="gold-star">⭐</span>
+            </div>
+        </div>
+
+        <button id="calculateSingle"
+            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
+            Calculate Single Sequence
+        </button>
+
+        <!-- Container for the single 9-net canvas -->
+        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
+            <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
+        </div>
+
+
+        <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            <input type="number" id="xStart" value="1" placeholder="X Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="xEnd" value="3" placeholder="X End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="yStart" value="1" placeholder="Y Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="yEnd" value="3" placeholder="Y End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="zStart" value="1" placeholder="Z Start"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+            <input type="number" id="zEnd" value="1" placeholder="Z End"
+                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+        </div>
+
+        <button id="generateBulk"
+            class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
+            Generate Box Universe (Bulk)
+        </button>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+            <div class="flex items-center space-x-2 text-white">
+                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
+                <input type="color" id="divColorPicker" value="#34d399"
+                                         class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
+            <div class="flex items-center space-x-2 text-white">
+                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
+                <input type="color" id="mulColorPicker" value="#fb923c"
+                                         class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
+        </div>
+        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
+
+
+        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
+            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-6">Explore Other Tools:</h2>
+            <div class="grid grid-cols-1 gap-6">
+                <!-- Collatz Dragon Explorer Button -->
+                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        onclick="navigateToProgram('collatz-dragon.html')">
+                    <i class="fas fa-dragon"></i>
+                    <span>Collatz Dragon Explorer</span>
+                </button>
+
+                <!-- Box Universe FPS / 3D Slicer Button -->
+                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-green-400"
+                        onclick="navigateToProgram('box-universe-fps.html')">
+                    <i class="fas fa-cube"></i>
+                    <span>Box Universe FPS (3D Slicer)</span>
+                </button>
+
+                <!-- 9-Net Slicer Button -->
+                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                        onclick="navigateToProgram('slicer.html')">
+                    <i class="fas fa-grip"></i>
+                    <span>9-Net Slicer</span>
+                </button>
+
+                <!-- Box Universe Explorer Button (this is the current page, good for reference but not clickable to self) -->
+                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled-btn"
+                        disabled>
+                    <i class="fas fa-box-open"></i>
+                    <span>Box Universe Explorer (You are here)</span>
+                </button>
+
+                <!-- Collatz Lines Explorer Button -->
+                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-400"
+                        onclick="navigateToProgram('collatz-lines-explorer.html')">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Collatz Lines Explorer</span>
+                </button>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // Default canvas colors - These initialize the colors when the page loads
+        window.divColor = "#34d399";
+        window.mulColor = "#fb923c";
+
+        // === Constants for 9-Net Dimensions ===
+        const FACE_SIZE = 30;
+        const PADDING = 10;
+        const STEP_SIZE = 3;
+
+        const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
+        const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
+
+        // === Generalized Collatz function ===
+        const sequence = (num, x, y, z, maxiterations) => {
+            if (x === 0) {
+                return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
+            }
+            const output = [];
+            output.push(num);
+            let iterations = 0;
+            const visitedNumbersMap = new Map();
+            visitedNumbersMap.set(num, 0);
+
+            let minVal = num;
+            let maxVal = num;
+            let sumVal = num;
+
+            while (num !== 1 && iterations < maxiterations) {
+                if (Math.abs(num) > Number.MAX_SAFE_INTEGER || !Number.isFinite(num)) {
+                    const avgVal = sumVal / (iterations + 1);
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+                }
+
+                let next_num;
+                if (num % Math.abs(x) === 0) {
+                    next_num = num / x;
+                } else {
+                    next_num = (Math.abs(y) || 3) * num + (z || 1);
+                }
+
+                if (!Number.isFinite(next_num) || Math.abs(next_num) > Number.MAX_SAFE_INTEGER) {
+                    const avgVal = sumVal / (iterations + 1);
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+                }
+
+                minVal = Math.min(minVal, next_num);
+                maxVal = Math.max(maxVal, next_num);
+                
+                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) {
+                    sumVal = Number.MAX_SAFE_INTEGER;
+                } else {
+                    sumVal += next_num;
+                }
+
+                if (visitedNumbersMap.has(next_num)) {
+                    const avgVal = sumVal / (iterations + 1);
+                    let stdDevVal = 0;
+                    if (output.length > 1) {
+                        const mean = avgVal;
+                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                            const diff = val - mean;
+                            const squaredDiff = diff * diff;
+                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                                return Number.MAX_SAFE_INTEGER;
+                            }
+                            return acc + squaredDiff;
+                        }, 0);
+
+                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                            stdDevVal = "Too Large";
+                        } else {
+                            const variance = sumOfSquaredDifferences / output.length;
+                            const stdDev = Math.sqrt(variance);
+                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                                stdDevVal = "Too Large";
+                            } else {
+                                stdDevVal = stdDev;
+                            }
+                        }
+                    }
+                    const cycleStartIndex = visitedNumbersMap.get(next_num);
+                    const cycle = output.slice(cycleStartIndex);
+                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+                }
+                visitedNumbersMap.set(next_num, output.length);
+
+                num = next_num;
+                output.push(num);
+                iterations++;
+            }
+
+            const avgVal = sumVal / (iterations + 1);
+            let stdDevVal = 0;
+            if (output.length > 1) {
+                const mean = avgVal;
+                const sumOfSquaredDifferences = output.reduce((acc, val) => {
+                    const diff = val - mean;
+                    const squaredDiff = diff * diff;
+                    if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
+                        return Number.MAX_SAFE_INTEGER;
+                    }
+                    return acc + squaredDiff;
+                }, 0);
+
+                if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
+                    stdDevVal = "Too Large";
+                } else {
+                    const variance = sumOfSquaredDifferences / output.length;
+                    const stdDev = Math.sqrt(variance);
+                    if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
+                        stdDevVal = "Too Large";
+                    } else {
+                        stdDevVal = stdDev;
+                    }
+                }
+            }
+
+            if (num === 1) {
+                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+            } else {
+                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
+            }
+        };
+
+        // === drawNineNetCanvas function ===
+        function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const faceSize = FACE_SIZE;
+            const padding = PADDING;
+            const stepSize = STEP_SIZE;
+
+            const layout = [
+                { r: 0, c: 1 }, // Top
+                { r: 1, c: 0 }, // Left
+                { r: 1, c: 1 }, // Center-Left (main sequence starts here)
+                { r: 1, c: 2 }, // Center
+                { r: 1, c: 3 }, // Center-Right
+                { r: 2, c: 1 }  // Bottom
+            ];
+
+            let sequenceIndex = 0;
+
+            for (const pos of layout) {
+                for (let i = 0; i < stepSize; i++) {
+                    for (let j = 0; j < stepSize; j++) {
+                        const x = padding + (pos.c * stepSize + j) * faceSize;
+                        const y = padding + (pos.r * stepSize + i) * faceSize;
+
+                        let color = "#444";
+                        let label = "";
+
+                        if (sequenceIndex < sequence.length) {
+                            const val = sequence[sequenceIndex];
+                            if (val % Math.abs(xVal) === 0) {
+                                color = divColor;
+                            } else {
+                                color = mulColor;
+                            }
+                            label = val.toString();
+
+                            const maxChars = 5;
+                            if (label.length > maxChars) {
+                                const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
+                                const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
+                                label = start + "..." + end;
+                            }
+                        }
+
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2);
+
+                        if (label) {
+                            ctx.fillStyle = "#FFF";
+                            let currentFontSize = 10;
+                            if (label.length > 7) {
+                                currentFontSize = 6;
+                            } else if (label.length > 5) {
+                                currentFontSize = 8;
+                            }
+                            ctx.font = `${currentFontSize}px Arial`;
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1);
+                        }
+
+                        sequenceIndex++;
+                    }
+                }
+            }
+        }
+
+        // Function to update the gold star visibility
+        function updateGoldStarVisibility() {
+            const xVal = parseInt(document.getElementById('xValue').value);
+            const yVal = parseInt(document.getElementById('yValue').value);
+            const zVal = parseInt(document.getElementById('zValue').value);
+
+            const xStar = document.getElementById('x-star');
+            const yStar = document.getElementById('y-star');
+            const zStar = document.getElementById('z-star');
+
+            if (xStar) xStar.style.display = (xVal === 2) ? 'inline-block' : 'none';
+            if (yStar) yStar.style.display = (yVal === 3) ? 'inline-block' : 'none';
+            if (zStar) zStar.style.display = (zVal === 1) ? 'inline-block' : 'none';
+        }
+
+        let calculatedRuns = []; // Global array to store runs
+
+        /**
+         * Helper function to validate a single number input.
+         * @param {string} value - The input string value.
+         * @param {string} name - The name of the input for error messages.
+         * @param {boolean} allowZero - Whether zero is a valid input.
+         * @returns {string|null} Error message if invalid, otherwise null.
+         */
+        const validateNumberInput = (value, name, allowZero = false) => {
+            const num = parseInt(value, 10);
+            if (isNaN(num) || (!allowZero && num === 0) || !Number.isInteger(num)) {
+                return `${name} must be a valid integer${allowZero ? '' : ' (non-zero)'}.`;
+            }
+            return null; // No error
+        };
+
+        /**
+         * Renders the calculated runs into the history display.
+         */
+        const renderHistory = () => {
+            const runsHistoryDiv = document.getElementById('runsHistory');
+            const historyContainer = document.getElementById('historyContainer');
+
+            if (!runsHistoryDiv || !historyContainer) {
+                console.error("History elements not found. Cannot render history.");
+                return;
+            }
+
+            runsHistoryDiv.innerHTML = ''; // Clear previous history
+
+            if (calculatedRuns.length === 0) {
+                historyContainer.classList.add('hidden');
+                return;
+            } else {
+                historyContainer.classList.remove('hidden');
+            }
+
+            // Iterate in reverse to show newest runs at the top
+            for (let i = calculatedRuns.length - 1; i >= 0; i--) {
+                const run = calculatedRuns[i];
+                const runDiv = document.createElement('div');
+                runDiv.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-blue-600 last:mb-0';
+
+                const title = document.createElement('h3');
+                title.className = 'text-xl font-bold text-blue-200 mb-2';
+                title.textContent = `N=${run.startNum}, X=${run.X}, Y=${run.Y}, Z=${run.Z}`;
+                runDiv.appendChild(title);
+
+                const stepsInfo = document.createElement('p');
+                stepsInfo.className = 'text-blue-300 mb-2';
+                let typeText = run.type.replace(/_/g, ' ');
+
+                if (run.type === "reached_max_iterations") {
+                    typeText += ` - Ended at ${run.finalNum}`;
+                } else if (run.type === "exceeded_max_safe_integer") {
+                    typeText += ` - Ended at ${run.finalNum}`;
+                } else if (run.type === "cycle") {
+                    typeText += ` - Cycle: ${run.cycle.join(' → ')}`;
+                }
+                stepsInfo.textContent = `Steps: ${run.steps} (Type: ${typeText})`;
+                runDiv.appendChild(stepsInfo);
+
+                // Add stats only if available and not an error type
+                if (run.type !== "error") {
+                    const statsP = document.createElement('p');
+                    statsP.className = 'text-blue-100 text-sm mt-1';
+                    statsP.innerHTML = `Min: ${run.minVal.toLocaleString()}, Max: ${run.maxVal.toLocaleString()}, Avg: ${run.avgVal ? run.avgVal.toFixed(2) : 'N/A'}, StdDev: ${run.stdDev ? (typeof run.stdDev === 'number' ? run.stdDev.toFixed(2) : run.stdDev) : 'N/A'}`;
+                    runDiv.appendChild(statsP);
+                }
+
+                // Append the canvas for this run
+                const canvasId = `historyCanvas-${i}`;
+                const historyCanvas = document.createElement('canvas');
+                historyCanvas.id = canvasId;
+                historyCanvas.width = NINE_NET_DRAW_WIDTH;
+                historyCanvas.height = NINE_NET_DRAW_HEIGHT;
+                historyCanvas.className = 'bg-blue-900 bg-opacity-60 rounded-md mt-4 border border-blue-700';
+                runDiv.appendChild(historyCanvas);
+
+                runsHistoryDiv.appendChild(runDiv);
+
+                // Draw on the newly created canvas
+                if (run.sequence && run.sequence.length > 0) {
+                    drawNineNetCanvas(historyCanvas, run.sequence, run.X, window.divColor, window.mulColor);
+                }
+            }
+        };
+
+
+        // === Event Listeners ===
+        document.addEventListener('DOMContentLoaded', () => {
+            const startNumberInput = document.getElementById('startNumber');
+            const xValueInput = document.getElementById('xValue');
+            const yValueInput = document.getElementById('yValue');
+            const zValueInput = document.getElementById('zValue');
+            const calculateSingleBtn = document.getElementById('calculateSingle');
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+            const errorMessageDiv = document.getElementById('errorMessage');
+
+            // Bulk generation inputs
+            const xStartInput = document.getElementById('xStart');
+            const xEndInput = document.getElementById('xEnd');
+            const yStartInput = document.getElementById('yStart');
+            const yEndInput = document.getElementById('yEnd');
+            const zStartInput = document.getElementById('zStart');
+            const zEndInput = document.getElementById('zEnd');
+            const generateBulkBtn = document.getElementById('generateBulk');
+
+            const divColorPicker = document.getElementById('divColorPicker');
+            const mulColorPicker = document.getElementById('mulColorPicker');
+
+            // Set initial canvas size for single view
+            singleNineNetCanvas.width = NINE_NET_DRAW_WIDTH;
+            singleNineNetCanvas.height = NINE_NET_DRAW_HEIGHT;
+
+            // Initial drawing of the single 9-net (e.g., for default values)
+            const initialParams = {
+                num: parseInt(startNumberInput.value),
+                x: parseInt(xValueInput.value),
+                y: parseInt(yValueInput.value),
+                z: parseInt(zValueInput.value),
+                maxiterations: 10000 // A reasonable default
+            };
+            if (!isNaN(initialParams.num) && !isNaN(initialParams.x) && !isNaN(initialParams.y) && !isNaN(initialParams.z) && initialParams.x !== 0) {
+                const initialResult = sequence(initialParams.num, initialParams.x, initialParams.y, initialParams.z, initialParams.maxiterations);
+                if (initialResult.type !== "error") {
+                    drawNineNetCanvas(singleNineNetCanvas, initialResult.sequence, initialResult.x, window.divColor, window.mulColor);
+                } else {
+                     errorMessageDiv.textContent = initialResult.message;
+                }
+            }
+
+
+            // === Single Sequence Calculation ===
+            calculateSingleBtn.addEventListener('click', () => {
+                errorMessageDiv.textContent = ''; // Clear previous errors
+                const startNum = parseInt(startNumberInput.value, 10);
+                const x = parseInt(xValueInput.value, 10);
+                const y = parseInt(yValueInput.value, 10);
+                const z = parseInt(zValueInput.value, 10);
+
+                // Basic validation
+                if (isNaN(startNum) || startNum <= 0) {
+                    errorMessageDiv.textContent = "Starting Number (N) must be a positive integer.";
+                    return;
+                }
+                if (isNaN(x) || x === 0) {
+                    errorMessageDiv.textContent = "X (Divisor) must be a non-zero integer.";
+                    return;
+                }
+                if (isNaN(y)) {
+                    errorMessageDiv.textContent = "Y (Multiplier) must be an integer.";
+                    return;
+                }
+                if (isNaN(z)) {
+                    errorMessageDiv.textContent = "Z (Additive Constant) must be an integer.";
+                    return;
+                }
+
+                // Specific check for Y=0, Z=0 with non-divisible N, as it leads to N if N is not divisible by X
+                if (y === 0 && z === 0 && startNum % x !== 0) {
+                     errorMessageDiv.textContent = "For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop (N -> N).";
+                     return;
+                }
+
+                const result = sequence(startNum, x, y, z, 10000); // 10000 max iterations
+
+                if (result.type === "error") {
+                    errorMessageDiv.textContent = result.message;
+                } else {
+                    drawNineNetCanvas(singleNineNetCanvas, result.sequence, x, window.divColor, window.mulColor);
+
+                    // Add to history
+                    const runData = { startNum, X: x, Y: y, Z: z, ...result };
+                    calculatedRuns.push(runData);
+                    renderHistory();
+                }
+            });
+
+            // === Bulk Generation ===
+            generateBulkBtn.addEventListener('click', () => {
+                errorMessageDiv.textContent = ''; // Clear previous errors
+                calculatedRuns = []; // Clear history for new bulk run
+
+                const xS = parseInt(xStartInput.value, 10);
+                const xE = parseInt(xEndInput.value, 10);
+                const yS = parseInt(yStartInput.value, 10);
+                const yE = parseInt(yEndInput.value, 10);
+                const zS = parseInt(zStartInput.value, 10);
+                const zE = parseInt(zEndInput.value, 10);
+                const startNum = parseInt(startNumberInput.value, 10); // Use the single N input for bulk start number
+
+                // Validate ranges
+                if (isNaN(xS) || isNaN(xE) || xS > xE || xS === 0 || xE === 0) { errorMessageDiv.textContent = "X Start/End must be valid non-zero integers, and X Start <= X End."; return; }
+                if (isNaN(yS) || isNaN(yE) || yS > yE) { errorMessageDiv.textContent = "Y Start/End must be valid integers, and Y Start <= Y End."; return; }
+                if (isNaN(zS) || isNaN(zE) || zS > zE) { errorMessageDiv.textContent = "Z Start/End must be valid integers, and Z Start <= Z End."; return; }
+                if (isNaN(startNum) || startNum <= 0) { errorMessageDiv.textContent = "Starting Number (N) must be a positive integer for bulk generation."; return; }
+
+
+                for (let x = xS; x <= xE; x++) {
+                    // Skip X=0 if it appears in range
+                    if (x === 0) continue;
+                    for (let y = yS; y <= yE; y++) {
+                        for (let z = zS; z <= zE; z++) {
+                            // Skip Y=0, Z=0 if N is not divisible by X
+                            if (y === 0 && z === 0 && startNum % x !== 0) {
+                                // You might want to log this or indicate skipped combinations
+                                console.warn(`Skipping N=${startNum}, X=${x}, Y=${y}, Z=${z} due to trivial/infinite loop potential.`);
+                                continue;
+                            }
+                            const result = sequence(startNum, x, y, z, 10000);
+                            const runData = { startNum, X: x, Y: y, Z: z, ...result };
+                            calculatedRuns.push(runData);
+                        }
+                    }
+                }
+                renderHistory();
+            });
+
+            // === Color Pickers ===
+            divColorPicker.addEventListener('input', (event) => {
+                window.divColor = event.target.value;
+                // Redraw all canvases with new colors
+                drawCurrentSingleNineNet();
+                renderHistory();
+            });
+
+            mulColorPicker.addEventListener('input', (event) => {
+                window.mulColor = event.target.value;
+                // Redraw all canvases with new colors
+                drawCurrentSingleNineNet();
+                renderHistory();
+            });
+
+            // Helper to redraw the single nine-net with current parameters
+            function drawCurrentSingleNineNet() {
+                const currentStartNum = parseInt(startNumberInput.value, 10);
+                const currentX = parseInt(xValueInput.value, 10);
+                const currentY = parseInt(yValueInput.value, 10);
+                const currentZ = parseInt(zValueInput.value, 10);
+
+                if (!isNaN(currentStartNum) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && currentX !== 0) {
+                    const result = sequence(currentStartNum, currentX, currentY, currentZ, 10000);
+                    if (result.type !== "error") {
+                        drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
+                    } else {
+                        // If there's an error on redraw (e.g., X=0), clear the canvas and show error
+                        singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
+                        errorMessageDiv.textContent = result.message;
+                    }
+                } else {
+                    // Clear canvas if inputs are invalid on color change
+                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
+                }
+            }
+
+
+            // Update gold star visibility on input change
+            xValueInput.addEventListener('input', updateGoldStarVisibility);
+            yValueInput.addEventListener('input', updateGoldStarVisibility);
+            zValueInput.addEventListener('input', updateGoldStarVisibility);
+            // Initial call to set gold stars correctly on load
+            updateGoldStarVisibility();
+        });
+
+
         /**
          * Navigates to the specified program on GitHub Pages.
          * Uses the hardcoded GitHub Pages base URL for reliability.
@@ -118,8 +827,6 @@
          */
         function navigateToProgram(filename) {
             // Define the base URL for your GitHub Pages repository
-            // Ensure this matches your actual GitHub Pages URL structure.
-            // Format: https://{username}.github.io/{repository-name}/
             const githubPagesBaseUrl = "https://numberwonderman.github.io/Collatz-box-universes/";
             
             const url = `${githubPagesBaseUrl}${filename}`;
