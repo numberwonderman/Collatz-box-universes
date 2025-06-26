@@ -240,7 +240,30 @@
             class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
             Generate Box Universe (Bulk)
         </button>
-        
+         <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
+            <p class="font-semibold text-lg mb-2">Universe Statistics:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
+                <p>Total Sequences: <span id="bulk-total-sequences">N/A</span></p>
+                <p>Avg. Steps: <span id="bulk-avg-steps">N/A</span></p>
+                <p>Min Steps: <span id="bulk-min-steps">N/A</span></p>
+                <p>Max Steps: <span id="bulk-max-steps">N/A</span></p>
+                <p>StdDev Steps: <span id="bulk-stddev-steps">N/A</span></p>
+                <p>Avg. Min Val: <span id="bulk-avg-minval">N/A</span></p>
+                <p>Min Min Val: <span id="bulk-min-minval">N/A</span></p>
+                <p>Max Min Val: <span id="bulk-max-minval">N/A</span></p>
+                <p>Avg. Max Val: <span id="bulk-avg-maxval">N/A</span></p>
+                <p>Min Max Val: <span id="bulk-min-maxval">N/A</span></p>
+                <p>Max Max Val: <span id="bulk-max-maxval">N/A</span></p>
+                <p>Avg. Sum Val: <span id="bulk-avg-sumval">N/A</span></p>
+                <p>Min Sum Val: <span id="bulk-min-sumval">N/A</span></p>
+                <p>Max Sum Val: <span id="bulk-max-sumval">N/A</span></p>
+                <p class="col-span-full mt-2 font-medium">Sequence Types:</p>
+                <p class="ml-2">Convergent: <span id="bulk-type-convergent">N/A</span></p>
+                <p class="ml-2">Cycles: <span id="bulk-type-cycle">N/A</span></p>
+                <p class="ml-2">Exceeded Max: <span id="bulk-type-exceeded_max_safe_integer">N/A</span></p>
+                <p class="ml-2">Max Iterations: <span id="bulk-type-reached_max_iterations">N/A</span></p>
+            </div>
+        </div>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
             <div class="flex items-center space-x-2 text-white">
                 <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
