@@ -26,7 +26,6 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            /* Using a dark gradient background consistent with other projects */
             background: linear-gradient(to bottom right, #1a202c, #2d3748);
             min-height: 100vh;
             display: flex;
@@ -43,7 +42,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        /* Project Mission statement styling */
         p.project-mission {
             max-width: 700px;
             text-align: center;
@@ -53,26 +51,22 @@
             margin-bottom: 25px;
             line-height: 1.5;
         }
-        /* Custom styling for standard input fields */
         input[type="number"],
         input[type="color"] {
-            -webkit-appearance: none; /* Remove default browser styling for number inputs */
+            -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
         }
-        /* Styling for the gold star/indicator */
         .gold-star {
             color: gold;
             font-size: 1.25rem;
             margin-left: 0.25rem;
             display: inline-block;
         }
-        /* Styling for disabled button */
         .disabled-btn {
             opacity: 0.6;
             cursor: not-allowed;
         }
-        /* Custom styling for navigation buttons */
         .project-button {
             background-color: rgba(66, 153, 225, 0.8);
             transition: all 0.3s ease;
@@ -103,14 +97,13 @@
             font-weight: 600;
             flex-grow: 1;
         }
-        /* Print Styles */
         @media print {
             button,
             input,
             label,
             #errorMessage,
-            .project-button, /* Hide navigation buttons on print */
-            h1 { /* Adjust main title for print */
+            .project-button,
+            h1 {
                 font-size: 2em !important;
                 color: black !important;
                 text-align: center;
@@ -205,16 +198,8 @@
             class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
             Calculate Single Sequence
         </button>
-<div id="singleSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full max-w-sm text-white text-sm border border-blue-700 mb-6 mx-auto">
-    <p class="font-semibold text-lg mb-2">Sequence Statistics:</p>
-    <p>Steps: <span id="stat-steps">N/A</span></p>
-    <p>Type: <span id="stat-type">N/A</span></p>
-    <p>Range: [<span id="stat-min">N/A</span>, <span id="stat-max">N/A</span>]</p>
-    <p>Sum: <span id="stat-sum">N/A</span></p>
-    <p>Avg: <span id="stat-avg">N/A</span></p>
-    <p>StdDev: <span id="stat-stddev">N/A</span></p>
-</div>
-        <!-- Container for the single 9-net canvas -->
+        <div id="singleSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full max-w-sm text-white text-sm border border-blue-700 mb-6 mx-auto hidden">
+            </div>
         <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
             <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
         </div>
@@ -240,40 +225,18 @@
             class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
             Generate Box Universe (Bulk)
         </button>
-         <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
-            <p class="font-semibold text-lg mb-2">Universe Statistics:</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1">
-                <p>Total Sequences: <span id="bulk-total-sequences">N/A</span></p>
-                <p>Avg. Steps: <span id="bulk-avg-steps">N/A</span></p>
-                <p>Min Steps: <span id="bulk-min-steps">N/A</span></p>
-                <p>Max Steps: <span id="bulk-max-steps">N/A</span></p>
-                <p>StdDev Steps: <span id="bulk-stddev-steps">N/A</span></p>
-                <p>Avg. Min Val: <span id="bulk-avg-minval">N/A</span></p>
-                <p>Min Min Val: <span id="bulk-min-minval">N/A</span></p>
-                <p>Max Min Val: <span id="bulk-max-minval">N/A</span></p>
-                <p>Avg. Max Val: <span id="bulk-avg-maxval">N/A</span></p>
-                <p>Min Max Val: <span id="bulk-min-maxval">N/A</span></p>
-                <p>Max Max Val: <span id="bulk-max-maxval">N/A</span></p>
-                <p>Avg. Sum Val: <span id="bulk-avg-sumval">N/A</span></p>
-                <p>Min Sum Val: <span id="bulk-min-sumval">N/A</span></p>
-                <p>Max Sum Val: <span id="bulk-max-sumval">N/A</span></p>
-                <p class="col-span-full mt-2 font-medium">Sequence Types:</p>
-                <p class="ml-2">Convergent: <span id="bulk-type-convergent">N/A</span></p>
-                <p class="ml-2">Cycles: <span id="bulk-type-cycle">N/A</span></p>
-                <p class="ml-2">Exceeded Max: <span id="bulk-type-exceeded_max_safe_integer">N/A</span></p>
-                <p class="ml-2">Max Iterations: <span id="bulk-type-reached_max_iterations">N/A</span></p>
+        <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
             </div>
-        </div>
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
             <div class="flex items-center space-x-2 text-white">
                 <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
                 <input type="color" id="divColorPicker" value="#34d399"
-                                         class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
             <div class="flex items-center space-x-2 text-white">
                 <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
                 <input type="color" id="mulColorPicker" value="#fb923c"
-                                         class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
         </div>
         <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
@@ -288,628 +251,13 @@
         <div class="mt-8">
             <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-6">Explore Other Tools:</h2>
             <div class="grid grid-cols-1 gap-6">
-                <!-- Collatz Dragon Explorer Button -->
-                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        onclick="navigateToProgram('collatz-dragon.html')">
+                <button class="project-button w-full px-6 py-4 rounded-xl">
                     <i class="fas fa-dragon"></i>
                     <span>Collatz Dragon Explorer</span>
                 </button>
-
-                <!-- Box Universe FPS / 3D Slicer Button -->
-                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-green-400"
-                        onclick="navigateToProgram('box-universe-fps.html')">
-                    <i class="fas fa-cube"></i>
-                    <span>Box Universe FPS (3D Slicer)</span>
-                </button>
-
-                <!-- 9-Net Slicer Button -->
-                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                        onclick="navigateToProgram('slicer.html')">
-                    <i class="fas fa-grip"></i>
-                    <span>9-Net Slicer</span>
-                </button>
-
-                <!-- Box Universe Explorer Button (this is the current page, good for reference but not clickable to self) -->
-                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-yellow-400 disabled-btn"
-                        disabled>
-                    <i class="fas fa-box-open"></i>
-                    <span>Box Universe Explorer (You are here)</span>
-                </button>
-
-                <!-- Collatz Lines Explorer Button -->
-                <button class="project-button w-full px-6 py-4 rounded-xl font-semibold text-white focus:outline-none focus:ring-2 focus:ring-red-400"
-                        onclick="navigateToProgram('collatz-lines-explorer.html')">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Collatz Lines Explorer</span>
-                </button>
-            </div>
+                </div>
         </div>
 
-    </div>
-
-    <script>
-        // Default canvas colors - These initialize the colors when the page loads
-        window.divColor = "#34d399";
-        window.mulColor = "#fb923c";
-
-        // === Constants for 9-Net Dimensions ===
-        const FACE_SIZE = 30;
-        const PADDING = 10;
-        const STEP_SIZE = 3;
-
-        const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
-        const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
-
-        // === Generalized Collatz function ===
-        const sequence = (num, x, y, z, maxiterations) => {
-            if (x === 0) {
-                return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
-            }
-            const output = [];
-            output.push(num);
-            let iterations = 0;
-            const visitedNumbersMap = new Map();
-            visitedNumbersMap.set(num, 0);
-
-            let minVal = num;
-            let maxVal = num;
-            let sumVal = num;
-
-            while (num !== 1 && iterations < maxiterations) {
-                if (Math.abs(num) > Number.MAX_SAFE_INTEGER || !Number.isFinite(num)) {
-                    const avgVal = sumVal / (iterations + 1);
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
-
-                let next_num;
-                if (num % Math.abs(x) === 0) {
-                    next_num = num / x;
-                } else {
-                    next_num = (Math.abs(y) || 3) * num + (z || 1);
-                }
-
-                if (!Number.isFinite(next_num) || Math.abs(next_num) > Number.MAX_SAFE_INTEGER) {
-                    const avgVal = sumVal / (iterations + 1);
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
-
-                minVal = Math.min(minVal, next_num);
-                maxVal = Math.max(maxVal, next_num);
-                
-                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) {
-                    sumVal = Number.MAX_SAFE_INTEGER;
-                } else {
-                    sumVal += next_num;
-                }
-
-                if (visitedNumbersMap.has(next_num)) {
-                    const avgVal = sumVal / (iterations + 1);
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-                    const cycleStartIndex = visitedNumbersMap.get(next_num);
-                    const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
-                visitedNumbersMap.set(next_num, output.length);
-
-                num = next_num;
-                output.push(num);
-                iterations++;
-            }
-
-            const avgVal = sumVal / (iterations + 1);
-            let stdDevVal = 0;
-            if (output.length > 1) {
-                const mean = avgVal;
-                const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                    const diff = val - mean;
-                    const squaredDiff = diff * diff;
-                    if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                        return Number.MAX_SAFE_INTEGER;
-                    }
-                    return acc + squaredDiff;
-                }, 0);
-
-                if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                    stdDevVal = "Too Large";
-                } else {
-                    const variance = sumOfSquaredDifferences / output.length;
-                    const stdDev = Math.sqrt(variance);
-                    if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                        stdDevVal = "Too Large";
-                    } else {
-                        stdDevVal = stdDev;
-                    }
-                }
-            }
-
-            if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-            } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-            }
-        };
-
-        // === drawNineNetCanvas function ===
-        function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const faceSize = FACE_SIZE;
-            const padding = PADDING;
-            const stepSize = STEP_SIZE;
-
-            const layout = [
-                { r: 0, c: 1 }, // Top
-                { r: 1, c: 0 }, // Left
-                { r: 1, c: 1 }, // Center-Left (main sequence starts here)
-                { r: 1, c: 2 }, // Center
-                { r: 1, c: 3 }, // Center-Right
-                { r: 2, c: 1 }  // Bottom
-            ];
-
-            let sequenceIndex = 0;
-
-            for (const pos of layout) {
-                for (let i = 0; i < stepSize; i++) {
-                    for (let j = 0; j < stepSize; j++) {
-                        const x = padding + (pos.c * stepSize + j) * faceSize;
-                        const y = padding + (pos.r * stepSize + i) * faceSize;
-
-                        let color = "#444";
-                        let label = "";
-
-                        if (sequenceIndex < sequence.length) {
-                            const val = sequence[sequenceIndex];
-                            if (val % Math.abs(xVal) === 0) {
-                                color = divColor;
-                            } else {
-                                color = mulColor;
-                            }
-                            label = val.toString();
-
-                            const maxChars = 5;
-                            if (label.length > maxChars) {
-                                const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
-                                const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
-                                label = start + "..." + end;
-                            }
-                        }
-
-                        ctx.fillStyle = color;
-                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2);
-
-                        if (label) {
-                            ctx.fillStyle = "#FFF";
-                            let currentFontSize = 10;
-                            if (label.length > 7) {
-                                currentFontSize = 6;
-                            } else if (label.length > 5) {
-                                currentFontSize = 8;
-                            }
-                            ctx.font = `${currentFontSize}px Arial`;
-                            ctx.textAlign = "center";
-                            ctx.textBaseline = "middle";
-                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1);
-                        }
-
-                        sequenceIndex++;
-                    }
-                }
-            }
-        }
-
-        // Function to update the gold star visibility
-        function updateGoldStarVisibility() {
-            const xVal = parseInt(document.getElementById('xValue').value);
-            const yVal = parseInt(document.getElementById('yValue').value);
-            const zVal = parseInt(document.getElementById('zValue').value);
-
-            const xStar = document.getElementById('x-star');
-            const yStar = document.getElementById('y-star');
-            const zStar = document.getElementById('z-star');
-
-            if (xStar) xStar.style.display = (xVal === 2) ? 'inline-block' : 'none';
-            if (yStar) yStar.style.display = (yVal === 3) ? 'inline-block' : 'none';
-            if (zStar) zStar.style.display = (zVal === 1) ? 'inline-block' : 'none';
-        }
-
-        let calculatedRuns = []; // Global array to store runs
-
-        /**
-         * Helper function to validate a single number input.
-         * @param {string} value - The input string value.
-         * @param {string} name - The name of the input for error messages.
-         * @param {boolean} allowZero - Whether zero is a valid input.
-         * @returns {string|null} Error message if invalid, otherwise null.
-         */
-        const validateNumberInput = (value, name, allowZero = false) => {
-            const num = parseInt(value, 10);
-            if (isNaN(num) || (!allowZero && num === 0) || !Number.isInteger(num)) {
-                return `${name} must be a valid integer${allowZero ? '' : ' (non-zero)'}.`;
-            }
-            return null; // No error
-        };
-
-        /**
-         * Renders the calculated runs into the history display.
-         */
-        const renderHistory = () => {
-            const runsHistoryDiv = document.getElementById('runsHistory');
-            const historyContainer = document.getElementById('historyContainer');
-
-            if (!runsHistoryDiv || !historyContainer) {
-                console.error("History elements not found. Cannot render history.");
-                return;
-            }
-
-            runsHistoryDiv.innerHTML = ''; // Clear previous history
-
-            if (calculatedRuns.length === 0) {
-                historyContainer.classList.add('hidden');
-                return;
-            } else {
-                historyContainer.classList.remove('hidden');
-            }
-
-            // Iterate in reverse to show newest runs at the top
-            for (let i = calculatedRuns.length - 1; i >= 0; i--) {
-                const run = calculatedRuns[i];
-                const runDiv = document.createElement('div');
-                runDiv.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-blue-600 last:mb-0';
-
-                const title = document.createElement('h3');
-                title.className = 'text-xl font-bold text-blue-200 mb-2';
-                title.textContent = `N=${run.startNum}, X=${run.X}, Y=${run.Y}, Z=${run.Z}`;
-                runDiv.appendChild(title);
-
-                const stepsInfo = document.createElement('p');
-                stepsInfo.className = 'text-blue-300 mb-2';
-                let typeText = run.type.replace(/_/g, ' ');
-
-                if (run.type === "reached_max_iterations") {
-                    typeText += ` - Ended at ${run.finalNum}`;
-                } else if (run.type === "exceeded_max_safe_integer") {
-                    typeText += ` - Ended at ${run.finalNum}`;
-                } else if (run.type === "cycle") {
-                    typeText += ` - Cycle: ${run.cycle.join(' → ')}`;
-                }
-                stepsInfo.textContent = `Steps: ${run.steps} (Type: ${typeText})`;
-                runDiv.appendChild(stepsInfo);
-
-                // Add stats only if available and not an error type
-                if (run.type !== "error") {
-                    const statsP = document.createElement('p');
-                    statsP.className = 'text-blue-100 text-sm mt-1';
-                  statsP.innerHTML = `
-                        Min: ${run.minVal.toLocaleString()}, Max: ${run.maxVal.toLocaleString()}<br>
-                        Sum: ${typeof run.sumVal === 'number' ? run.sumVal.toLocaleString() : run.sumVal}, 
-                        Avg: ${typeof run.avgVal === 'number' ? run.avgVal.toFixed(2) : 'N/A'}, 
-                        StdDev: ${typeof run.stdDev === 'number' ? run.stdDev.toFixed(2) : run.stdDev}
-                    `;
-                    runDiv.appendChild(statsP);
-                }
-
-                // Append the canvas for this run
-                const canvasId = `historyCanvas-${i}`;
-                const historyCanvas = document.createElement('canvas');
-                historyCanvas.id = canvasId;
-                historyCanvas.width = NINE_NET_DRAW_WIDTH;
-                historyCanvas.height = NINE_NET_DRAW_HEIGHT;
-                historyCanvas.className = 'bg-blue-900 bg-opacity-60 rounded-md mt-4 border border-blue-700';
-                runDiv.appendChild(historyCanvas);
-
-                runsHistoryDiv.appendChild(runDiv);
-
-                // Draw on the newly created canvas
-                if (run.sequence && run.sequence.length > 0) {
-                    drawNineNetCanvas(historyCanvas, run.sequence, run.X, window.divColor, window.mulColor);
-                }
-            }
-        };
-
-// Function to update the display for a single sequence run
-function updateSingleSequenceStats(stats) {
-    document.getElementById('stat-steps').textContent = stats.steps;
-    document.getElementById('stat-type').textContent = stats.type.replace(/_/g, ' '); // Format type for display
-    document.getElementById('stat-min').textContent = stats.minVal.toLocaleString();
-    document.getElementById('stat-max').textContent = stats.maxVal.toLocaleString();
-    document.getElementById('stat-sum').textContent = typeof stats.sumVal === 'number' ? stats.sumVal.toLocaleString() : stats.sumVal;
-    document.getElementById('stat-avg').textContent = typeof stats.avgVal === 'number' ? stats.avgVal.toFixed(2) : stats.avgVal;
-    document.getElementById('stat-stddev').textContent = typeof stats.stdDev === 'number' ? stats.stdDev.toFixed(2) : stats.stdDev;
-
-    // Handle specific messages for type if needed (e.g., cycle details)
-    if (stats.type === "cycle" && stats.cycle) {
-        document.getElementById('stat-type').textContent += ` (Cycle: ${stats.cycle.join(' → ')})`;
-    } else if (stats.type.includes("exceeded") && stats.finalNum) {
-        document.getElementById('stat-type').textContent += ` (Ended at ${stats.finalNum.toLocaleString()})`;
-    } else if (stats.type === "reached_max_iterations" && stats.finalNum) {
-        document.getElementById('stat-type').textContent += ` (Ended at ${stats.finalNum.toLocaleString()})`;
-    }
-}
-        // === Event Listeners ===
-        document.addEventListener('DOMContentLoaded', () => {
-            const startNumberInput = document.getElementById('startNumber');
-            const xValueInput = document.getElementById('xValue');
-            const yValueInput = document.getElementById('yValue');
-            const zValueInput = document.getElementById('zValue');
-            const calculateSingleBtn = document.getElementById('calculateSingle');
-            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
-            const errorMessageDiv = document.getElementById('errorMessage');
-
-            // Bulk generation inputs
-            const xStartInput = document.getElementById('xStart');
-            const xEndInput = document.getElementById('xEnd');
-            const yStartInput = document.getElementById('yStart');
-            const yEndInput = document.getElementById('yEnd');
-            const zStartInput = document.getElementById('zStart');
-            const zEndInput = document.getElementById('zEnd');
-            const generateBulkBtn = document.getElementById('generateBulk');
-
-            const divColorPicker = document.getElementById('divColorPicker');
-            const mulColorPicker = document.getElementById('mulColorPicker');
-
-            // Set initial canvas size for single view
-            singleNineNetCanvas.width = NINE_NET_DRAW_WIDTH;
-            singleNineNetCanvas.height = NINE_NET_DRAW_HEIGHT;
-
-            // Initial drawing of the single 9-net (e.g., for default values)
-            const initialParams = {
-                num: parseInt(startNumberInput.value),
-                x: parseInt(xValueInput.value),
-                y: parseInt(yValueInput.value),
-                z: parseInt(zValueInput.value),
-                maxiterations: 10000 // A reasonable default
-            };
-            if (!isNaN(initialParams.num) && !isNaN(initialParams.x) && !isNaN(initialParams.y) && !isNaN(initialParams.z) && initialParams.x !== 0) {
-                const initialResult = sequence(initialParams.num, initialParams.x, initialParams.y, initialParams.z, initialParams.maxiterations);
-                if (initialResult.type !== "error") {
-                    drawNineNetCanvas(singleNineNetCanvas, initialResult.sequence, initialResult.x, window.divColor, window.mulColor);
-                } else {
-                     errorMessageDiv.textContent = initialResult.message;
-                }
-            }
-
-
-            // === Single Sequence Calculation ===
-         calculateSingleBtn.addEventListener('click', () => {
-                errorMessageDiv.textContent = ''; // Clear previous error
-
-                const startNum = parseInt(startNumberInput.value);
-                const xVal = parseInt(xValueInput.value);
-                const yVal = parseInt(yValueInput.value);
-                const zVal = parseInt(zValueInput.value);
-
-                // --- NEW VALIDATION USING THE HELPER FUNCTION ---
-                let error = validateNumberInput(startNumberInput.value, "Starting Number", true); // Assuming 0 is not valid as per current logic
-                if (error) { errorMessageDiv.textContent = error; return; }
-
-                error = validateNumberInput(xValueInput.value, "X (Divisor)", false); // X cannot be zero
-                if (error) { errorMessageDiv.textContent = error; return; }
-
-                error = validateNumberInput(yValueInput.value, "Y (Multiplier)", true); // Y can be zero
-                if (error) { errorMessageDiv.textContent = error; return; }
-
-                error = validateNumberInput(zValueInput.value, "Z (Additive Constant)", true); // Z can be zero
-                if (error) { errorMessageDiv.textContent = error; return; }
-
-                // Your specific check for Y=0, Z=0 with non-divisible N
-                if (yVal === 0 && zVal === 0 && startNum % xVal !== 0) {
-                    errorMessageDiv.textContent = "For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop (N -> N).";
-                    // Clear or reset single sequence stats if there's an error
-                    updateSingleSequenceStats({
-                        steps: 'N/A', type: 'Error: Invalid Rule', minVal: 'N/A', maxVal: 'N/A',
-                        sumVal: 'N/A', avgVal: 'N/A', stdDev: 'N/A'
-                    });
-                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
-                    return;
-                }
-                // --- END NEW VALIDATION ---
-
-
-                const maxIterations = 1000; // Define a reasonable limit, or make it an input if desired
-                const result = sequence(startNum, xVal, yVal, zVal, maxIterations);
-
-                if (result.type === "error") {
-                    errorMessageDiv.textContent = result.message;
-                    // Also clear or reset single sequence stats if there's an error
-                    updateSingleSequenceStats({
-                        steps: 'N/A', type: 'Error: ' + result.message, minVal: 'N/A', maxVal: 'N/A',
-                        sumVal: 'N/A', avgVal: 'N/A', stdDev: 'N/A'
-                    });
-                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
-                    return;
-                }
-
-                // Draw the 9-net for the single sequence
-                drawNineNetCanvas(singleNineNetCanvas, result.sequence, xVal, window.divColor, window.mulColor);
-
-                // --- NEW: Update the statistics display for the single sequence ---
-                updateSingleSequenceStats(result);
-                // --- END NEW ---
-
-                // --- OPTIONAL: Comment out if you only want bulk runs in history ---
-                // Add to history (if you want single calculations to appear in history)
-                // const runData = {
-                //     startNum: startNum, X: xVal, Y: yVal, Z: zVal,
-                //     sequence: result.sequence, type: result.type, steps: result.steps,
-                //     cycle: result.cycle, finalNum: result.finalNum,
-                //     minVal: result.minVal, maxVal: result.maxVal, sumVal: result.sumVal,
-                //     avgVal: result.avgVal, stdDev: result.stdDev
-                // };
-                // calculatedRuns.push(runData);
-                // renderHistory(); // Re-render history to show this single run
-                // --- END OPTIONAL ---
-            });
-            // === Bulk Generation ===
-            generateBulkBtn.addEventListener('click', () => {
-                errorMessageDiv.textContent = ''; // Clear previous errors
-                calculatedRuns = []; // Clear history for new bulk run
-
-                const xS = parseInt(xStartInput.value, 10);
-                const xE = parseInt(xEndInput.value, 10);
-                const yS = parseInt(yStartInput.value, 10);
-                const yE = parseInt(yEndInput.value, 10);
-                const zS = parseInt(zStartInput.value, 10);
-                const zE = parseInt(zEndInput.value, 10);
-                const startNum = parseInt(startNumberInput.value, 10); // Use the single N input for bulk start number
-
-                // Validate ranges
-                if (isNaN(xS) || isNaN(xE) || xS > xE || xS === 0 || xE === 0) { errorMessageDiv.textContent = "X Start/End must be valid non-zero integers, and X Start <= X End."; return; }
-                if (isNaN(yS) || isNaN(yE) || yS > yE) { errorMessageDiv.textContent = "Y Start/End must be valid integers, and Y Start <= Y End."; return; }
-                if (isNaN(zS) || isNaN(zE) || zS > zE) { errorMessageDiv.textContent = "Z Start/End must be valid integers, and Z Start <= Z End."; return; }
-                if (isNaN(startNum) || startNum <= 0) { errorMessageDiv.textContent = "Starting Number (N) must be a positive integer for bulk generation."; return; }
-
-
-                for (let x = xS; x <= xE; x++) {
-                    // Skip X=0 if it appears in range
-                    if (x === 0) continue;
-                    for (let y = yS; y <= yE; y++) {
-                        for (let z = zS; z <= zE; z++) {
-                            // Skip Y=0, Z=0 if N is not divisible by X
-                            if (y === 0 && z === 0 && startNum % x !== 0) {
-                                // You might want to log this or indicate skipped combinations
-                                console.warn(`Skipping N=${startNum}, X=${x}, Y=${y}, Z=${z} due to trivial/infinite loop potential.`);
-                                continue;
-                            }
-                            const result = sequence(startNum, x, y, z, 10000);
-                            const runData = { startNum, X: x, Y: y, Z: z, ...result };
-                            calculatedRuns.push(runData);
-                        }
-                    }
-                }
-                renderHistory();
-            });
-
-            // === Color Pickers ===
-            divColorPicker.addEventListener('input', (event) => {
-                window.divColor = event.target.value;
-                // Redraw all canvases with new colors
-                drawCurrentSingleNineNet();
-                renderHistory();
-            });
-
-            mulColorPicker.addEventListener('input', (event) => {
-                window.mulColor = event.target.value;
-                // Redraw all canvases with new colors
-                drawCurrentSingleNineNet();
-                renderHistory();
-            });
-
-            // Helper to redraw the single nine-net with current parameters
-            function drawCurrentSingleNineNet() {
-                const currentStartNum = parseInt(startNumberInput.value, 10);
-                const currentX = parseInt(xValueInput.value, 10);
-                const currentY = parseInt(yValueInput.value, 10);
-                const currentZ = parseInt(zValueInput.value, 10);
-
-                if (!isNaN(currentStartNum) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && currentX !== 0) {
-                    const result = sequence(currentStartNum, currentX, currentY, currentZ, 10000);
-                    if (result.type !== "error") {
-                        drawNineNetCanvas(singleNineNetCanvas, result.sequence, currentX, window.divColor, window.mulColor);
-                    } else {
-                        // If there's an error on redraw (e.g., X=0), clear the canvas and show error
-                        singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
-                        errorMessageDiv.textContent = result.message;
-                    }
-                } else {
-                    // Clear canvas if inputs are invalid on color change
-                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
-                }
-            }
-
-
-            // Update gold star visibility on input change
-            xValueInput.addEventListener('input', updateGoldStarVisibility);
-            yValueInput.addEventListener('input', updateGoldStarVisibility);
-            zValueInput.addEventListener('input', updateGoldStarVisibility);
-            // Initial call to set gold stars correctly on load
-            updateGoldStarVisibility();
-        });
-
-
-        /**
-         * Navigates to the specified program on GitHub Pages.
-         * Uses the hardcoded GitHub Pages base URL for reliability.
-         * @param {string} filename - The filename of the program (e.g., 'collatz-dragon.html').
-         */
-        function navigateToProgram(filename) {
-            // Define the base URL for your GitHub Pages repository
-            const githubPagesBaseUrl = "https://numberwonderman.github.io/Collatz-box-universes/";
-            
-            const url = `${githubPagesBaseUrl}${filename}`;
-            window.location.href = url; // Navigate in the same tab
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
