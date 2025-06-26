@@ -205,7 +205,15 @@
             class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
             Calculate Single Sequence
         </button>
-
+<div id="singleSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full max-w-sm text-white text-sm border border-blue-700 mb-6 mx-auto">
+    <p class="font-semibold text-lg mb-2">Sequence Statistics:</p>
+    <p>Steps: <span id="stat-steps">N/A</span></p>
+    <p>Type: <span id="stat-type">N/A</span></p>
+    <p>Range: [<span id="stat-min">N/A</span>, <span id="stat-max">N/A</span>]</p>
+    <p>Sum: <span id="stat-sum">N/A</span></p>
+    <p>Avg: <span id="stat-avg">N/A</span></p>
+    <p>StdDev: <span id="stat-stddev">N/A</span></p>
+</div>
         <!-- Container for the single 9-net canvas -->
         <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
             <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
@@ -642,7 +650,25 @@
             }
         };
 
+// Function to update the display for a single sequence run
+function updateSingleSequenceStats(stats) {
+    document.getElementById('stat-steps').textContent = stats.steps;
+    document.getElementById('stat-type').textContent = stats.type.replace(/_/g, ' '); // Format type for display
+    document.getElementById('stat-min').textContent = stats.minVal.toLocaleString();
+    document.getElementById('stat-max').textContent = stats.maxVal.toLocaleString();
+    document.getElementById('stat-sum').textContent = typeof stats.sumVal === 'number' ? stats.sumVal.toLocaleString() : stats.sumVal;
+    document.getElementById('stat-avg').textContent = typeof stats.avgVal === 'number' ? stats.avgVal.toFixed(2) : stats.avgVal;
+    document.getElementById('stat-stddev').textContent = typeof stats.stdDev === 'number' ? stats.stdDev.toFixed(2) : stats.stdDev;
 
+    // Handle specific messages for type if needed (e.g., cycle details)
+    if (stats.type === "cycle" && stats.cycle) {
+        document.getElementById('stat-type').textContent += ` (Cycle: ${stats.cycle.join(' → ')})`;
+    } else if (stats.type.includes("exceeded") && stats.finalNum) {
+        document.getElementById('stat-type').textContent += ` (Ended at ${stats.finalNum.toLocaleString()})`;
+    } else if (stats.type === "reached_max_iterations" && stats.finalNum) {
+        document.getElementById('stat-type').textContent += ` (Ended at ${stats.finalNum.toLocaleString()})`;
+    }
+}
         // === Event Listeners ===
         document.addEventListener('DOMContentLoaded', () => {
             const startNumberInput = document.getElementById('startNumber');
