@@ -1,4 +1,12 @@
-// Default canvas colors (will be updated by color pickers)
+// ... (top of your script.js)
+let DEFAULT_LINE_COLOR = '#00f';
+// ...
+let scale = 1;
+let dpi = window.devicePixelRatio || 1; // Define dpi here at a global/module level
+
+// Stores the current sequence data for rendering
+let currentSequenceData = null;
+// ...// Default canvas colors (will be updated by color pickers)
 let DEFAULT_LINE_COLOR = '#00f'; // Blue - for divisible operation
 let DEFAULT_NODE_COLOR = '#ff0'; // Yellow - for multiply/add operation
 const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
