@@ -714,51 +714,75 @@ function updateSingleSequenceStats(stats) {
 
 
             // === Single Sequence Calculation ===
-            calculateSingleBtn.addEventListener('click', () => {
-                errorMessageDiv.textContent = ''; // Clear previous errors
-                const startNum = parseInt(startNumberInput.value, 10);
-                const x = parseInt(xValueInput.value, 10);
-                const y = parseInt(yValueInput.value, 10);
-                const z = parseInt(zValueInput.value, 10);
+         calculateSingleBtn.addEventListener('click', () => {
+                errorMessageDiv.textContent = ''; // Clear previous error
 
-                // Basic validation
-                if (isNaN(startNum) || startNum <= 0) {
-                    errorMessageDiv.textContent = "Starting Number (N) must be a positive integer.";
-                    return;
-                }
-                if (isNaN(x) || x === 0) {
-                    errorMessageDiv.textContent = "X (Divisor) must be a non-zero integer.";
-                    return;
-                }
-                if (isNaN(y)) {
-                    errorMessageDiv.textContent = "Y (Multiplier) must be an integer.";
-                    return;
-                }
-                if (isNaN(z)) {
-                    errorMessageDiv.textContent = "Z (Additive Constant) must be an integer.";
-                    return;
-                }
+                const startNum = parseInt(startNumberInput.value);
+                const xVal = parseInt(xValueInput.value);
+                const yVal = parseInt(yValueInput.value);
+                const zVal = parseInt(zValueInput.value);
 
-                // Specific check for Y=0, Z=0 with non-divisible N, as it leads to N if N is not divisible by X
-                if (y === 0 && z === 0 && startNum % x !== 0) {
-                     errorMessageDiv.textContent = "For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop (N -> N).";
-                     return;
-                }
+                // --- NEW VALIDATION USING THE HELPER FUNCTION ---
+                let error = validateNumberInput(startNumberInput.value, "Starting Number", true); // Assuming 0 is not valid as per current logic
+                if (error) { errorMessageDiv.textContent = error; return; }
 
-                const result = sequence(startNum, x, y, z, 10000); // 10000 max iterations
+                error = validateNumberInput(xValueInput.value, "X (Divisor)", false); // X cannot be zero
+                if (error) { errorMessageDiv.textContent = error; return; }
+
+                error = validateNumberInput(yValueInput.value, "Y (Multiplier)", true); // Y can be zero
+                if (error) { errorMessageDiv.textContent = error; return; }
+
+                error = validateNumberInput(zValueInput.value, "Z (Additive Constant)", true); // Z can be zero
+                if (error) { errorMessageDiv.textContent = error; return; }
+
+                // Your specific check for Y=0, Z=0 with non-divisible N
+                if (yVal === 0 && zVal === 0 && startNum % xVal !== 0) {
+                    errorMessageDiv.textContent = "For non-divisible numbers, Y and Z cannot both be zero, as this would result in a trivial or infinite loop (N -> N).";
+                    // Clear or reset single sequence stats if there's an error
+                    updateSingleSequenceStats({
+                        steps: 'N/A', type: 'Error: Invalid Rule', minVal: 'N/A', maxVal: 'N/A',
+                        sumVal: 'N/A', avgVal: 'N/A', stdDev: 'N/A'
+                    });
+                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
+                    return;
+                }
+                // --- END NEW VALIDATION ---
+
+
+                const maxIterations = 1000; // Define a reasonable limit, or make it an input if desired
+                const result = sequence(startNum, xVal, yVal, zVal, maxIterations);
 
                 if (result.type === "error") {
                     errorMessageDiv.textContent = result.message;
-                } else {
-                    drawNineNetCanvas(singleNineNetCanvas, result.sequence, x, window.divColor, window.mulColor);
-
-                    // Add to history
-                    const runData = { startNum, X: x, Y: y, Z: z, ...result };
-                    calculatedRuns.push(runData);
-                    renderHistory();
+                    // Also clear or reset single sequence stats if there's an error
+                    updateSingleSequenceStats({
+                        steps: 'N/A', type: 'Error: ' + result.message, minVal: 'N/A', maxVal: 'N/A',
+                        sumVal: 'N/A', avgVal: 'N/A', stdDev: 'N/A'
+                    });
+                    singleNineNetCanvas.getContext('2d').clearRect(0, 0, singleNineNetCanvas.width, singleNineNetCanvas.height);
+                    return;
                 }
-            });
 
+                // Draw the 9-net for the single sequence
+                drawNineNetCanvas(singleNineNetCanvas, result.sequence, xVal, window.divColor, window.mulColor);
+
+                // --- NEW: Update the statistics display for the single sequence ---
+                updateSingleSequenceStats(result);
+                // --- END NEW ---
+
+                // --- OPTIONAL: Comment out if you only want bulk runs in history ---
+                // Add to history (if you want single calculations to appear in history)
+                // const runData = {
+                //     startNum: startNum, X: xVal, Y: yVal, Z: zVal,
+                //     sequence: result.sequence, type: result.type, steps: result.steps,
+                //     cycle: result.cycle, finalNum: result.finalNum,
+                //     minVal: result.minVal, maxVal: result.maxVal, sumVal: result.sumVal,
+                //     avgVal: result.avgVal, stdDev: result.stdDev
+                // };
+                // calculatedRuns.push(runData);
+                // renderHistory(); // Re-render history to show this single run
+                // --- END OPTIONAL ---
+            });
             // === Bulk Generation ===
             generateBulkBtn.addEventListener('click', () => {
                 errorMessageDiv.textContent = ''; // Clear previous errors
