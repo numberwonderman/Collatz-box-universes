@@ -231,12 +231,12 @@
             <div class="flex items-center space-x-2 text-white">
                 <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
                 <input type="color" id="divColorPicker" value="#34d399"
-                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
             <div class="flex items-center space-x-2 text-white">
                 <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
                 <input type="color" id="mulColorPicker" value="#fb923c"
-                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
             </div>
         </div>
         <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
@@ -251,11 +251,27 @@
         <div class="mt-8">
             <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-6">Explore Other Tools:</h2>
             <div class="grid grid-cols-1 gap-6">
-                <button class="project-button w-full px-6 py-4 rounded-xl">
+                <button class="project-button w-full px-6 py-4 rounded-xl" onclick="window.open('box-universe-viewer.html', '_self');">
+                    <i class="fas fa-cubes"></i>
+                    <span>Box Universe Viewer</span>
+                </button>
+                <button class="project-button w-full px-6 py-4 rounded-xl" onclick="window.open('slicer.html', '_self');">
+                    <i class="fas fa-expand-alt"></i>
+                    <span>2D Pseudo-3D Slicer</span>
+                </button>
+                <button class="project-button w-full px-6 py-4 rounded-xl" onclick="window.open('slicer3d.html', '_self');">
+                    <i class="fas fa-vr-cardboard"></i>
+                    <span>Box Universe FPS</span>
+                </button>
+                <button class="project-button w-full px-6 py-4 rounded-xl" onclick="window.open('collatz-dragon.html', '_self');">
                     <i class="fas fa-dragon"></i>
                     <span>Collatz Dragon Explorer</span>
                 </button>
-                </div>
+                <button class="project-button w-full px-6 py-4 rounded-xl" onclick="window.open('collatz-line-explorer.html', '_self');">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Collatz Line Universe Explorer</span>
+                </button>
+            </div>
         </div>
 
     <script src="script.js"></script>
