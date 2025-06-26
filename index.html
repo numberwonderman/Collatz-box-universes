@@ -628,7 +628,12 @@
                 if (run.type !== "error") {
                     const statsP = document.createElement('p');
                     statsP.className = 'text-blue-100 text-sm mt-1';
-                    statsP.innerHTML = `Min: ${run.minVal.toLocaleString()}, Max: ${run.maxVal.toLocaleString()}, Avg: ${run.avgVal ? run.avgVal.toFixed(2) : 'N/A'}, StdDev: ${run.stdDev ? (typeof run.stdDev === 'number' ? run.stdDev.toFixed(2) : run.stdDev) : 'N/A'}`;
+                  statsP.innerHTML = `
+                        Min: ${run.minVal.toLocaleString()}, Max: ${run.maxVal.toLocaleString()}<br>
+                        Sum: ${typeof run.sumVal === 'number' ? run.sumVal.toLocaleString() : run.sumVal}, 
+                        Avg: ${typeof run.avgVal === 'number' ? run.avgVal.toFixed(2) : 'N/A'}, 
+                        StdDev: ${typeof run.stdDev === 'number' ? run.stdDev.toFixed(2) : run.stdDev}
+                    `;
                     runDiv.appendChild(statsP);
                 }
 
