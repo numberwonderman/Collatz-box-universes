@@ -1,12 +1,8 @@
-// ... (top of your script.js)
+// ==========================================================
+// Consolidate ALL Global Variable Declarations at the Top
+// ==========================================================
 
-// ...
-
-let dpi = window.devicePixelRatio || 1; // Define dpi here at a global/module level
-
-// Stores the current sequence data for rendering
-let currentSequenceData = null;
-// ...// Default canvas colors (will be updated by color pickers)
+// Default canvas colors (will be updated by color pickers)
 let DEFAULT_LINE_COLOR = '#00f'; // Blue - for divisible operation
 let DEFAULT_NODE_COLOR = '#ff0'; // Yellow - for multiply/add operation
 const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
@@ -28,10 +24,17 @@ let isDragging = false;
 let lastX, lastY;
 let translateX = 0;
 let translateY = 0;
-let scale = 1;
+let scale = 1; // ONLY declare 'scale' once
+
+// Define dpi globally and once
+let dpi = window.devicePixelRatio || 1;
 
 // Stores the current sequence data for rendering
-let currentSequenceData = null;
+let currentSequenceData = null; // ONLY declare 'currentSequenceData' once
+
+// ==========================================================
+// End of Global Variable Declarations
+// ==========================================================
 
 // Collatz function as per user's definition
 // Rule: If n % X == 0, then n -> n / X. Otherwise, n -> n * Y + Z.
