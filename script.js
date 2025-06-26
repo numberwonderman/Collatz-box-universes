@@ -1,5 +1,5 @@
 // ... (top of your script.js)
-let DEFAULT_LINE_COLOR = '#00f';
+
 // ...
 let scale = 1;
 let dpi = window.devicePixelRatio || 1; // Define dpi here at a global/module level
