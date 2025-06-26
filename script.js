@@ -1,7 +1,7 @@
 // ... (top of your script.js)
 
 // ...
-let scale = 1;
+
 let dpi = window.devicePixelRatio || 1; // Define dpi here at a global/module level
 
 // Stores the current sequence data for rendering
