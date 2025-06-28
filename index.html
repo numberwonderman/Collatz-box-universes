@@ -27,7 +27,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(to bottom right, #1a202c, #2d3748);
-            min-height: 10vh;
+            min-height: 100vh; /* Changed from 10vh to 100vh for full-page background */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -226,74 +226,78 @@
             </p>
         </div>
 
-        <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <div class="flex items-center">
-                <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
-                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-                <span id="x-star" class="gold-star">⭐</span>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                    <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <div class="flex items-center">
+                        <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)"
+                            class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                        <span id="x-star" class="gold-star">⭐</span>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
+                            class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                        <span id="y-star" class="gold-star">⭐</span>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
+                            class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                        <span id="z-star" class="gold-star">⭐</span>
+                    </div>
+                </div>
+
+                <button id="calculateSingle"
+                    class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
+                    Calculate Single Sequence
+                </button>
+                <div id="singleSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full max-w-sm text-white text-sm border border-blue-700 mb-6 mx-auto hidden">
+                </div>
+                <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
+                    <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
+                </div>
             </div>
-            <div class="flex items-center">
-                <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
-                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-                <span id="y-star" class="gold-star">⭐</span>
-            </div>
-            <div class="flex items-center">
-                <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)"
-                    class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-                <span id="z-star" class="gold-star">⭐</span>
+
+            <div>
+                <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                    <input type="number" id="xStart" value="1" placeholder="X Start"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <input type="number" id="xEnd" value="3" placeholder="X End"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <input type="number" id="yStart" value="1" placeholder="Y Start"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <input type="number" id="yEnd" value="3" placeholder="Y End"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <input type="number" id="zStart" value="1" placeholder="Z Start"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                    <input type="number" id="zEnd" value="1" placeholder="Z End"
+                        class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
+                </div>
+
+                <button id="generateBulk"
+                    class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
+                    Generate Box Universe (Bulk)
+                </button>
+                <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
+                    <div class="flex items-center space-x-2 text-white">
+                        <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
+                        <input type="color" id="divColorPicker" value="#34d399"
+                                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                    </div>
+                    <div class="flex items-center space-x-2 text-white">
+                        <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
+                        <input type="color" id="mulColorPicker" value="#fb923c"
+                                                     class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+                    </div>
+                </div>
+                <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
             </div>
         </div>
-
-        <button id="calculateSingle"
-            class="w-full px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 mb-4">
-            Calculate Single Sequence
-        </button>
-        <div id="singleSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full max-w-sm text-white text-sm border border-blue-700 mb-6 mx-auto hidden">
-            </div>
-        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
-            <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
-        </div>
-
-
-        <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-            <input type="number" id="xStart" value="1" placeholder="X Start"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="xEnd" value="3" placeholder="X End"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="yStart" value="1" placeholder="Y Start"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="yEnd" value="3" placeholder="Y End"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="zStart" value="1" placeholder="Z Start"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-            <input type="number" id="zEnd" value="1" placeholder="Z End"
-                class="p-3 rounded-xl bg-blue-900 bg-opacity-50 text-white placeholder-blue-200 border border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-200" />
-        </div>
-
-        <button id="generateBulk"
-            class="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 mb-6">
-            Generate Box Universe (Bulk)
-        </button>
-        <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
-            </div>
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6">
-            <div class="flex items-center space-x-2 text-white">
-                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
-                <input type="color" id="divColorPicker" value="#34d399"
-                                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-            <div class="flex items-center space-x-2 text-white">
-                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
-                <input type="color" id="mulColorPicker" value="#fb923c"
-                                            class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-        </div>
-        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
-
 
         <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
             <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
@@ -340,6 +344,7 @@
                 Launch Selected Tool
             </button>
         </div>
+    </div>
 
     <script>
         // ==========================================================
@@ -669,263 +674,382 @@
             let overallMaxCoefficientStoppingTime_tau = 0;
             let overallTotalParadoxicalOccurrences = 0;
 
-            statsDiv.innerHTML = `
-                <p class="font-semibold text-lg mb-2">Generating Universe Statistics... Please Wait.</p>
-                <p>Processing: <span id="bulk-progress">0%</span></p>
+            let bulkStatsHtml = `
+                <p class="font-semibold text-lg mb-2">Bulk Universe Statistics (N=${startN_fixed.toLocaleString()} | X=${xStart}-${xEnd}, Y=${yStart}-${yEnd}, Z=${zStart}-${zEnd})</p>
             `;
-            statsDiv.classList.remove('hidden');
 
-            let processedCount = 0;
-            // Calculate total combinations only for X, Y, Z ranges, as N is fixed for this bulk mode.
-            const totalCombinations = (xEnd - xStart + 1) * (yEnd - yStart + 1) * (zEnd - zStart + 1);
-            const progressBar = statsDiv.querySelector('#bulk-progress'); // Select progress bar within statsDiv
+            for (let x = xStart; x <= xEnd; x++) {
+                if (x === 0) { // Skip X=0 as it's an invalid parameter
+                    invalidParamsCount++;
+                    continue;
+                }
+                for (let y = yStart; y <= yEnd; y++) {
+                    for (let z = zStart; z <= zEnd; z++) {
+                        const result = calculateCollatzSequence(startN_fixed, maxIterations, x, y, z);
+                        totalSequencesCalculated++;
 
-            // Use setTimeout to allow UI to update and prevent freezing for large computations
-            setTimeout(() => {
-                for (let x = xStart; x <= xEnd; x++) {
-                    for (let y = yStart; y <= yEnd; y++) {
-                        for (let z = zStart; z <= zEnd; z++) {
-                            // For each combination of X, Y, Z, calculate for the fixed N
-                            const result = calculateCollatzSequence(startN_fixed, maxIterations, x, y, z);
-                            totalSequencesCalculated++;
+                        totalSteps += result.steps;
+                        totalSumVals += result.sumVal;
 
-                            if (result.type === "Invalid Parameters (X is 0)") {
-                                invalidParamsCount++;
-                                processedCount++;
-                                if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
-                                continue; // Skip further processing for invalid parameters
-                            }
+                        if (result.maxVal > maxOverallVal) maxOverallVal = result.maxVal;
+                        if (result.minVal < minOverallVal) minOverallVal = result.minVal;
 
-                            totalSteps += result.steps;
-                            totalSumVals += result.sumVal;
-
-                            if (result.maxVal > maxOverallVal) maxOverallVal = result.maxVal;
-                            if (result.minVal < minOverallVal) minOverallVal = result.minVal;
-
-                            if (result.converges_to_1) convergenceCount++;
-                            if (result.type === "Cycle Detected") cycleCount++;
-                            if (result.type === "Exceeded Max Safe Integer") exceededMaxCount++;
-                            if (result.type === "Max Iterations Reached") maxIterationsReachedCount++;
-                            if (result.type === "Reached Non-Positive Value") nonPositiveValueCount++;
-
-                            if (result.stoppingTime_t !== 'N/A' && result.stoppingTime_t > overallMaxStoppingTime_t) {
-                                overallMaxStoppingTime_t = result.stoppingTime_t;
-                            }
-                            if (result.coefficientStoppingTime_tau !== 'N/A' && result.coefficientStoppingTime_tau > overallMaxCoefficientStoppingTime_tau) {
-                                overallMaxCoefficientStoppingTime_tau = result.coefficientStoppingTime_tau;
-                            }
-                            overallTotalParadoxicalOccurrences += result.paradoxicalOccurrences.length;
-
-                            processedCount++;
-                            if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
+                        if (result.type === "Converges to 1") {
+                            convergenceCount++;
+                        } else if (result.type === "Cycle Detected") {
+                            cycleCount++;
+                        } else if (result.type === "Exceeded Max Safe Integer") {
+                            exceededMaxCount++;
+                        } else if (result.type === "Max Iterations Reached") {
+                            maxIterationsReachedCount++;
+                        } else if (result.type === "Reached Non-Positive Value") {
+                            nonPositiveValueCount++;
+                        } else if (result.type === "Invalid Parameters (X is 0)") {
+                            invalidParamsCount++; // This should ideally be caught before the loops, but kept for consistency
                         }
+
+                        if (result.stoppingTime_t !== 'N/A' && result.stoppingTime_t > overallMaxStoppingTime_t) {
+                            overallMaxStoppingTime_t = result.stoppingTime_t;
+                        }
+                        if (result.coefficientStoppingTime_tau !== 'N/A' && result.coefficientStoppingTime_tau > overallMaxCoefficientStoppingTime_tau) {
+                            overallMaxCoefficientStoppingTime_tau = result.coefficientStoppingTime_tau;
+                        }
+                        overallTotalParadoxicalOccurrences += result.paradoxicalOccurrences.length;
                     }
                 }
+            }
 
-                const avgSteps = totalSequencesCalculated > 0 ? (totalSteps / totalSequencesCalculated).toFixed(2) : 'N/A';
-                const avgSumVal = totalSequencesCalculated > 0 ? (totalSumVals / totalSequencesCalculated).toFixed(2) : 'N/A';
+            const avgSteps = totalSequencesCalculated > 0 ? (totalSteps / totalSequencesCalculated).toFixed(2) : 0;
+            const avgSumVals = totalSequencesCalculated > 0 ? (totalSumVals / totalSequencesCalculated).toFixed(2) : 0;
 
-                statsDiv.innerHTML = `
-                    <h3 class="text-2xl font-bold text-blue-200 mb-4">Universe Statistics (N=${startN_fixed.toLocaleString()}, X=${xStart}-${xEnd}, Y=${yStart}-${yEnd}, Z=${zStart}-${zEnd})</h3>
-                    <p class="mb-1"><strong>Total Sequences Calculated:</strong> ${totalSequencesCalculated.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Total Steps Sum:</strong> ${totalSteps.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Highest Value Encountered:</strong> ${maxOverallVal.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Lowest Value Encountered (excluding 1):</strong> ${minOverallVal === Infinity ? 'N/A' : minOverallVal.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Average Sequence Sum:</strong> ${avgSumVal.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Average Steps Per Sequence:</strong> ${avgSteps.toLocaleString()}</p>
+            bulkStatsHtml += `
+                <p><strong>Total Sequences Calculated:</strong> ${totalSequencesCalculated.toLocaleString()}</p>
+                <p><strong>Avg Steps:</strong> ${avgSteps}</p>
+                <p><strong>Max Overall Value:</strong> ${maxOverallVal.toLocaleString()}</p>
+                <p><strong>Min Overall Value:</strong> ${minOverallVal !== Infinity ? minOverallVal.toLocaleString() : 'N/A'}</p>
+                <p><strong>Avg Sum of Values:</strong> ${avgSumVals}</p>
+                <p><strong>Converged to 1:</strong> ${convergenceCount.toLocaleString()}</p>
+                <p><strong>Cycles Detected:</strong> ${cycleCount.toLocaleString()}</p>
+                <p><strong>Exceeded Max Safe Integer:</strong> ${exceededMaxCount.toLocaleString()}</p>
+                <p><strong>Max Iterations Reached:</strong> ${maxIterationsReachedCount.toLocaleString()}</p>
+                <p><strong>Reached Non-Positive Value:</strong> ${nonPositiveValueCount.toLocaleString()}</p>
+                <p><strong>Invalid Parameters (X=0):</strong> ${invalidParamsCount.toLocaleString()}</p>
+                <p><strong>Overall Max Stopping Time t(n):</strong> ${overallMaxStoppingTime_t.toLocaleString()}</p>
+                <p><strong>Overall Max Coefficient Stopping Time &tau;(n):</strong> ${overallMaxCoefficientStoppingTime_tau.toLocaleString()}</p>
+                <p><strong>Overall Paradoxical Occurrences:</strong> ${overallTotalParadoxicalOccurrences.toLocaleString()}</p>
+            `;
+            statsDiv.innerHTML = bulkStatsHtml;
+            statsDiv.classList.remove('hidden');
+        }
 
-                    <h4 class="font-semibold text-lg mt-4 mb-2">Sequence Outcomes:</h4>
-                    <ul class="list-disc list-inside ml-4">
-                        <li>Converges to 1: ${convergenceCount.toLocaleString()} (${totalSequencesCalculated > 0 ? ((convergenceCount / totalSequencesCalculated) * 100).toFixed(2) : '0.00'}%)</li>
-                        <li>Cycles Detected: ${cycleCount.toLocaleString()}</li>
-                        <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
-                        <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
-                        <li>Reached Non-Positive Value: ${nonPositiveValueCount.toLocaleString()}</li>
-                        <li>Invalid Parameters (X=0): ${invalidParamsCount.toLocaleString()}</li>
-                    </ul>
+        // Function to update history display
+        function renderHistory() {
+            const historyContainer = document.getElementById('historyContainer');
+            const runsHistory = document.getElementById('runsHistory');
+            const history = JSON.parse(localStorage.getItem('collatzHistory')) || [];
 
-                    <h4 class="font-semibold text-lg mt-4 mb-2">Paper-Specific Metrics:</h4>
-                    <p class="mb-1"><strong>Max Stopping Time t(n) in Range:</strong> ${overallMaxStoppingTime_t.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Max Coefficient Stopping Time &tau;(n) in Range:</strong> ${overallMaxCoefficientStoppingTime_tau.toLocaleString()}</p>
-                    <p class="mb-1"><strong>Total Paradoxical Occurrences Across All Sequences:</strong> ${overallTotalParadoxicalOccurrences.toLocaleString()}</p>
+            runsHistory.innerHTML = ''; // Clear previous history
+            if (history.length === 0) {
+                historyContainer.classList.add('hidden'); // Hide if no history
+                return;
+            } else {
+                historyContainer.classList.remove('hidden'); // Show if there is history
+            }
+
+            history.forEach((run, index) => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-3 last:mb-0 border border-blue-600 transition duration-200 ease-in-out hover:bg-opacity-50';
+
+                // Format timestamp
+                const date = new Date(run.timestamp);
+                const formattedDate = date.toLocaleString('en-US', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit',
+                    hour12: true
+                });
+
+                historyItem.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-bold text-blue-100 text-lg">N: ${run.startN.toLocaleString()} | X: ${run.xVal}, Y: ${run.yVal}, Z: ${run.zVal}</p>
+                            <p class="text-blue-200 text-sm">Type: ${run.type}</p>
+                            <p class="text-blue-200 text-sm">Steps: ${run.steps.toLocaleString()}</p>
+                            ${run.converges_to_1 ? '<p class="text-blue-200 text-sm">Converges to 1: Yes</p>' : '<p class="text-blue-200 text-sm">Converges to 1: No</p>'}
+                            <p class="text-blue-300 text-xs mt-1">${formattedDate}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <button class="text-white hover:text-red-300 transition-colors duration-200 remove-history-item" data-index="${index}">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 mt-2">
+                        <button class="px-3 py-1 bg-blue-700 hover:bg-blue-600 rounded text-xs font-semibold view-history-item"
+                                data-startN="${run.startN}" data-x="${run.xVal}" data-y="${run.yVal}" data-z="${run.zVal}">
+                            View
+                        </button>
+                        ${run.converges_to_1 ? `<button class="px-3 py-1 bg-yellow-600 hover:bg-yellow-500 rounded text-xs font-semibold copy-share-link"
+                                data-startN="${run.startN}" data-x="${run.xVal}" data-y="${run.yVal}" data-z="${run.zVal}">
+                            Share
+                        </button>` : ''}
+                    </div>
                 `;
-            }, 50); // Small delay to let the "Generating..." message show
+                runsHistory.prepend(historyItem); // Add new items to the top
+            });
+
+            // Add event listeners for new buttons
+            document.querySelectorAll('.remove-history-item').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const indexToRemove = parseInt(event.currentTarget.dataset.index);
+                    removeHistoryItem(indexToRemove);
+                });
+            });
+
+            document.querySelectorAll('.view-history-item').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const { startN, x, y, z } = event.currentTarget.dataset;
+                    document.getElementById('startNumber').value = startN;
+                    document.getElementById('xValue').value = x;
+                    document.getElementById('yValue').value = y;
+                    document.getElementById('zValue').value = z;
+                    document.getElementById('calculateSingle').click(); // Trigger calculation
+                    showMessage("Loaded from history!");
+                });
+            });
+
+            document.querySelectorAll('.copy-share-link').forEach(button => {
+                button.addEventListener('click', (event) => {
+                    const { startN, x, y, z } = event.currentTarget.dataset;
+                    const baseUrl = window.location.origin + window.location.pathname;
+                    const shareUrl = `${baseUrl}?n=${startN}&x=${x}&y=${y}&z=${z}`;
+
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = shareUrl;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    showMessage("Share link copied to clipboard!");
+                });
+            });
+        }
+
+        function addRunToHistory(runData) {
+            let history = JSON.parse(localStorage.getItem('collatzHistory')) || [];
+            // Add timestamp
+            runData.timestamp = new Date().toISOString();
+            history.push(runData);
+            // Limit history to last 20 runs
+            if (history.length > 20) {
+                history = history.slice(history.length - 20);
+            }
+            localStorage.setItem('collatzHistory', JSON.stringify(history));
+            renderHistory(); // Re-render history after adding
+        }
+
+        function removeHistoryItem(indexToRemove) {
+            let history = JSON.parse(localStorage.getItem('collatzHistory')) || [];
+            // Remove item by filtering out the one at the specified index
+            history = history.filter((_, index) => index !== indexToRemove);
+            localStorage.setItem('collatzHistory', JSON.stringify(history));
+            renderHistory(); // Re-render history after removal
+            showMessage("History item removed!");
         }
 
 
-        // Event listeners for DOM content loaded
+        // Universal message display function
+        let messageTimeout;
+        function showMessage(message, isError = false) {
+            const errorMessageDiv = document.getElementById('errorMessage');
+            errorMessageDiv.textContent = message;
+            if (isError) {
+                errorMessageDiv.classList.remove('text-green-400');
+                errorMessageDiv.classList.add('text-red-400');
+            } else {
+                errorMessageDiv.classList.remove('text-red-400');
+                errorMessageDiv.classList.add('text-green-400');
+            }
+            errorMessageDiv.classList.remove('hidden');
+
+            clearTimeout(messageTimeout); // Clear any existing timeout
+            messageTimeout = setTimeout(() => {
+                errorMessageDiv.classList.add('hidden');
+                errorMessageDiv.textContent = ''; // Clear message
+            }, 5000); // Message disappears after 5 seconds
+        }
+
+        function updateGoldStarVisibility() {
+            const xVal = parseInt(document.getElementById('xValue').value);
+            const yVal = parseInt(document.getElementById('yValue').value);
+            const zVal = parseInt(document.getElementById('zValue').value);
+
+            document.getElementById('x-star').style.display = (xVal === 2) ? 'inline-block' : 'none';
+            document.getElementById('y-star').style.display = (yVal === 3) ? 'inline-block' : 'none';
+            document.getElementById('z-star').style.display = (zVal === 1) ? 'inline-block' : 'none';
+        }
+
+
+        // Event Listeners for single sequence calculation
         document.addEventListener('DOMContentLoaded', () => {
             canvas = document.getElementById('singleNineNetCanvas');
-            if (canvas) {
-                ctx = canvas.getContext('2d');
-                // Initial setup for drag and zoom
-                canvas.addEventListener('mousedown', (e) => {
-                    isDragging = true;
-                    lastX = e.clientX;
-                    lastY = e.clientY;
-                    canvas.style.cursor = 'grabbing';
-                });
+            ctx = canvas.getContext('2d');
+            centerX = canvas.offsetWidth / 2;
+            centerY = canvas.offsetHeight / 2;
+            nodeRadius = DEFAULT_NODE_RADIUS;
 
-                canvas.addEventListener('mousemove', (e) => {
-                    if (isDragging) {
-                        const dx = e.clientX - lastX;
-                        const dy = e.clientY - lastY;
-                        translateX += dx;
-                        translateY += dy;
-                        lastX = e.clientX;
-                        lastY = e.clientY;
-                        if (currentSequenceData) {
-                            render9Net(currentSequenceData); // Re-render with new translation
-                        }
-                    }
-                });
-
-                canvas.addEventListener('mouseup', () => {
-                    isDragging = false;
-                    canvas.style.cursor = 'grab';
-                });
-
-                canvas.addEventListener('mouseout', () => {
-                    isDragging = false; // Stop dragging if mouse leaves canvas
-                    canvas.style.cursor = 'grab';
-                });
-
-                canvas.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const scaleAmount = 1.1;
-                    const mouseX = e.clientX - canvas.getBoundingClientRect().left;
-                    const mouseY = e.clientY - canvas.getBoundingClientRect().top;
-
-                    const worldX = (mouseX - (centerX + translateX)) / scale;
-                    const worldY = (mouseY - (centerY + translateY)) / scale;
-
-                    if (e.deltaY < 0) {
-                        scale *= scaleAmount;
-                    } else {
-                        scale /= scaleAmount;
-                    }
-
-                    scale = Math.max(0.1, Math.min(scale, 10)); // Keep scale within reasonable limits
-
-                    translateX = -worldX * scale + mouseX - centerX;
-                    translateY = -worldY * scale + mouseY - centerY;
-
-                    if (currentSequenceData) {
-                        render9Net(currentSequenceData); // Re-render with new scale and translation
-                    }
-                });
-            }
-
-            // Single Calculator button click
-            const singleCalculateButton = document.getElementById('calculateSingle');
-            if (singleCalculateButton) {
-                singleCalculateButton.addEventListener('click', () => {
-                    const startN = parseInt(document.getElementById('startNumber').value);
-                    const maxIterationsSingle = 1000; // Fixed max iterations for single calculation for now
-
-                    const xValue = parseInt(document.getElementById('xValue').value);
-                    const yValue = parseInt(document.getElementById('yValue').value);
-                    const zValue = parseInt(document.getElementById('zValue').value);
-
-                    const errorMessageDiv = document.getElementById('errorMessage');
-                    errorMessageDiv.textContent = ''; // Clear previous errors
-
-                    if (isNaN(startN) || startN <= 0) {
-                        errorMessageDiv.textContent = 'Please enter a valid positive integer for Starting Number.';
-                        return;
-                    }
-                    if (isNaN(xValue) || xValue === 0 || isNaN(yValue) || isNaN(zValue)) {
-                        errorMessageDiv.textContent = 'Please enter valid integers for X, Y, Z. X cannot be zero.';
-                        return;
-                    }
-
-
-                    currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
-                    displaySequenceStats(currentSequenceData);
-                    render9Net(currentSequenceData);
-                });
-            }
-
-            // Bulk Calculator button click
-            const bulkGenerateButton = document.getElementById('generateBulk');
-            if (bulkGenerateButton) {
-                bulkGenerateButton.addEventListener('click', () => {
-                    // N value for bulk is taken from the single calculator's 'startNumber'
-                    const startN_fixed = parseInt(document.getElementById('startNumber').value);
-
-                    const xStart = parseInt(document.getElementById('xStart').value);
-                    const xEnd = parseInt(document.getElementById('xEnd').value);
-                    const yStart = parseInt(document.getElementById('yStart').value);
-                    const yEnd = parseInt(document.getElementById('yEnd').value);
-                    const zStart = parseInt(document.getElementById('zStart').value);
-                    const zEnd = parseInt(document.getElementById('zEnd').value);
-
-                    const maxIterationsBulk = 5000; // Fixed max iterations for bulk calculation for now
-
-                    const errorMessageDiv = document.getElementById('errorMessage');
-                    errorMessageDiv.textContent = ''; // Clear previous errors
-
-                    // Validate N and ranges
-                    if (isNaN(startN_fixed) || startN_fixed <= 0) {
-                        errorMessageDiv.textContent = 'Please enter a valid positive integer for Starting Number (N) for bulk calculations.';
-                        return;
-                    }
-                    if (isNaN(xStart) || xStart <= 0 || isNaN(xEnd) || xEnd <= 0 || xEnd < xStart ||
-                        isNaN(yStart) || isNaN(yEnd) || yEnd < yStart ||
-                        isNaN(zStart) || isNaN(zEnd) || zEnd < zStart) {
-                        errorMessageDiv.textContent = 'Please enter valid positive integers for all X, Y, Z range inputs, ensuring end values are not less than start values and X values are not zero.';
-                        return;
-                    }
-
-                    displayBulkUniverseStats(startN_fixed, maxIterationsBulk, xStart, xEnd, yStart, yEnd, zStart, zEnd);
-                });
-            }
-
-            // Color picker event listeners
+            // Initialize color pickers
             const divColorPicker = document.getElementById('divColorPicker');
-            if (divColorPicker) {
-                divColorPicker.addEventListener('input', (e) => {
-                    DEFAULT_LINE_COLOR = e.target.value;
-                    if (currentSequenceData) render9Net(currentSequenceData);
-                });
-            }
-
             const mulColorPicker = document.getElementById('mulColorPicker');
-            if (mulColorPicker) {
-                mulColorPicker.addEventListener('input', (e) => {
-                    DEFAULT_NODE_COLOR = e.target.value;
-                    if (currentSequenceData) render9Net(currentSequenceData);
-                });
-            }
 
-            // --- New JavaScript for Visualization Selection ---
-            const launchVisualizationButton = document.getElementById('launchVisualization');
-            if (launchVisualizationButton) {
-                launchVisualizationButton.addEventListener('click', () => {
-                    const selectedRadio = document.querySelector('input[name="visualization"]:checked');
-                    if (selectedRadio) {
-                        const selectedUrl = selectedRadio.value;
-                        window.open(selectedUrl, '_self'); // Navigate to the selected URL
-                    } else {
-                        // Optionally show an alert if no visualization is selected
-                        alert('Please select a visualization tool to launch.');
+            // Set initial values for global colors
+            DEFAULT_LINE_COLOR = divColorPicker.value;
+            DEFAULT_NODE_COLOR = mulColorPicker.value;
+
+            divColorPicker.addEventListener('input', (event) => {
+                DEFAULT_LINE_COLOR = event.target.value;
+                if (currentSequenceData) {
+                    render9Net(currentSequenceData); // Re-render with new color
+                }
+            });
+
+            mulColorPicker.addEventListener('input', (event) => {
+                DEFAULT_NODE_COLOR = event.target.value;
+                if (currentSequenceData) {
+                    render9Net(currentSequenceData); // Re-render with new color
+                }
+            });
+
+            document.getElementById('calculateSingle').addEventListener('click', () => {
+                const startN = parseInt(document.getElementById('startNumber').value);
+                const xVal = parseInt(document.getElementById('xValue').value);
+                const yVal = parseInt(document.getElementById('yValue').value);
+                const zVal = parseInt(document.getElementById('zValue').value);
+                const maxSteps = 10000; // Define max iterations for a single sequence
+
+                if (isNaN(startN) || isNaN(xVal) || isNaN(yVal) || isNaN(zVal)) {
+                    showMessage("Please enter valid numbers for all parameters.", true);
+                    return;
+                }
+                if (xVal === 0) {
+                    showMessage("X (Divisor) cannot be zero. Please enter a non-zero value.", true);
+                    return;
+                }
+
+                currentSequenceData = calculateCollatzSequence(startN, maxSteps, xVal, yVal, zVal);
+                render9Net(currentSequenceData);
+                displaySequenceStats(currentSequenceData);
+                addRunToHistory({
+                    startN: startN, xVal: xVal, yVal: yVal, zVal: zVal,
+                    steps: currentSequenceData.steps, type: currentSequenceData.type,
+                    converges_to_1: currentSequenceData.converges_to_1
+                }); // Add to history
+
+                if (currentSequenceData.type !== "Converges to 1") {
+                    showMessage(`Sequence Result: ${currentSequenceData.type}`, true);
+                } else {
+                    showMessage("Calculation complete. Sequence converged to 1!", false);
+                }
+            });
+
+            document.getElementById('generateBulk').addEventListener('click', () => {
+                const startN_fixed = parseInt(document.getElementById('startNumber').value); // Fixed N for bulk
+                const xStart = parseInt(document.getElementById('xStart').value);
+                const xEnd = parseInt(document.getElementById('xEnd').value);
+                const yStart = parseInt(document.getElementById('yStart').value);
+                const yEnd = parseInt(document.getElementById('yEnd').value);
+                const zStart = parseInt(document.getElementById('zStart').value);
+                const zEnd = parseInt(document.getElementById('zEnd').value);
+                const maxSteps = 1000; // Max iterations for bulk calculation
+
+                if (isNaN(xStart) || isNaN(xEnd) || isNaN(yStart) || isNaN(yEnd) || isNaN(zStart) || isNaN(zEnd)) {
+                    showMessage("Please enter valid numbers for all bulk parameters.", true);
+                    return;
+                }
+                if (xStart > xEnd || yStart > yEnd || zStart > zEnd) {
+                    showMessage("Start values cannot be greater than end values in bulk generation.", true);
+                    return;
+                }
+
+                // Warn about large calculations
+                const numX = xEnd - xStart + 1;
+                const numY = yEnd - yStart + 1;
+                const numZ = zEnd - zStart + 1;
+                const totalCalculations = numX * numY * numZ;
+                if (totalCalculations > 1000) { // Arbitrary threshold
+                    if (!confirm(`You are about to perform ${totalCalculations.toLocaleString()} calculations. This might take a while and could freeze your browser. Continue?`)) {
+                        return;
                     }
-                });
-            }
-            // --- End New JavaScript ---
+                }
 
-            // Initial state: Clear canvas and hide stats
-            if (ctx) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.font = '20px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#888';
-                ctx.fillText('Enter a number and click "Calculate Single"', canvas.width / 2 / dpi, canvas.height / 2 / dpi);
+                displayBulkUniverseStats(startN_fixed, maxSteps, xStart, xEnd, yStart, yEnd, zStart, zEnd);
+                showMessage("Bulk universe generation complete!");
+            });
+
+            // Event listener for visualization tool selection
+            document.getElementById('launchVisualization').addEventListener('click', () => {
+                const selectedRadio = document.querySelector('input[name="visualization"]:checked');
+                if (selectedRadio) {
+                    const selectedTool = selectedRadio.value;
+                    if (selectedTool === 'index.html') {
+                        // Already on index.html, maybe just scroll to top or refresh relevant section
+                        showMessage("You are already on the Main Hub. Use the calculator above!", false);
+                        return;
+                    }
+                    window.location.href = selectedTool;
+                } else {
+                    showMessage("Please select a visualization tool.", true);
+                }
+            });
+
+            // Update gold star visibility on input change
+            document.getElementById('xValue').addEventListener('input', updateGoldStarVisibility);
+            document.getElementById('yValue').addEventListener('input', updateGoldStarVisibility);
+            document.getElementById('zValue').addEventListener('input', updateGoldStarVisibility);
+
+            // Initial call to set gold star visibility on page load
+            updateGoldStarVisibility();
+
+            // Load and render history on page load
+            renderHistory();
+
+            // Check for URL parameters to pre-fill and calculate
+            const urlParams = new URLSearchParams(window.location.search);
+            const nParam = urlParams.get('n');
+            const xParam = urlParams.get('x');
+            const yParam = urlParams.get('y');
+            const zParam = urlParams.get('z');
+
+            const startNumberInput = document.getElementById('startNumber');
+            const xValueInput = document.getElementById('xValue');
+            const yValueInput = document.getElementById('yValue');
+            const zValueInput = document.getElementById('zValue');
+            const calculateSingleButton = document.getElementById('calculateSingle');
+            const singleNineNetCanvas = document.getElementById('singleNineNetCanvas');
+
+            if (nParam && xParam && yParam && zParam && startNumberInput && xValueInput && yValueInput && zValueInput && calculateSingleButton) {
+                startNumberInput.value = nParam;
+                xValueInput.value = xParam;
+                yValueInput.value = yParam;
+                zValueInput.value = zParam;
+                
+                // Automatically trigger the single calculation
+                calculateSingleButton.click();
+            } else if (singleNineNetCanvas && startNumberInput && xValueInput && yValueInput && zValueInput) {
+                // If no parameters, perform initial draw with default values
+                const defaultN = parseInt(startNumberInput.value);
+                const defaultX = parseInt(xValueInput.value);
+                const defaultY = parseInt(yValueInput.value);
+                const defaultZ = parseInt(zValueInput.value);
+                const maxSteps = 10000;
+                const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
+                if (defaultResult.type !== "error") {
+                    render9Net(defaultResult); // Use render9Net with the result object
+                    currentSequenceData = defaultResult; // Store for color changes
+                }
             }
-            // Ensure stats divs are hidden on initial load
-            document.getElementById('singleSequenceStats').classList.add('hidden');
-            document.getElementById('bulkSequenceStats').classList.add('hidden');
-            document.getElementById('historyContainer').classList.add('hidden'); // History is not yet implemented in JS
+
+            renderHistory(); // Ensure history container visibility is correctly set on load
+            updateGoldStarVisibility(); // Initial call to set gold star visibility on page load
         });
     </script>
 </body>
