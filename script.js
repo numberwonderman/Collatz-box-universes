@@ -571,6 +571,37 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- START New Mode Switching Code ---
+    // Get references to the mode radio buttons and calculator sections
+    const modeSingle = document.getElementById('modeSingle');
+    const modeBulk = document.getElementById('modeBulk');
+    const singleSection = document.getElementById('singleCalculatorSection');
+    const bulkSection = document.getElementById('bulkCalculatorSection');
+
+    // Function to update section visibility
+    function updateCalculatorMode() {
+        if (modeSingle.checked) {
+            singleSection.classList.remove('hidden');
+            bulkSection.classList.add('hidden');
+        } else { // modeBulk.checked
+            singleSection.classList.add('hidden');
+            bulkSection.classList.remove('hidden');
+        }
+        // Optionally hide stats when switching modes to prevent confusion
+        document.getElementById('singleSequenceStats').classList.add('hidden');
+        document.getElementById('singleNineNetCanvas').classList.add('hidden'); // Also hide the canvas for bulk view
+        document.getElementById('bulkSequenceStats').classList.add('hidden');
+    }
+
+    // Set initial visibility on page load
+    updateCalculatorMode();
+
+    // Add event listeners to the radio buttons
+    modeSingle.addEventListener('change', updateCalculatorMode);
+    modeBulk.addEventListener('change', updateCalculatorMode);
+    // --- END New Mode Switching Code ---
+
+
     // Single Calculator button click
     const singleCalculateButton = document.getElementById('calculateSingle');
     if (singleCalculateButton) {
