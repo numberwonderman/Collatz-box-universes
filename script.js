@@ -685,19 +685,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- New JavaScript for Visualization Selection ---
+  // --- In your script.js file (ensure this is within a DOMContentLoaded listener) ---
+
+document.addEventListener('DOMContentLoaded', () => {
+    // ... (other initialization code and event listeners in your script.js) ...
+
     const launchVisualizationButton = document.getElementById('launchVisualization');
     if (launchVisualizationButton) {
         launchVisualizationButton.addEventListener('click', () => {
             const selectedRadio = document.querySelector('input[name="visualization"]:checked');
             if (selectedRadio) {
-                const selectedUrl = selectedRadio.value;
-                window.open(selectedUrl, '_self'); // Navigate to the selected URL
+                let selectedUrl = selectedRadio.value; // Get the base filename (e.g., 'box-universe-viewer.html')
+
+                // Get the current N, X, Y, Z values from the input fields
+                // Ensure these input fields exist and are accessible when this code runs
+                const startN = document.getElementById('startNumber').value;
+                const xValue = document.getElementById('xValue').value;
+                const yValue = document.getElementById('yValue').value;
+                const zValue = document.getElementById('zValue').value;
+
+                // Construct the query parameters string
+                const params = new URLSearchParams();
+                params.append('n', startN);
+                params.append('x', xValue);
+                params.append('y', yValue);
+                params.append('z', zValue);
+
+                // Append the query parameters to the URL
+                selectedUrl += '?' + params.toString();
+
+                // Navigate to the selected URL with parameters
+                window.open(selectedUrl, '_self');
             } else {
-                // Optionally show an alert if no visualization is selected
                 alert('Please select a visualization tool to launch.');
             }
         });
     }
+
+    // ... (rest of your script.js code) ...
+});
     // --- End New JavaScript ---
 
     // Initial state: Clear canvas and hide stats
