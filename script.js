@@ -653,6 +653,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- New JavaScript for Visualization Selection ---
+    const launchVisualizationButton = document.getElementById('launchVisualization');
+    if (launchVisualizationButton) {
+        launchVisualizationButton.addEventListener('click', () => {
+            const selectedRadio = document.querySelector('input[name="visualization"]:checked');
+            if (selectedRadio) {
+                const selectedUrl = selectedRadio.value;
+                window.open(selectedUrl, '_self'); // Navigate to the selected URL
+            } else {
+                // Optionally show an alert if no visualization is selected
+                alert('Please select a visualization tool to launch.');
+            }
+        });
+    }
+    // --- End New JavaScript ---
+
     // Initial state: Clear canvas and hide stats
     if (ctx) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
