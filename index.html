@@ -129,29 +129,50 @@
             </div>
         </div>
 
-        <div class="text-center mt-10">
-            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Visualization Tools</h2>
-            <div class="flex flex-wrap justify-center gap-4">
-                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
-                    <input type="radio" id="visRadial" name="visualization" value="radial.html" checked class="mr-2">
-                    <label for="visRadial" class="text-white">Radial Visualization</label>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
-                    <input type="radio" id="vis2DGrid" name="visualization" value="2d_grid.html" class="mr-2">
-                    <label for="vis2DGrid" class="text-white">2D Grid/Slicing</label>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
-                    <input type="radio" id="visBox" name="visualization" value="box.html" class="mr-2">
-                    <label for="visBox" class="text-white">3D Box Model</label>
-                </div>
-                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
-                    <input type="radio" id="visNetwork" name="visualization" value="network.html" class="mr-2">
-                    <label for="visNetwork" class="text-white">Network Graph</label>
-                </div>
-                <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
-                    Launch Selected Visualization
-                </button>
+    <div class="mt-8">
+            <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-6">Select Visualization Tool:</h2>
+            <div class="grid grid-cols-1 gap-4 mb-6">
+                <label class="radio-option">
+                    <!-- Your main page is the default "radial" view -->
+                    <input type="radio" name="visualization" value="index.html" checked>
+                    <i class="fas fa-home"></i>
+                    <span>Main Hub (OG 9-Net / Radial View)</span>
+                </label>
+                <label class="radio-option">
+                    <!-- Corrected to match your existing file -->
+                    <input type="radio" name="visualization" value="box-universe-viewer.html">
+                    <i class="fas fa-cubes"></i>
+                    <span>Box Universe Viewer</span>
+                </label>
+                <label class="radio-option">
+                    <!-- Corrected to match your existing file -->
+                    <input type="radio" name="visualization" value="slicer.html">
+                    <i class="fas fa-expand-alt"></i>
+                    <span>2D Pseudo-3D Slicer</span>
+                </label>
+                <label class="radio-option">
+                    <!-- Corrected to match your existing file -->
+                    <input type="radio" name="visualization" value="box-universe-fps.html">
+                    <i class="fas fa-vr-cardboard"></i>
+                    <span>Box Universe FPS (3D Slicer)</span>
+                </label>
+                <label class="radio-option">
+                    <!-- Corrected to match your existing file -->
+                    <input type="radio" name="visualization" value="collatz-dragon.html">
+                    <i class="fas fa-dragon"></i>
+                    <span>Collatz Dragon Explorer</span>
+                </label>
+                <label class="radio-option">
+                    <!-- Corrected to match your existing file -->
+                    <input type="radio" name="visualization" value="collatz-line-explorer.html">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Collatz Line Universe Explorer</span>
+                </label>
             </div>
+            <button id="launchVisualization"
+                class="w-full px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400">
+                Launch Selected Tool
+            </button>
         </div>
 
     </div>
