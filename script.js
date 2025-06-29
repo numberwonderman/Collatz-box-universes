@@ -684,18 +684,108 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- New JavaScript for Visualization Selection ---
-  // --- In your script.js file (ensure this is within a DOMContentLoaded listener) ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    // ... (other initialization code and event listeners in your script.js) ...
-
+   // --- New JavaScript for Visualization Selection ---
     const launchVisualizationButton = document.getElementById('launchVisualization');
     if (launchVisualizationButton) {
         launchVisualizationButton.addEventListener('click', () => {
             const selectedRadio = document.querySelector('input[name="visualization"]:checked');
             if (selectedRadio) {
                 let selectedUrl = selectedRadio.value; // Get the base filename (e.g., 'box-universe-viewer.html')
+
+                // Get the current N, X, Y, Z values from the input fields
+                // Ensure these input fields exist and are accessible when this code runs
+                const startN_str = document.getElementById('startNumber').value;
+                const xValue_str = document.getElementById('xValue').value;
+                const yValue_str = document.getElementById('yValue').value;
+                const zValue_str = document.getElementById('zValue').value;
+
+                // Robust parsing with defaults
+                const startN = startN_str ? parseInt(startN_str) : 7;
+                const xValue = xValue_str ? parseInt(xValue_str) : 2;
+                const yValue = yValue_str ? parseInt(yValue_str) : 3;
+                const zValue = zValue_str ? parseInt(zValue_str) : 1;
+
+                if (isNaN(startN) || isNaN(xValue) || isNaN(yValue) || isNaN(zValue)) {
+                    alert('Please enter valid numbers for N, X, Y, and Z.');
+                    return; // Stop the function execution
+                }
+
+                // Construct the query parameters string
+                const params = new URLSearchParams();
+                params.append('n', startN);
+                params.append('x', xValue);
+                params.append('y', yValue);
+                params.append('z', zValue);
+
+                // Append the query parameters to the URL
+                selectedUrl += '?' + params.toString();
+
+                // Navigate to the selected URL with parameters
+                window.open(selectedUrl, '_self'); // Use _self to open in the same tab, or _blank for new tab
+            } else {
+                alert('Please select a visualization tool to launch.');
+            }
+        });
+    }
+
+    // --- Initial load logic for single calculation (from your previous index.html code) ---
+    // This block ensures the 9-net is drawn on first load,
+    // potentially using URL parameters if the page was launched with them.
+    const startNumberInput = document.getElementById('startNumber');
+    const xValueInput = document.getElementById('xValue');
+    const yValueInput = document.getElementById('yValue');
+    const zValueInput = document.getElementById('zValue');
+    const calculateSingleButton = document.getElementById('calculateSingle');
+    const singleNineNetCanvasElement = document.getElementById('singleNineNetCanvas');
+
+    // Retrieve URL parameters on initial load of index.html itself (if it's a target page)
+    // This is useful if someone bookmarks or shares index.html with parameters.
+    function getQueryParams() {
+        const params = {};
+        window.location.search.substring(1).split('&').forEach(param => {
+            const parts = param.split('=');
+            if (parts.length === 2) {
+                params[parts[0]] = decodeURIComponent(parts[1]);
+            }
+        });
+        return params;
+    }
+
+    const queryParams = getQueryParams();
+    const nParam = queryParams.n;
+    const xParam = queryParams.x;
+    const yParam = queryParams.y;
+    const zParam = queryParams.z;
+
+    // If parameters are present in the URL, apply them and trigger calculation
+    if (nParam && xParam && yParam && zParam && startNumberInput && xValueInput && yValueInput && zValueInput && calculateSingleButton) {
+        startNumberInput.value = nParam;
+        xValueInput.value = xParam;
+        yValueInput.value = yParam;
+        zValueInput.value = zParam;
+
+        // Automatically trigger the single calculation
+        calculateSingleButton.click();
+    } else if (singleNineNetCanvasElement && startNumberInput && xValueInput && yValueInput && zValueInput) {
+        // If no URL parameters, perform initial draw with default values from input fields
+        const defaultN = parseInt(startNumberInput.value);
+        const defaultX = parseInt(xValueInput.value);
+        const defaultY = parseInt(yValueInput.value);
+        const defaultZ = parseInt(zValueInput.value);
+        const maxSteps = 10000;
+        const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
+        if (defaultResult.type !== "error") {
+            render9Net(defaultResult); // Use render9Net as it's the current radial style
+        }
+    }
+
+    // Call renderHistory and updateGoldStarVisibility if those functions exist
+    if (typeof renderHistory === 'function') {
+        renderHistory();
+    }
+    if (typeof updateGoldStarVisibility === 'function') { // Assuming this function exists elsewhere in script.js
+        updateGoldStarVisibility();
+    }
 
                 // Get the current N, X, Y, Z values from the input fields
                 // Ensure these input fields exist and are accessible when this code runs
