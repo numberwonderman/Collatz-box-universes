@@ -24,17 +24,18 @@ let isDragging = false;
 let lastX, lastY;
 let translateX = 0;
 let translateY = 0;
-let scale = 1; // ONLY declare 'scale' once
+let scale = 1;
 
 // Define dpi globally and once
 let dpi = window.devicePixelRatio || 1;
 
 // Stores the current sequence data for rendering
-let currentSequenceData = null; // ONLY declare 'currentSequenceData' once
+let currentSequenceData = null;
 
 // ==========================================================
 // End of Global Variable Declarations
 // ==========================================================
+
 // Function to render the Unfolded Box (9-Net)
 // This function was originally embedded in index.html
 function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, xVal, divColor, mulColor to accept 'data' object directly
@@ -135,6 +136,7 @@ function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, x
     }
     ctx.restore();
 }
+
 // Collatz function as per user's definition
 // Rule: If n % X == 0, then n -> n / X. Otherwise, n -> n * Y + Z.
 // Standard Collatz uses X=2, Y=3, Z=1
@@ -164,7 +166,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     // Handle trivial case where startN is 1 for standard Collatz, might not apply for generalized
     // But if startN is 1, and the rule eventually leads to 1, steps should be 0.
     if (startN === 1) {
-         return {
+        return {
             startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
             avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
             stoppingTime_t: 0, // It's already < initialN if initialN > 1
@@ -621,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             if (isNaN(xValue) || xValue === 0 || isNaN(yValue) || isNaN(zValue)) {
-                 errorMessageDiv.textContent = 'Please enter valid integers for X, Y, Z. X cannot be zero.';
+                errorMessageDiv.textContent = 'Please enter valid integers for X, Y, Z. X cannot be zero.';
                 return;
             }
 
@@ -684,7 +686,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-   // --- New JavaScript for Visualization Selection ---
+    // --- New JavaScript for Visualization Selection ---
     const launchVisualizationButton = document.getElementById('launchVisualization');
     if (launchVisualizationButton) {
         launchVisualizationButton.addEventListener('click', () => {
@@ -780,52 +782,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Call renderHistory and updateGoldStarVisibility if those functions exist
+    // These functions need to be defined somewhere in your script.js or included HTML
     if (typeof renderHistory === 'function') {
         renderHistory();
     }
-    if (typeof updateGoldStarVisibility === 'function') { // Assuming this function exists elsewhere in script.js
+    if (typeof updateGoldStarVisibility === 'function') {
         updateGoldStarVisibility();
     }
-
-                // Get the current N, X, Y, Z values from the input fields
-                // Ensure these input fields exist and are accessible when this code runs
-                const startN = document.getElementById('startNumber').value;
-                const xValue = document.getElementById('xValue').value;
-                const yValue = document.getElementById('yValue').value;
-                const zValue = document.getElementById('zValue').value;
-
-                // Construct the query parameters string
-                const params = new URLSearchParams();
-                params.append('n', startN);
-                params.append('x', xValue);
-                params.append('y', yValue);
-                params.append('z', zValue);
-
-                // Append the query parameters to the URL
-                selectedUrl += '?' + params.toString();
-
-                // Navigate to the selected URL with parameters
-                window.open(selectedUrl, '_self');
-            } else {
-                alert('Please select a visualization tool to launch.');
-            }
-        });
-    }
-
-    // ... (rest of your script.js code) ...
-});
-    // --- End New JavaScript ---
-
-    // Initial state: Clear canvas and hide stats
-    if (ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#888';
-        ctx.fillText('Enter a number and click "Calculate Single"', canvas.width / 2 / dpi, canvas.height / 2 / dpi);
-    }
-    // Ensure stats divs are hidden on initial load
-    document.getElementById('singleSequenceStats').classList.add('hidden');
-    document.getElementById('bulkSequenceStats').classList.add('hidden');
-    document.getElementById('historyContainer').classList.add('hidden'); // History is not yet implemented in JS
-});
+}); // CLOSING BRACE FOR THE MAIN DOMContentLoaded LISTENER
