@@ -37,8 +37,9 @@ let currentSequenceData = null;
 // ==========================================================
 
 // Function to render the Unfolded Box (9-Net)
-function drawNineNetCanvas(data) {
-    if (!canvas) {
+// This function was originally embedded in index.html
+function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, xVal, divColor, mulColor to accept 'data' object directly
+    if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
     }
@@ -69,6 +70,9 @@ function drawNineNetCanvas(data) {
     const totalHeight = canvas.offsetHeight / scale - (padding * 2);
 
     // Calculate faceSize based on the "unfolded box" layout
+    // The "unfolded box" is typically a 3x3 grid with one square missing from each corner and one in the middle, or a cross shape.
+    // Given NINE_NET_DRAW_WIDTH = 4 and NINE_NET_DRAW_HEIGHT = 3, this implies a 4x3 grid of sub-faces.
+    // The layout array below specifically defines the position of each of the 9 'faces' in this 4x3 grid.
     const faceSize = Math.min(
         (totalWidth - (NINE_NET_DRAW_WIDTH - 1) * padding) / (NINE_NET_DRAW_WIDTH * 3), // 3 cells per face
         (totalHeight - (NINE_NET_DRAW_HEIGHT - 1) * padding) / (NINE_NET_DRAW_HEIGHT * 3) // 3 cells per face
@@ -275,7 +279,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
 // Function to render the Radial 9-net
 function render9Net(data) {
     if (!canvas) {
-        canvas = document.getElementById('singleNineNetCanvas');
+        canvas = document.getElementById('singleNineNetCanvas'); // Use the correct ID from user's HTML
         ctx = canvas.getContext('2d');
     }
 
@@ -506,7 +510,6 @@ function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, ySt
                 <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
                 <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
                 <li>Reached Non-Positive Value: ${nonPositiveValueCount.toLocaleString()}</li>
-                <li>Invalid Parameters (X=0): ${invalidParamsCount.toLocaleString()}</li>
             </ul>
 
             <h4 class="font-semibold text-lg mt-4 mb-2">Paper-Specific Metrics:</h4>
@@ -540,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastX = e.clientX;
                 lastY = e.clientY;
                 if (currentSequenceData) {
-                   render9Net(currentSequenceData); // Change to call the radial view
+                    drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
                 }
             }
         });
@@ -807,7 +810,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
-          render9Net(defaultResult); // Change to call the radial view on initial load
+            drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
         }
     }
 
