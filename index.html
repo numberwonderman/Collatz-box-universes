@@ -6,6 +6,8 @@
     <title>Box Universe Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* Custom scrollbar for history div */
         .custom-scrollbar::-webkit-scrollbar {
@@ -129,37 +131,37 @@
             </div>
         </div>
 
-    <div class="text-center mt-10">
+        <div class="text-center mt-10">
             <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Visualization Tools</h2>
             <div class="flex flex-wrap justify-center gap-4">
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="index.html" checked class="mr-2">
-                    <i class="fas fa-home"></i> <!-- ICON RE-ADDED -->
-                    <span>Main Hub (OG 9-Net / Radial View)</span>
+                    <i class="fas fa-home"></i> <!-- ICON ADDED -->
+                    <span>Main Hub (OG 9-Net / Unfolded Box View)</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="box-universe-viewer.html" class="mr-2">
-                    <i class="fas fa-cubes"></i> <!-- ICON RE-ADDED -->
+                    <i class="fas fa-cubes"></i> <!-- ICON ADDED -->
                     <span>Box Universe Viewer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="slicer.html" class="mr-2">
-                    <i class="fas fa-expand-alt"></i> <!-- ICON RE-ADDED -->
+                    <i class="fas fa-expand-alt"></i> <!-- ICON ADDED -->
                     <span>2D Pseudo-3D Slicer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="box-universe-fps.html" class="mr-2">
-                    <i class="fas fa-vr-cardboard"></i> <!-- ICON RE-ADDED -->
+                    <i class="fas fa-vr-cardboard"></i> <!-- ICON ADDED -->
                     <span>Box Universe FPS (3D Slicer)</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="collatz-dragon.html" class="mr-2">
-                    <i class="fas fa-dragon"></i> <!-- ICON RE-ADDED -->
+                    <i class="fas fa-dragon"></i> <!-- ICON ADDED -->
                     <span>Collatz Dragon Explorer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="collatz-lines-explorer.html" class="mr-2">
-                    <i class="fas fa-chart-line"></i> <!-- ICON RE-ADDED -->
+                    <i class="fas fa-chart-line"></i> <!-- ICON ADDED -->
                     <span>Collatz Line Universe Explorer</span>
                 </label>
                 <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
@@ -168,7 +170,8 @@
             </div>
         </div>
 
-    <!-- This line tells the browser to load and run your JavaScript file -->
+    </div>
+
     <script src="script.js"></script> 
 </body>
 </html>
