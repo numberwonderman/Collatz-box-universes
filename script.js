@@ -40,6 +40,7 @@ let currentSequenceData = null;
 // This function was originally embedded in index.html
 // Function to render the Unfolded Box (9-Net)
 // Function to render the Unfolded Box (9-Net)
+// Function to render the Unfolded Box (9-Net)
 function drawNineNetCanvas(data) {
     if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
@@ -59,29 +60,14 @@ function drawNineNetCanvas(data) {
     ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
     ctx.save();
-    ctx.translate(centerX + translateX, centerY + translateY);
-    ctx.scale(scale, scale);
+    // Apply translation and scale BEFORE calculating layout, so it works on the "unscaled" canvas dimensions
+    // The current translateX, translateY, scale are for the *content* not the canvas itself.
+    // We need to calculate the layout relative to the canvas's current displayed size, then apply the user's drag/zoom.
 
     const sequence = data.sequence; // Access sequence from data object
     const xValue = data.xValue; // Get xValue from data object (needed for divisibility check)
 
-    // Define the conceptual grid for the unfolded cube: 4 columns wide, 3 rows high
-    // Each 'face' (remainder box) will be a single block within this grid.
-    const numLayoutCols = 4;
-    const numLayoutRows = 3;
     const paddingBetweenBoxes = 10; // Padding between the large remainder boxes
-
-    // Calculate the size of each individual "remainder box" (face)
-    // We need to fit these boxes into the available canvas space.
-    const availableWidth = canvas.offsetWidth / scale - (paddingBetweenBoxes * (numLayoutCols - 1));
-    const availableHeight = canvas.offsetHeight / scale - (paddingBetweenBoxes * (numLayoutRows - 1));
-
-    // The 'faceSize' here is the actual dimension of one of the 9 large remainder squares.
-    // Adjusted the divisor to make the boxes smaller and ensure they fit.
-    const faceSize = Math.min(
-        availableWidth / numLayoutCols,
-        availableHeight / numLayoutRows
-    ) * 0.8; // Reduced by 20% to give more room
 
     // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
     // These define the top-left corner (row, col) for each remainder's box.
@@ -97,24 +83,41 @@ function drawNineNetCanvas(data) {
         {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
     ];
 
-    // Calculate the total width and height occupied by the entire 9-net structure
-    // This is based on the maximum extent of the layout and the faceSize
-    const maxCol = Math.max(...layout.map(p => p.c));
-    const maxRow = Math.max(...layout.map(p => p.r));
+    // Determine the effective number of rows and columns based on the layout array's max indices
+    const maxLayoutColIndex = Math.max(...layout.map(p => p.c)); // max is 3
+    const maxLayoutRowIndex = Math.max(...layout.map(p => p.r)); // max is 2
 
-    const NINE_NET_TOTAL_DRAW_WIDTH = (maxCol + 1) * faceSize + (maxCol) * paddingBetweenBoxes;
-    const NINE_NET_TOTAL_DRAW_HEIGHT = (maxRow + 1) * faceSize + (maxRow) * paddingBetweenBoxes;
+    const effectiveLayoutCols = maxLayoutColIndex + 1; // 4 conceptual columns
+    const effectiveLayoutRows = maxLayoutRowIndex + 1; // 3 conceptual rows
 
-    // Center the overall 9-net drawing in the canvas
-    const offsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
-    const offsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
+    // Calculate faceSize such that the entire grid of faces plus padding fits within the canvas
+    // We use canvas.offsetWidth and canvas.offsetHeight as the available space
+    const potentialFaceSizeByWidth = (canvas.offsetWidth - (effectiveLayoutCols - 1) * paddingBetweenBoxes) / effectiveLayoutCols;
+    const potentialFaceSizeByHeight = (canvas.offsetHeight - (effectiveLayoutRows - 1) * paddingBetweenBoxes) / effectiveLayoutRows;
+
+    // Choose the smaller faceSize to ensure it fits both dimensions, and add a small buffer
+    const faceSize = Math.min(potentialFaceSizeByWidth, potentialFaceSizeByHeight) * 0.95; // 5% buffer
+
+    // Recalculate total drawing dimensions based on the new faceSize
+    const NINE_NET_TOTAL_DRAW_WIDTH = effectiveLayoutCols * faceSize + (effectiveLayoutCols - 1) * paddingBetweenBoxes;
+    const NINE_NET_TOTAL_DRAW_HEIGHT = effectiveLayoutRows * faceSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes;
+
+    // Center the overall 9-net drawing in the canvas's current view
+    // These offsets are for the *entire grid* relative to the canvas center (0,0 point after ctx.translate to centerX, centerY)
+    const initialOffsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
+    const initialOffsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
+
+    // Apply user's drag and zoom transformations
+    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.scale(scale, scale);
 
     // Store the drawing coordinates for each remainder box
     const remainderBoxCoords = {};
     for (let i = 0; i < layout.length; i++) {
         const pos = layout[i];
-        const boxX = offsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
-        const boxY = offsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
+        // Calculate box position relative to the initialOffsetX, initialOffsetY (which centers the whole grid)
+        const boxX = initialOffsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
+        const boxY = initialOffsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
         remainderBoxCoords[i] = { x: boxX, y: boxY, width: faceSize, height: faceSize };
 
         // Draw the empty box outline for each remainder
@@ -124,6 +127,38 @@ function drawNineNetCanvas(data) {
         ctx.lineWidth = 1;
         ctx.stroke();
     }
+
+    // Now, iterate through the sequence and draw numbers into their respective boxes
+    // For simplicity, we'll draw each number in the center of its box.
+    // If multiple numbers map to the same box, they will overlap, but we will see the last one.
+    // To see all, we'd need more complex text layout or smaller markers.
+    for (let i = 0; i < sequence.length; i++) {
+        const num = sequence[i];
+        const remainder = num % 9;
+
+        const box = remainderBoxCoords[remainder];
+        if (box) {
+            // Determine color based on divisibility
+            if (num % xValue === 0) {
+                ctx.fillStyle = DEFAULT_LINE_COLOR; // Blue for divisible
+            } else {
+                ctx.fillStyle = DEFAULT_NODE_COLOR; // Yellow for multiply/add
+            }
+            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box with the color
+
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(box.x, box.y, box.width, box.height); // Redraw border on top
+
+            ctx.fillStyle = '#000'; // Text color
+            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Adjust font size based on box size
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
+        }
+    }
+    ctx.restore();
+}
 
     // Now, iterate through the sequence and draw numbers into their respective boxes
     // For simplicity, we'll draw each number in the center of its box.
