@@ -540,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastX = e.clientX;
                 lastY = e.clientY;
                 if (currentSequenceData) {
-                    drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
+                   render9Net(currentSequenceData); // Change to call the radial view
                 }
             }
         });
@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
-            drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
+          render9Net(defaultResult); // Change to call the radial view on initial load
         }
     }
 
