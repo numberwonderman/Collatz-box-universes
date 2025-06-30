@@ -581,17 +581,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const bulkSection = document.getElementById('bulkCalculatorSection');
 
     // Function to update section visibility
+  // Function to update section visibility
     function updateCalculatorMode() {
+        const singleNineNetContainer = document.getElementById('singleNineNetContainer'); // Get the container div for the canvas
+
         if (modeSingle.checked) {
             singleSection.classList.remove('hidden');
             bulkSection.classList.add('hidden');
+            if (singleNineNetContainer) {
+                singleNineNetContainer.classList.remove('hidden'); // Ensure canvas container is visible in single mode
+            }
+            // Trigger initial calculation/render if in single mode and no sequence data exists
+            if (!currentSequenceData) {
+                const startN = parseInt(document.getElementById('startNumber').value);
+                const xValue = parseInt(document.getElementById('xValue').value);
+                const yValue = parseInt(document.getElementById('yValue').value);
+                const zValue = parseInt(document.getElementById('zValue').value);
+                const maxIterationsSingle = 1000;
+
+                // Only calculate and render if inputs are valid
+                if (!isNaN(startN) && startN > 0 && !isNaN(xValue) && xValue !== 0 && !isNaN(yValue) && !isNaN(zValue)) {
+                    currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
+                    render9Net(currentSequenceData);
+                }
+            } else {
+                render9Net(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
+            }
+
         } else { // modeBulk.checked
             singleSection.classList.add('hidden');
             bulkSection.classList.remove('hidden');
+            if (singleNineNetContainer) {
+                singleNineNetContainer.classList.add('hidden'); // Ensure canvas container is hidden in bulk mode
+            }
         }
         // Optionally hide stats when switching modes to prevent confusion
         document.getElementById('singleSequenceStats').classList.add('hidden');
-        document.getElementById('singleNineNetCanvas').classList.add('hidden'); // Also hide the canvas for bulk view
         document.getElementById('bulkSequenceStats').classList.add('hidden');
     }
 
