@@ -39,6 +39,7 @@ let currentSequenceData = null;
 // Function to render the Unfolded Box (9-Net)
 // This function was originally embedded in index.html
 // Function to render the Unfolded Box (9-Net)
+// Function to render the Unfolded Box (9-Net)
 function drawNineNetCanvas(data) {
     if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
@@ -76,10 +77,11 @@ function drawNineNetCanvas(data) {
     const availableHeight = canvas.offsetHeight / scale - (paddingBetweenBoxes * (numLayoutRows - 1));
 
     // The 'faceSize' here is the actual dimension of one of the 9 large remainder squares.
+    // Adjusted the divisor to make the boxes smaller and ensure they fit.
     const faceSize = Math.min(
         availableWidth / numLayoutCols,
         availableHeight / numLayoutRows
-    );
+    ) * 0.8; // Reduced by 20% to give more room
 
     // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
     // These define the top-left corner (row, col) for each remainder's box.
