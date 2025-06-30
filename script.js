@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastX = e.clientX;
                 lastY = e.clientY;
                 if (currentSequenceData) {
-                    drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
+                    render9Net(currentSequenceData); // Re-render with new translation (using radial view)
                 }
             }
         });
@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
             translateY = -worldY * scale + mouseY - centerY;
 
             if (currentSequenceData) {
-                drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
+                render9Net(currentSequenceData); // Re-render with new scale and translation (using radial view)
             }
         });
     }
@@ -605,7 +605,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // The initial load logic is handled by the DOMContentLoaded block below this function.
             // This function primarily handles mode switching.
             if (currentSequenceData) {
-                drawNineNetCanvas(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
+                render9Net(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
             } else {
                 // If no data yet, clear canvas and show initial message
                 if (ctx && canvas) {
@@ -622,6 +622,10 @@ document.addEventListener('DOMContentLoaded', () => {
             bulkSection.classList.remove('hidden');
             if (singleNineNetContainer) {
                 singleNineNetContainer.classList.add('hidden'); // Ensure canvas container is hidden in bulk mode
+            }
+            // Also clear the canvas when switching to bulk mode
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         }
         // Optionally hide stats when switching modes to prevent confusion
@@ -663,7 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
             displaySequenceStats(currentSequenceData);
-            drawNineNetCanvas(currentSequenceData); // Call unfolded box after calculation
+            render9Net(currentSequenceData); // Call radial view after calculation
         });
     }
 
@@ -707,7 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (divColorPicker) {
         divColorPicker.addEventListener('input', (e) => {
             DEFAULT_LINE_COLOR = e.target.value;
-            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            if (currentSequenceData) render9Net(currentSequenceData); // Update radial view color
         });
     }
 
@@ -715,7 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mulColorPicker) {
         mulColorPicker.addEventListener('input', (e) => {
             DEFAULT_NODE_COLOR = e.target.value;
-            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            if (currentSequenceData) render9Net(currentSequenceData); // Update radial view color
         });
     }
 
@@ -810,7 +814,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
-            drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
+            render9Net(defaultResult); // Use render9Net for radial view on initial load
         }
     }
 
