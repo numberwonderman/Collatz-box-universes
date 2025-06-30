@@ -129,53 +129,44 @@
             </div>
         </div>
 
-    <div class="mt-8">
-            <h2 class="text-2xl sm:text-3xl font-bold text-center text-white mb-6">Select Visualization Tool:</h2>
-            <div class="grid grid-cols-1 gap-4 mb-6">
+    <div class="text-center mt-10">
+            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Visualization Tools</h2>
+            <div class="flex flex-wrap justify-center gap-4">
                 <label class="radio-option">
-                    <!-- Your main page is the default "radial" view -->
-                    <input type="radio" name="visualization" value="index.html" checked>
+                    <input type="radio" name="visualization" value="index.html" checked class="mr-2">
                     <i class="fas fa-home"></i>
                     <span>Main Hub (OG 9-Net / Radial View)</span>
                 </label>
                 <label class="radio-option">
-                    <!-- Corrected to match your existing file -->
-                    <input type="radio" name="visualization" value="box-universe-viewer.html">
+                    <input type="radio" name="visualization" value="box-universe-viewer.html" class="mr-2">
                     <i class="fas fa-cubes"></i>
                     <span>Box Universe Viewer</span>
                 </label>
                 <label class="radio-option">
-                    <!-- Corrected to match your existing file -->
-                    <input type="radio" name="visualization" value="slicer.html">
+                    <input type="radio" name="visualization" value="slicer.html" class="mr-2">
                     <i class="fas fa-expand-alt"></i>
                     <span>2D Pseudo-3D Slicer</span>
                 </label>
                 <label class="radio-option">
-                    <!-- Corrected to match your existing file -->
-                    <input type="radio" name="visualization" value="box-universe-fps.html">
+                    <input type="radio" name="visualization" value="box-universe-fps.html" class="mr-2">
                     <i class="fas fa-vr-cardboard"></i>
                     <span>Box Universe FPS (3D Slicer)</span>
                 </label>
                 <label class="radio-option">
-                    <!-- Corrected to match your existing file -->
-                    <input type="radio" name="visualization" value="collatz-dragon.html">
+                    <input type="radio" name="visualization" value="collatz-dragon.html" class="mr-2">
                     <i class="fas fa-dragon"></i>
                     <span>Collatz Dragon Explorer</span>
                 </label>
                 <label class="radio-option">
-                    <!-- Corrected to match your existing file -->
-                    <input type="radio" name="visualization" value="collatz-line-explorer.html">
+                    <input type="radio" name="visualization" value="collatz-lines-explorer.html" class="mr-2"> <!-- THIS ONE IS NOW ABSOLUTELY CORRECT -->
                     <i class="fas fa-chart-line"></i>
                     <span>Collatz Line Universe Explorer</span>
                 </label>
+                <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
+                    Launch Selected Visualization
+                </button>
             </div>
-            <button id="launchVisualization"
-                class="w-full px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400">
-                Launch Selected Tool
-            </button>
         </div>
-
-    </div>
 
     <!-- This line tells the browser to load and run your JavaScript file -->
     <script src="script.js"></script> 
