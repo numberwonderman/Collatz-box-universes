@@ -37,9 +37,8 @@ let currentSequenceData = null;
 // ==========================================================
 
 // Function to render the Unfolded Box (9-Net)
-// This function was originally embedded in index.html
-function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, xVal, divColor, mulColor to accept 'data' object directly
-    if (!canvas) { // Ensure canvas and ctx are initialized
+function drawNineNetCanvas(data) {
+    if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
     }
@@ -70,9 +69,6 @@ function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, x
     const totalHeight = canvas.offsetHeight / scale - (padding * 2);
 
     // Calculate faceSize based on the "unfolded box" layout
-    // The "unfolded box" is typically a 3x3 grid with one square missing from each corner and one in the middle, or a cross shape.
-    // Given NINE_NET_DRAW_WIDTH = 4 and NINE_NET_DRAW_HEIGHT = 3, this implies a 4x3 grid of sub-faces.
-    // The layout array below specifically defines the position of each of the 9 'faces' in this 4x3 grid.
     const faceSize = Math.min(
         (totalWidth - (NINE_NET_DRAW_WIDTH - 1) * padding) / (NINE_NET_DRAW_WIDTH * 3), // 3 cells per face
         (totalHeight - (NINE_NET_DRAW_HEIGHT - 1) * padding) / (NINE_NET_DRAW_HEIGHT * 3) // 3 cells per face
@@ -264,10 +260,10 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the 9-net
+// Function to render the Radial 9-net
 function render9Net(data) {
     if (!canvas) {
-        canvas = document.getElementById('singleNineNetCanvas'); // Use the correct ID from user's HTML
+        canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
     }
 
@@ -532,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastX = e.clientX;
                 lastY = e.clientY;
                 if (currentSequenceData) {
-                   drawNineNetCanvas(currentSequenceData); // Re-render with new translation
+                    drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
                 }
             }
         });
@@ -568,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
             translateY = -worldY * scale + mouseY - centerY;
 
             if (currentSequenceData) {
-                render9Net(currentSequenceData); // Re-render with new scale and translation
+                drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
             }
         });
     }
@@ -581,7 +577,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const bulkSection = document.getElementById('bulkCalculatorSection');
 
     // Function to update section visibility
-  // Function to update section visibility
     function updateCalculatorMode() {
         const singleNineNetContainer = document.getElementById('singleNineNetContainer'); // Get the container div for the canvas
 
@@ -602,10 +597,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Only calculate and render if inputs are valid
                 if (!isNaN(startN) && startN > 0 && !isNaN(xValue) && xValue !== 0 && !isNaN(yValue) && !isNaN(zValue)) {
                     currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
-                    render9Net(currentSequenceData);
+                    drawNineNetCanvas(currentSequenceData); // Call unfolded box on initial load/mode switch
                 }
             } else {
-                render9Net(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
+                drawNineNetCanvas(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
             }
 
         } else { // modeBulk.checked
@@ -652,10 +647,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-
             currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
             displaySequenceStats(currentSequenceData);
-            render9Net(currentSequenceData);
+            drawNineNetCanvas(currentSequenceData); // Call unfolded box after calculation
         });
     }
 
@@ -699,7 +693,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (divColorPicker) {
         divColorPicker.addEventListener('input', (e) => {
             DEFAULT_LINE_COLOR = e.target.value;
-            if (currentSequenceData) render9Net(currentSequenceData);
+            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
         });
     }
 
@@ -707,7 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mulColorPicker) {
         mulColorPicker.addEventListener('input', (e) => {
             DEFAULT_NODE_COLOR = e.target.value;
-            if (currentSequenceData) render9Net(currentSequenceData);
+            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
         });
     }
 
@@ -802,7 +796,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
-         drawNineNetCanvas(defaultResult); // Use render9Net as it's the current radial style
+            drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
         }
     }
 
