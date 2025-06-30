@@ -532,7 +532,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastX = e.clientX;
                 lastY = e.clientY;
                 if (currentSequenceData) {
-                    render9Net(currentSequenceData); // Re-render with new translation
+                   drawNineNetCanvas(currentSequenceData); // Re-render with new translation
                 }
             }
         });
@@ -802,7 +802,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
-            render9Net(defaultResult); // Use render9Net as it's the current radial style
+         drawNineNetCanvas(defaultResult); // Use render9Net as it's the current radial style
         }
     }
 
