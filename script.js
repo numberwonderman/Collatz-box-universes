@@ -296,7 +296,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the Radial 9-net
+// Function to render the Radial 9-net (This function is not used in index.html, but kept for completeness if needed elsewhere)
 function render9Net(data) {
     if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas'); // Use the correct ID from user's HTML
@@ -561,7 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 translateX += dx;
                 translateY += dy;
                 lastX = e.clientX;
-                lastY = e.clientY;
+                lastY = e.clientX; // Corrected: Should be e.clientY
                 if (currentSequenceData) {
                     drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
                 }
@@ -615,6 +615,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateCalculatorMode() {
         const singleNineNetContainer = document.getElementById('singleNineNetContainer'); // Get the container div for the canvas
 
+        // Ensure modeSingle and modeBulk elements exist before accessing their 'checked' property
+        if (!modeSingle || !modeBulk) {
+            console.error("Mode radio buttons (modeSingle or modeBulk) not found. Cannot update calculator mode visibility.");
+            return; // Exit function if elements are missing
+        }
+
         if (modeSingle.checked) {
             singleSection.classList.remove('hidden');
             bulkSection.classList.add('hidden');
@@ -649,16 +655,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         // Optionally hide stats when switching modes to prevent confusion
-        document.getElementById('singleSequenceStats').classList.add('hidden');
-        document.getElementById('bulkSequenceStats').classList.add('hidden');
+        const singleStats = document.getElementById('singleSequenceStats');
+        const bulkStats = document.getElementById('bulkSequenceStats');
+        if (singleStats) singleStats.classList.add('hidden');
+        if (bulkStats) bulkStats.classList.add('hidden');
     }
 
     // Set initial visibility on page load
     updateCalculatorMode();
 
     // Add event listeners to the radio buttons
-    modeSingle.addEventListener('change', updateCalculatorMode);
-    modeBulk.addEventListener('change', updateCalculatorMode);
+    if (modeSingle) modeSingle.addEventListener('change', updateCalculatorMode);
+    if (modeBulk) modeBulk.addEventListener('change', updateCalculatorMode);
     // --- END New Mode Switching Code ---
 
 
@@ -687,6 +695,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
             displaySequenceStats(currentSequenceData);
+            // Pass xValue to drawNineNetCanvas for correct color logic
+            currentSequenceData.xValue = xValue; // Add xValue to the data object for drawing
             drawNineNetCanvas(currentSequenceData); // Call unfolded box after calculation
         });
     }
@@ -731,7 +741,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (divColorPicker) {
         divColorPicker.addEventListener('input', (e) => {
             DEFAULT_LINE_COLOR = e.target.value;
-            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            if (currentSequenceData) {
+                // Ensure xValue is available for re-drawing
+                const xValue = parseInt(document.getElementById('xValue').value);
+                currentSequenceData.xValue = xValue; // Update xValue in currentSequenceData
+                drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            }
         });
     }
 
@@ -739,7 +754,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (mulColorPicker) {
         mulColorPicker.addEventListener('input', (e) => {
             DEFAULT_NODE_COLOR = e.target.value;
-            if (currentSequenceData) drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            if (currentSequenceData) {
+                // Ensure xValue is available for re-drawing
+                const xValue = parseInt(document.getElementById('xValue').value);
+                currentSequenceData.xValue = xValue; // Update xValue in currentSequenceData
+                drawNineNetCanvas(currentSequenceData); // Update unfolded box color
+            }
         });
     }
 
@@ -765,7 +785,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const zValue = zValue_str ? parseInt(zValue_str) : 1;
 
                 if (isNaN(startN) || isNaN(xValue) || isNaN(yValue) || isNaN(zValue)) {
-                    alert('Please enter valid numbers for N, X, Y, and Z.');
+                    // Use a custom message box instead of alert()
+                    const errorMessageDiv = document.getElementById('errorMessage');
+                    if (errorMessageDiv) {
+                        errorMessageDiv.textContent = 'Please enter valid numbers for N, X, Y, and Z.';
+                    } else {
+                        console.error('Please enter valid numbers for N, X, Y, and Z.');
+                    }
                     return; // Stop the function execution
                 }
 
@@ -782,7 +808,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Navigate to the selected URL with parameters
                 window.open(selectedUrl, '_self'); // Use _self to open in the same tab, or _blank for new tab
             } else {
-                alert('Please select a visualization tool to launch.');
+                const errorMessageDiv = document.getElementById('errorMessage');
+                if (errorMessageDiv) {
+                    errorMessageDiv.textContent = 'Please select a visualization tool to launch.';
+                } else {
+                    console.error('Please select a visualization tool to launch.');
+                }
             }
         });
     }
@@ -834,16 +865,169 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxSteps = 10000;
         const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
         if (defaultResult.type !== "error") {
+            // Store xValue in currentSequenceData for drawing
+            defaultResult.xValue = defaultX;
             drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
         }
     }
 
-    // Call renderHistory and updateGoldStarVisibility if those functions exist
-    // These functions need to be defined somewhere in your script.js or included HTML
-    if (typeof renderHistory === 'function') {
-        renderHistory();
+    // Global array to store runs for history (moved from inline script)
+    let calculatedRuns = [];
+
+    /**
+     * Helper function to validate a single number input.
+     * @param {string} value - The input string value.
+     * @param {string} name - The name of the input for error messages.
+     * @param {boolean} allowZero - Whether zero is a valid input.
+     * @returns {string|null} Error message if invalid, otherwise null.
+     */
+    const validateNumberInput = (value, name, allowZero = false) => {
+        const num = parseInt(value, 10);
+        if (isNaN(num) || (!allowZero && num === 0) || !Number.isInteger(num)) {
+            return `${name} must be a valid integer${allowZero ? '' : ' (non-zero)'}.`;
+        }
+        return null; // No error
+    };
+
+    /**
+     * Renders the calculated runs into the history display.
+     */
+    const renderHistory = () => {
+        const runsHistoryDiv = document.getElementById('runsHistory');
+        const historyContainer = document.getElementById('historyContainer');
+
+        if (!runsHistoryDiv || !historyContainer) {
+            console.error("History elements not found. Cannot render history.");
+            return;
+        }
+
+        runsHistoryDiv.innerHTML = ''; // Clear previous history
+
+        if (calculatedRuns.length === 0) {
+            historyContainer.classList.add('hidden');
+            return;
+        } else {
+            historyContainer.classList.remove('hidden');
+        }
+
+        // Iterate in reverse to show newest runs at the top
+        for (let i = calculatedRuns.length - 1; i >= 0; i--) {
+            const run = calculatedRuns[i];
+            const runDiv = document.createElement('div');
+            runDiv.className = 'bg-blue-800 bg-opacity-40 rounded-lg p-4 mb-4 border border-blue-600 last:mb-0';
+
+            const title = document.createElement('h3');
+            title.className = 'text-xl font-bold text-blue-200 mb-2';
+            title.textContent = `N=${run.startN}, X=${run.x_param}, Y=${run.y_param}, Z=${run.z_param}`; // Changed to run.n, run.x etc.
+            runDiv.appendChild(title);
+
+            const stepsInfo = document.createElement('p');
+            stepsInfo.className = 'text-blue-300 mb-2';
+            let typeText = run.type.replace(/_/g, ' ');
+
+            if (run.type === "Max Iterations Reached" || run.type === "Exceeded Max Safe Integer") {
+                typeText += ` - Ended at ${run.current.toLocaleString()}`; // Use finalNum and format
+            } else if (run.type === "Cycle Detected") {
+                typeText += ` - Cycle detected`; // Simpler for history view, full sequence below
+            }
+            stepsInfo.textContent = `Steps: ${run.steps} (Type: ${typeText})`;
+            runDiv.appendChild(stepsInfo);
+
+            // Add min/max info (from image reference)
+            const rangeInfo = document.createElement('p');
+            rangeInfo.className = 'text-blue-300 text-sm mb-2';
+            rangeInfo.textContent = `Range: ${run.minVal.toLocaleString()} to ${run.maxVal.toLocaleString()}`;
+            runDiv.appendChild(rangeInfo);
+
+            // Add sum info (from image reference)
+            const sumInfo = document.createElement('p');
+            sumInfo.className = 'text-blue-300 text-sm mb-2';
+            sumInfo.textContent = `Sum: ${typeof run.sumVal === 'number' ? run.sumVal.toLocaleString() : run.sumVal}`;
+            runDiv.appendChild(sumInfo);
+
+            // Add average info (from image reference)
+            const avgInfo = document.createElement('p');
+            avgInfo.className = 'text-blue-300 text-sm mb-2';
+            avgInfo.textContent = `Average: ${typeof run.avgVal === 'number' ? run.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : run.avgVal}`;
+            runDiv.appendChild(avgInfo);
+
+            // Add Standard Deviation info (from image reference)
+            const stdDevInfo = document.createElement('p');
+            stdDevInfo.className = 'text-blue-300 text-sm mb-2';
+            stdDevInfo.textContent = `Standard Deviation: ${typeof run.stdDev === 'number' ? run.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : run.stdDev}`;
+            runDiv.appendChild(stdDevInfo);
+
+            // Add Stopping Time (NEW)
+            const stoppingTimeInfo = document.createElement('p');
+            stoppingTimeInfo.className = 'text-blue-300 text-sm mb-2';
+            stoppingTimeInfo.textContent = `Stopping Time: ${run.stoppingTime_t === 'N/A' ? 'N/A' : run.stoppingTime_t}`;
+            runDiv.appendChild(stoppingTimeInfo);
+
+            // Add Is Paradoxical (NEW)
+            const paradoxicalInfo = document.createElement('p');
+            paradoxicalInfo.className = 'text-blue-300 text-sm mb-2';
+            paradoxicalInfo.textContent = `Is Paradoxical: ${run.isParadoxical ? 'Yes' : 'No'}`;
+            runDiv.appendChild(paradoxicalInfo);
+
+
+            const sequenceDiv = document.createElement('div');
+            sequenceDiv.className = 'bg-blue-900 bg-opacity-60 rounded-md p-3 max-h-32 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words mb-4';
+            sequenceDiv.textContent = Array.isArray(run.sequence) ? run.sequence.join(' → ') : 'Invalid sequence data';
+            runDiv.appendChild(sequenceDiv);
+
+            // === View in 3D button (linking to slicerr3d.html) ===
+            const viewIn3dBtn = document.createElement('button');
+            viewIn3dBtn.textContent = 'View in 3D';
+            viewIn3dBtn.className = 'mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400';
+            viewIn3dBtn.setAttribute('title', 'Launches 3D visualization of this ruleset');
+            viewIn3dBtn.addEventListener('click', () => {
+                const url = `box-universe-fps.html?n=${run.startN}&x=${run.x_param}&y=${run.y_param}&z=${run.z_param}`; // Use run.n, run.x etc.
+                window.open(url, '_blank'); // Open slicerr3d.html in a new browser tab
+            });
+            runDiv.appendChild(viewIn3dBtn);
+
+            // === View in 2D button (linking to slicer.html) ===
+            const viewIn2dBtn = document.createElement('button');
+            viewIn2dBtn.textContent = 'View in 2D';
+            viewIn2dBtn.className = 'mt-4 ml-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400';
+            viewIn2dBtn.setAttribute('title', 'Launches 2D Slicer visualization of this ruleset'); // Tooltip for 2D
+            viewIn2dBtn.addEventListener('click', () => {
+                // Pass all relevant parameters to slicer.html
+                const url = `slicer.html?n=${run.startN}&x=${run.x_param}&y=${run.y_param}&z=${run.z_param}&divColor=${encodeURIComponent(DEFAULT_LINE_COLOR)}&mulColor=${encodeURIComponent(DEFAULT_NODE_COLOR)}`;
+                window.open(url, '_blank'); // Open slicer.html in a new browser tab
+            });
+            runDiv.appendChild(viewIn2dBtn);
+
+            runsHistoryDiv.appendChild(runDiv);
+        }
+    };
+
+    // Add event listeners to input fields to update gold star visibility
+    const xValueInputForStar = document.getElementById('xValue');
+    const yValueInputForStar = document.getElementById('yValue');
+    const zValueInputForStar = document.getElementById('zValue');
+
+    // Function to update the gold star visibility (CORRECTED)
+    function updateGoldStarVisibility() {
+        // Ensure elements exist before accessing their values
+        const xVal = xValueInputForStar ? parseInt(xValueInputForStar.value) : NaN;
+        const yVal = yValueInputForStar ? parseInt(yValueInputForStar.value) : NaN;
+        const zVal = zValueInputForStar ? parseInt(zValueInputForStar.value) : NaN;
+
+        const xStar = document.getElementById('x-star');
+        const yStar = document.getElementById('y-star');
+        const zStar = document.getElementById('z-star');
+
+        // The gold star should only appear when X=2, Y=3, and Z=1 (standard Collatz parameters)
+        const isStandardCollatz = (xVal === 2 && yVal === 3 && zVal === 1);
+
+        if (xStar) xStar.style.display = isStandardCollatz ? 'inline-block' : 'none';
+        if (yStar) yStar.style.display = isStandardCollatz ? 'inline-block' : 'none';
+        if (zStar) zStar.style.display = isStandardCollatz ? 'inline-block' : 'none';
     }
-    if (typeof updateGoldStarVisibility === 'function') {
-        updateGoldStarVisibility();
-    }
+
+    if (xValueInputForStar) xValueInputForStar.addEventListener('input', updateGoldStarVisibility);
+    if (yValueInputForStar) yValueInputForStar.addEventListener('input', updateGoldStarVisibility);
+    if (zValueInputForStar) zValueInputForStar.addEventListener('input', updateGoldStarVisibility);
+
 }); // CLOSING BRACE FOR THE MAIN DOMContentLoaded LISTENER
