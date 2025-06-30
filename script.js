@@ -37,10 +37,6 @@ let currentSequenceData = null;
 // ==========================================================
 
 // Function to render the Unfolded Box (9-Net)
-// This function was originally embedded in index.html
-// Function to render the Unfolded Box (9-Net)
-// Function to render the Unfolded Box (9-Net)
-// Function to render the Unfolded Box (9-Net)
 function drawNineNetCanvas(data) {
     if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
@@ -60,7 +56,7 @@ function drawNineNetCanvas(data) {
     ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
     ctx.save();
-    // Apply translation and scale BEFORE calculating layout, so it works on the "unscaled" canvas dimensions
+    // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
     // The current translateX, translateY, scale are for the *content* not the canvas itself.
     // We need to calculate the layout relative to the canvas's current displayed size, then apply the user's drag/zoom.
 
@@ -127,38 +123,6 @@ function drawNineNetCanvas(data) {
         ctx.lineWidth = 1;
         ctx.stroke();
     }
-
-    // Now, iterate through the sequence and draw numbers into their respective boxes
-    // For simplicity, we'll draw each number in the center of its box.
-    // If multiple numbers map to the same box, they will overlap, but we will see the last one.
-    // To see all, we'd need more complex text layout or smaller markers.
-    for (let i = 0; i < sequence.length; i++) {
-        const num = sequence[i];
-        const remainder = num % 9;
-
-        const box = remainderBoxCoords[remainder];
-        if (box) {
-            // Determine color based on divisibility
-            if (num % xValue === 0) {
-                ctx.fillStyle = DEFAULT_LINE_COLOR; // Blue for divisible
-            } else {
-                ctx.fillStyle = DEFAULT_NODE_COLOR; // Yellow for multiply/add
-            }
-            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box with the color
-
-            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-            ctx.lineWidth = 1;
-            ctx.strokeRect(box.x, box.y, box.width, box.height); // Redraw border on top
-
-            ctx.fillStyle = '#000'; // Text color
-            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Adjust font size based on box size
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
-        }
-    }
-    ctx.restore();
-}
 
     // Now, iterate through the sequence and draw numbers into their respective boxes
     // For simplicity, we'll draw each number in the center of its box.
