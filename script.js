@@ -38,7 +38,8 @@ let currentSequenceData = null;
 
 // Function to render the Unfolded Box (9-Net)
 // This function was originally embedded in index.html
-function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, xVal, divColor, mulColor to accept 'data' object directly
+// Function to render the Unfolded Box (9-Net)
+function drawNineNetCanvas(data) {
     if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
@@ -63,79 +64,97 @@ function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, x
     const sequence = data.sequence; // Access sequence from data object
     const xValue = data.xValue; // Get xValue from data object (needed for divisibility check)
 
-    const NINE_NET_DRAW_WIDTH = 4; // 4 'face' columns wide
-    const NINE_NET_DRAW_HEIGHT = 3; // 3 'face' rows high (for the plus/cross shape)
-    const padding = 10;
-    const totalWidth = canvas.offsetWidth / scale - (padding * 2);
-    const totalHeight = canvas.offsetHeight / scale - (padding * 2);
+    // Define the conceptual grid for the unfolded cube: 4 columns wide, 3 rows high
+    // Each 'face' (remainder box) will be a single block within this grid.
+    const numLayoutCols = 4;
+    const numLayoutRows = 3;
+    const paddingBetweenBoxes = 10; // Padding between the large remainder boxes
 
-    // Calculate faceSize based on the "unfolded box" layout
-    // The "unfolded box" is typically a 3x3 grid with one square missing from each corner and one in the middle, or a cross shape.
-    // Given NINE_NET_DRAW_WIDTH = 4 and NINE_NET_DRAW_HEIGHT = 3, this implies a 4x3 grid of sub-faces.
-    // The layout array below specifically defines the position of each of the 9 'faces' in this 4x3 grid.
+    // Calculate the size of each individual "remainder box" (face)
+    // We need to fit these boxes into the available canvas space.
+    const availableWidth = canvas.offsetWidth / scale - (paddingBetweenBoxes * (numLayoutCols - 1));
+    const availableHeight = canvas.offsetHeight / scale - (paddingBetweenBoxes * (numLayoutRows - 1));
+
+    // The 'faceSize' here is the actual dimension of one of the 9 large remainder squares.
     const faceSize = Math.min(
-        (totalWidth - (NINE_NET_DRAW_WIDTH - 1) * padding) / (NINE_NET_DRAW_WIDTH * 3), // 3 cells per face
-        (totalHeight - (NINE_NET_DRAW_HEIGHT - 1) * padding) / (NINE_NET_DRAW_HEIGHT * 3) // 3 cells per face
-    ) / 3; // Divide by 3 because each face is 3x3 cells
+        availableWidth / numLayoutCols,
+        availableHeight / numLayoutRows
+    );
 
-    // Define the positions of the 9 "faces" on a 4x3 grid
+    // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
+    // These define the top-left corner (row, col) for each remainder's box.
     const layout = [
-        {r: 0, c: 1}, // Face 0
-        {r: 1, c: 0}, // Face 1
-        {r: 1, c: 1}, // Face 2 (center)
-        {r: 1, c: 2}, // Face 3
-        {r: 1, c: 3}, // Face 4
-        {r: 2, c: 1}, // Face 5
-        {r: 0, c: 2}, // Face 6 (top-right of the cross)
-        {r: 2, c: 0}, // Face 7 (bottom-left of the cross)
-        {r: 2, c: 2}  // Face 8 (bottom-right of the cross)
+        {r: 0, c: 1}, // Remainder 0: Top-middle face
+        {r: 1, c: 0}, // Remainder 1: Middle-left face
+        {r: 1, c: 1}, // Remainder 2: Center face
+        {r: 1, c: 2}, // Remainder 3: Middle-right face
+        {r: 1, c: 3}, // Remainder 4: Far-right face
+        {r: 2, c: 1}, // Remainder 5: Bottom-middle face
+        {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
+        {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
+        {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
     ];
 
-    const NINE_NET_CANVAS_WIDTH = NINE_NET_DRAW_WIDTH * 3 * faceSize + padding * (NINE_NET_DRAW_WIDTH -1);
-    const NINE_NET_CANVAS_HEIGHT = NINE_NET_DRAW_HEIGHT * 3 * faceSize + padding * (NINE_NET_DRAW_HEIGHT -1);
+    // Calculate the total width and height occupied by the entire 9-net structure
+    // This is based on the maximum extent of the layout and the faceSize
+    const maxCol = Math.max(...layout.map(p => p.c));
+    const maxRow = Math.max(...layout.map(p => p.r));
+
+    const NINE_NET_TOTAL_DRAW_WIDTH = (maxCol + 1) * faceSize + (maxCol) * paddingBetweenBoxes;
+    const NINE_NET_TOTAL_DRAW_HEIGHT = (maxRow + 1) * faceSize + (maxRow) * paddingBetweenBoxes;
 
     // Center the overall 9-net drawing in the canvas
-    const offsetX = -NINE_NET_CANVAS_WIDTH / 2;
-    const offsetY = -NINE_NET_CANVAS_HEIGHT / 2;
+    const offsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
+    const offsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
 
+    // Store the drawing coordinates for each remainder box
+    const remainderBoxCoords = {};
+    for (let i = 0; i < layout.length; i++) {
+        const pos = layout[i];
+        const boxX = offsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
+        const boxY = offsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
+        remainderBoxCoords[i] = { x: boxX, y: boxY, width: faceSize, height: faceSize };
+
+        // Draw the empty box outline for each remainder
+        ctx.beginPath();
+        ctx.rect(boxX, boxY, faceSize, faceSize);
+        ctx.strokeStyle = '#555'; // A neutral color for empty boxes
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    // Now, iterate through the sequence and draw numbers into their respective boxes
+    // For simplicity, we'll draw each number in the center of its box.
+    // If multiple numbers map to the same box, they will overlap, but we will see the last one.
+    // To see all, we'd need more complex text layout or smaller markers.
     for (let i = 0; i < sequence.length; i++) {
         const num = sequence[i];
         const remainder = num % 9;
 
-        if (remainder >= 0 && remainder < 9) { // Ensure remainder is valid for layout
-            const pos = layout[remainder];
-            if (pos) {
-                // Calculate position within the 3x3 grid of the 'face'
-                const cellX = (num % 3);
-                const cellY = Math.floor((num / 3) % 3);
-
-                const x = offsetX + (pos.c * 3 * faceSize) + (cellX * faceSize) + padding * pos.c;
-                const y = offsetY + (pos.r * 3 * faceSize) + (cellY * faceSize) + padding * pos.r;
-
-                ctx.beginPath();
-                ctx.rect(x, y, faceSize, faceSize);
-
-                // Use the global colors (updated by color pickers)
-                if (num % xValue === 0) { // Check divisibility by xValue from the sequence data
-                    ctx.fillStyle = DEFAULT_LINE_COLOR; // Blue for divisible
-                } else {
-                    ctx.fillStyle = DEFAULT_NODE_COLOR; // Yellow for multiply/add
-                }
-                ctx.fill();
-                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#000'; // Text color
-                ctx.font = `${Math.max(8, faceSize * 0.4)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(num.toString(), x + faceSize / 2, y + faceSize / 2);
+        const box = remainderBoxCoords[remainder];
+        if (box) {
+            // Determine color based on divisibility
+            if (num % xValue === 0) {
+                ctx.fillStyle = DEFAULT_LINE_COLOR; // Blue for divisible
+            } else {
+                ctx.fillStyle = DEFAULT_NODE_COLOR; // Yellow for multiply/add
             }
+            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box with the color
+
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(box.x, box.y, box.width, box.height); // Redraw border on top
+
+            ctx.fillStyle = '#000'; // Text color
+            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Adjust font size based on box size
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
         }
     }
     ctx.restore();
 }
+
 
 // Collatz function as per user's definition
 // Rule: If n % X == 0, then n -> n / X. Otherwise, n -> n * Y + Z.
