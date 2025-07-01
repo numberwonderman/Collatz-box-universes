@@ -12,6 +12,18 @@
     <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
+    <script>
+        // MathJax configuration: Explicitly define inline math delimiters
+        // This tells MathJax to look for '$...$' for inline equations.
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
     <style>
         /* Custom scrollbar for history div */
         .custom-scrollbar::-webkit-scrollbar {
@@ -321,6 +333,11 @@
             <button id="generateBulk" class="w-full mb-6">
                 Generate Box Universe (Bulk)
             </button>
+            <!-- NEW: Div for bulk output and progress -->
+            <div id="bulkOutput" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
+                <p class="text-white">Processing: <span id="bulk-progress">0%</span></p>
+                <!-- Bulk statistics will be inserted here by JavaScript -->
+            </div>
         </div>
 
         <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 color-picker-group">
@@ -384,7 +401,7 @@
     </div>
 
     <script>
-        // SCRIPT VERSION: 2025-07-01_V5 - Combined into single HTML file.
+        // SCRIPT VERSION: 2025-07-01_V6 - Combined into single HTML file. Visual and LaTeX fixes.
 
         // ==========================================================
         // Consolidate ALL Global Variable Declarations at the Top
@@ -453,21 +470,22 @@
             ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
             ctx.save(); // Save the current canvas state (transforms)
-            // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
+            // Apply translation and scale BEFORE calculating layout, so it works on the "unscaled" canvas dimensions
             ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
             ctx.scale(scale, scale);
 
             const sequence = data.sequence; // Access sequence from data object
-            const xValue = data.x_param; // Get xValue from data object (needed for divisibility check) - CORRECTED TO x_param
+            const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
 
             // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
             // This layout creates the "unfolded box" or "cross" shape
+            // The positions are (row, col) in a conceptual 3x4 grid for the cross shape.
             const layout = [
                 {r: 0, c: 1}, // Remainder 0: Top-middle group
                 {r: 1, c: 0}, // Remainder 1: Middle-left group
                 {r: 1, c: 1}, // Remainder 2: Center group
                 {r: 1, c: 2}, // Remainder 3: Middle-right group
-                {r: 1, c: 3}, // Remainder 4: Far-right group
+                {r: 1, c: 3}, // Remainder 4: Far-right group (part of the cross)
                 {r: 2, c: 1}, // Remainder 5: Bottom-middle group
                 {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
                 {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
@@ -481,28 +499,29 @@
             const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
             const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-            // Calculate the size of each individual *cell* (smallest square)
+            // Calculate the size of each individual *cell* (smallest square within a 3x3 group)
             // We want the total drawing to fit within the canvas.
-            // Total available width for content (after padding for edges)
-            const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-            const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
+            // Total available width for content (after padding for edges and between groups)
+            const totalHorizontalPadding = (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+            const totalVerticalPadding = (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
+
+            const availableWidthForCells = canvas.offsetWidth / dpi - totalHorizontalPadding;
+            const availableHeightForCells = canvas.offsetHeight / dpi - totalVerticalPadding;
 
             // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
-            // So, total cells across = effectiveLayoutCols * 3
-            // Total cells down = effectiveLayoutRows * 3
-            const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
-            const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
+            const potentialCellSizeByWidth = availableWidthForCells / (effectiveLayoutCols * 3);
+            const potentialCellSizeByHeight = availableHeightForCells / (effectiveLayoutRows * 3);
 
             const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
             const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
 
-            // Calculate total drawing dimensions for centering
-            const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-            const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS; // Corrected to use PADDING_BETWEEN_GROUPS
+            // Recalculate total drawing dimensions based on the derived cellSize and groupSize
+            const actualTotalDrawingWidth = effectiveLayoutCols * groupSize + totalHorizontalPadding;
+            const actualTotalDrawingHeight = effectiveLayoutRows * groupSize + totalVerticalPadding;
 
             // Calculate initial offset to center the entire 9-net drawing
-            const initialOffsetX = -totalDrawingWidth / 2;
-            const initialOffsetY = -totalDrawingHeight / 2;
+            const initialOffsetX = -actualTotalDrawingWidth / 2;
+            const initialOffsetY = -actualTotalDrawingHeight / 2;
 
             // Store the final number for each cell (remainder, cellX, cellY)
             // This ensures only the last number to occupy a cell is drawn, matching the image.
@@ -513,8 +532,8 @@
                 const num = sequence[i];
                 const remainder = num % 9;
                 const cellInGroupX = (num % 3);
-                // Invert cellY to match the image's vertical arrangement
-                const cellInGroupY = 2 - Math.floor((num / 3) % 3); // Invert Y-axis (0=bottom, 2=top)
+                // Invert cellY to match the image's vertical arrangement (0=bottom, 2=top)
+                const cellInGroupY = 2 - Math.floor((num / 3) % 3);
 
                 if (!cellContents[remainder]) {
                     cellContents[remainder] = {};
@@ -830,253 +849,22 @@
 
         // Function to display bulk universe statistics
         function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, yStart, yEnd, zStart, zEnd) {
-            // This function needs to be adapted to update the specific elements in index.html
-            // For now, let's just log a message or update a placeholder in the bulk section
-            const bulkResultsDiv = document.getElementById('bulkResults'); // Assuming you add a div with this ID in index.html
-            if (bulkResultsDiv) {
-                bulkResultsDiv.textContent = `Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`;
-                bulkResultsDiv.classList.remove('hidden');
-            }
-            console.log(`Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`);
-
-            let totalSteps = 0;
-            let maxOverallVal = 0; // Max value encountered across all sequences
-            let minOverallVal = Infinity; // Min value encountered across all sequences
-            let totalSumVals = 0;
-            let totalSequencesCalculated = 0;
-
-            let convergenceCount = 0;
-            let cycleCount = 0;
-            let exceededMaxCount = 0;
-            let maxIterationsReachedCount = 0;
-            let nonPositiveValueCount = 0;
-            let invalidParamsCount = 0;
-
-            let overallMaxStoppingTime_t = 0;
-            let overallMaxCoefficientStoppingTime_tau = 0;
-            let overallTotalParadoxicalOccurrences = 0;
-
+            const bulkOutputDiv = document.getElementById('bulkOutput');
             const errorMessageDiv = document.getElementById('errorMessage');
+
             errorMessageDiv.textContent = ''; // Clear previous errors
 
-            let processedCount = 0;
-            const totalCombinations = (xEnd - xStart + 1) * (yEnd - yStart + 1) * (zEnd - zStart + 1);
-
-            // Placeholder for bulk progress/results in index.html, if you want to display it
-            const bulkOutputDiv = document.getElementById('bulkOutput'); // Assuming you add this div
-            if (bulkOutputDiv) {
-                bulkOutputDiv.innerHTML = `<p class="text-white">Processing: <span id="bulk-progress">0%</span></p>`;
-                bulkOutputDiv.classList.remove('hidden');
-            }
-            const progressBar = document.getElementById('bulk-progress');
-
-
-            // Use setTimeout to allow UI to update and prevent freezing for large computations
-            setTimeout(() => {
-                for (let x = xStart; x <= xEnd; x++) {
-                    for (let y = yStart; y <= yEnd; y++) {
-                        for (let z = zStart; z <= zEnd; z++) {
-                            const result = calculateCollatzSequence(startN_fixed, maxIterations, x, y, z);
-                            totalSequencesCalculated++;
-
-                            if (result.type === "Invalid Parameters (X is 0)") {
-                                invalidParamsCount++;
-                                processedCount++;
-                                if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
-                                continue;
-                            }
-
-                            totalSteps += result.steps;
-                            totalSumVals += result.sumVal;
-
-                            if (result.maxVal > maxOverallVal) maxOverallVal = result.maxVal;
-                            if (result.minVal < minOverallVal) minOverallVal = result.minVal;
-                            
-                            if (result.converges_to_1) convergenceCount++;
-                            if (result.type === "Cycle Detected") cycleCount++;
-                            if (result.type === "Exceeded Max Safe Integer") exceededMaxCount++;
-                            if (result.type === "Max Iterations Reached") maxIterationsReachedCount++;
-                            if (result.type === "Reached Non-Positive Value") nonPositiveValueCount++;
-
-                            if (result.stoppingTime_t !== 'N/A' && result.stoppingTime_t > overallMaxStoppingTime_t) {
-                                overallMaxStoppingTime_t = result.stoppingTime_t;
-                            }
-                            if (result.coefficientStoppingTime_tau !== 'N/A' && result.coefficientStoppingTime_tau > overallMaxCoefficientStoppingTime_tau) {
-                                overallMaxCoefficientStoppingTime_tau = result.coefficientStoppingTime_tau;
-                            }
-                            overallTotalParadoxicalOccurrences += result.paradoxicalOccurrences.length;
-
-                            processedCount++;
-                            if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
-                        }
-                    }
-                }
-
-                const avgSteps = totalSequencesCalculated > 0 ? (totalSteps / totalSequencesCalculated).toFixed(2) : 'N/A';
-                const avgSumVal = totalSequencesCalculated > 0 ? (totalSumVals / totalSequencesCalculated).toFixed(2) : 'N/A';
-                
-                if (bulkOutputDiv) {
-                    bulkOutputDiv.innerHTML = `
-                        <h3 class="text-xl font-bold text-blue-200 mb-4">Universe Statistics (N=${startN_fixed.toLocaleString()}, X=${xStart}-${xEnd}, Y=${yStart}-${yEnd}, Z=${zStart}-${zEnd})</h3>
-                        <p class="mb-1"><strong>Total Sequences Calculated:</strong> ${totalSequencesCalculated.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Total Steps Sum:</strong> ${totalSteps.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Highest Value Encountered:</strong> ${maxOverallVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Lowest Value Encountered (excluding 1):</strong> ${minOverallVal === Infinity ? 'N/A' : minOverallVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Average Sequence Sum:</strong> ${avgSumVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Average Steps Per Sequence:</strong> ${avgSteps.toLocaleString()}</p>
-
-                        <h4 class="font-semibold text-lg mt-4 mb-2">Sequence Outcomes:</h4>
-                        <ul class="list-disc list-inside ml-4">
-                            <li>Converges to 1: ${convergenceCount.toLocaleString()} (${totalSequencesCalculated > 0 ? ((convergenceCount / totalSequencesCalculated) * 100).toFixed(2) : '0.00'}%)</li>
-                            <li>Cycles Detected: ${cycleCount.toLocaleString()}</li>
-                            <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
-                            <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
-                            <li>Reached Non-Positive Value: ${nonPositiveValueCount.toLocaleString()}</li>
-                            <li>Invalid Parameters (X=0): ${invalidParamsCount.toLocaleString()}</li>
-                        </ul>
-
-                        <h4 class="font-semibold text-lg mt-4 mb-2">Paper-Specific Metrics:</h4>
-                        <p class="mb-1"><strong>Max Stopping Time t(n) in Range:</strong> ${overallMaxStoppingTime_t.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Max Coefficient Stopping Time &tau;(n) in Range:</strong> ${overallMaxCoefficientStoppingTime_tau.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Total Paradoxical Occurrences Across All Sequences:</strong> ${overallTotalParadoxicalOccurrences.toLocaleString()}</p>
-                    `;
-                }
-            }, 50); // Small delay to let the "Generating..." message show
-        }
-
-
-        // Function to render the Radial 9-net (currently unused on index.html)
-        function render9Net(data) {
-            // This function is included in script.js but is not currently called by index.html's DOMContentLoaded or buttons.
-            // It would be used if you switched the default visualization for the main page.
-            console.log("render9Net called, but index.html is configured for drawNineNetCanvas (Unfolded Box).");
-            if (!canvas) {
-                canvas = document.getElementById('singleNineNetCanvas');
-                ctx = canvas.getContext('2d');
-            }
-
-            // Adjust canvas resolution for sharper drawing
-            const dpi = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * dpi;
-            canvas.height = canvas.offsetHeight * dpi;
-            ctx.scale(dpi, dpi);
-
-            centerX = canvas.offsetWidth / 2;
-            centerY = canvas.offsetHeight / 2;
-            nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
-
-            ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-
-            ctx.save();
-            ctx.translate(centerX + translateX, centerY + translateY);
-            ctx.scale(scale, scale);
-
-            const sequence = data.sequence;
-            if (sequence.length < 2) {
-                if (sequence.length === 1) {
-                    const num = sequence[0];
-                    ctx.beginPath();
-                    ctx.arc(0, 0, nodeRadius, 0, 2 * Math.PI);
-                    ctx.fillStyle = DEFAULT_NODE_COLOR;
-                    ctx.fill();
-                    ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#000';
-                    ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(num, 0, 0);
-                }
-                ctx.restore();
+            if (!bulkOutputDiv) {
+                console.error("Bulk output elements not found. Cannot display bulk stats.");
+                errorMessageDiv.textContent = "Error: Bulk output display elements are missing from the HTML.";
                 return;
             }
 
-            const normalizedLength = Math.min(sequence.length, 100);
-            nodeRadius = minNodeRadius + (maxNodeRadius - minNodeRadius) * (1 - normalizedLength / 100);
-            let lineThickness = minLineThickness + (maxLineThickness - minLineThickness) * (1 - normalizedLength / 100);
+            bulkOutputDiv.classList.remove('hidden');
+            // Set initial content and get the progress bar reference *after* setting innerHTML
+            bulkOutputDiv.innerHTML = `<p class="text-white">Processing: <span id="bulk-progress">0%</span></p>`;
+            const progressBar = document.getElementById('bulk-progress');
 
-            for (let i = 0; i < sequence.length - 1; i++) {
-                const startNum = sequence[i];
-                const endNum = sequence[i + 1];
-
-                const startAngle = (startNum % 9) * (2 * Math.PI / 9);
-                const startRadius = 50 + startNum * 0.1;
-
-                const endAngle = (endNum % 9) * (2 * Math.PI / 9);
-                const endRadius = 50 + endNum * 0.1;
-
-                const x1 = startRadius * Math.cos(startAngle);
-                const y1 = startRadius * Math.sin(startAngle);
-                const x2 = endRadius * Math.cos(endAngle);
-                const y2 = endRadius * Math.sin(endAngle);
-
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.strokeStyle = DEFAULT_LINE_COLOR;
-                ctx.lineWidth = lineThickness;
-                ctx.stroke();
-            }
-
-            for (let i = 0; i < sequence.length; i++) {
-                const num = sequence[i];
-                const angle = (num % 9) * (2 * Math.PI / 9);
-                const radius = 50 + num * 0.1;
-
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-
-                ctx.beginPath();
-                ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
-                ctx.fillStyle = DEFAULT_NODE_COLOR;
-                ctx.fill();
-                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#000';
-                ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(num, x, y);
-            }
-
-            ctx.restore();
-        }
-
-        // Function to display single sequence statistics
-        function displaySequenceStats(data) {
-            const currentSequenceDetails = document.getElementById('currentSequenceDetails');
-            if (!currentSequenceDetails) return;
-
-            // Update the content of the stats display
-            document.getElementById('currentParams').textContent = `N=${data.startN.toLocaleString()}, X=${data.x_param}, Y=${data.y_param}, Z=${data.z_param}`;
-            document.getElementById('currentSteps').textContent = data.steps.toLocaleString();
-            document.getElementById('currentType').textContent = data.type;
-            document.getElementById('currentMin').textContent = data.minVal.toLocaleString();
-            document.getElementById('currentMax').textContent = data.maxVal.toLocaleString();
-            document.getElementById('currentSum').textContent = data.sumVal.toLocaleString();
-            document.getElementById('currentAvg').textContent = typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal;
-            document.getElementById('currentStdDev').textContent = typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.stdDev;
-            document.getElementById('currentStoppingTime').textContent = data.stoppingTime_t === -1 ? 'N/A' : data.stoppingTime_t;
-            document.getElementById('currentIsParadoxical').textContent = data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No';
-            document.getElementById('currentSequenceOutput').textContent = data.sequence.join(' → ');
-
-            currentSequenceDetails.classList.remove('hidden'); // Show the stats section
-        }
-
-
-        // Function to display bulk universe statistics
-        function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, yStart, yEnd, zStart, zEnd) {
-            // This function needs to be adapted to update the specific elements in index.html
-            // For now, let's just log a message or update a placeholder in the bulk section
-            const bulkResultsDiv = document.getElementById('bulkResults'); // Assuming you add a div with this ID in index.html
-            if (bulkResultsDiv) {
-                bulkResultsDiv.textContent = `Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`;
-                bulkResultsDiv.classList.remove('hidden');
-            }
             console.log(`Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`);
 
             let totalSteps = 0;
@@ -1096,20 +884,8 @@
             let overallMaxCoefficientStoppingTime_tau = 0;
             let overallTotalParadoxicalOccurrences = 0;
 
-            const errorMessageDiv = document.getElementById('errorMessage');
-            errorMessageDiv.textContent = ''; // Clear previous errors
-
             let processedCount = 0;
             const totalCombinations = (xEnd - xStart + 1) * (yEnd - yStart + 1) * (zEnd - zStart + 1);
-
-            // Placeholder for bulk progress/results in index.html, if you want to display it
-            const bulkOutputDiv = document.getElementById('bulkOutput'); // Assuming you add this div
-            if (bulkOutputDiv) {
-                bulkOutputDiv.innerHTML = `<p class="text-white">Processing: <span id="bulk-progress">0%</span></p>`;
-                bulkOutputDiv.classList.remove('hidden');
-            }
-            const progressBar = document.getElementById('bulk-progress');
-
 
             // Use setTimeout to allow UI to update and prevent freezing for large computations
             setTimeout(() => {
@@ -1155,241 +931,7 @@
                 const avgSteps = totalSequencesCalculated > 0 ? (totalSteps / totalSequencesCalculated).toFixed(2) : 'N/A';
                 const avgSumVal = totalSequencesCalculated > 0 ? (totalSumVals / totalSequencesCalculated).toFixed(2) : 'N/A';
                 
-                if (bulkOutputDiv) {
-                    bulkOutputDiv.innerHTML = `
-                        <h3 class="text-xl font-bold text-blue-200 mb-4">Universe Statistics (N=${startN_fixed.toLocaleString()}, X=${xStart}-${xEnd}, Y=${yStart}-${yEnd}, Z=${zStart}-${zEnd})</h3>
-                        <p class="mb-1"><strong>Total Sequences Calculated:</strong> ${totalSequencesCalculated.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Total Steps Sum:</strong> ${totalSteps.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Highest Value Encountered:</strong> ${maxOverallVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Lowest Value Encountered (excluding 1):</strong> ${minOverallVal === Infinity ? 'N/A' : minOverallVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Average Sequence Sum:</strong> ${avgSumVal.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Average Steps Per Sequence:</strong> ${avgSteps.toLocaleString()}</p>
-
-                        <h4 class="font-semibold text-lg mt-4 mb-2">Sequence Outcomes:</h4>
-                        <ul class="list-disc list-inside ml-4">
-                            <li>Converges to 1: ${convergenceCount.toLocaleString()} (${totalSequencesCalculated > 0 ? ((convergenceCount / totalSequencesCalculated) * 100).toFixed(2) : '0.00'}%)</li>
-                            <li>Cycles Detected: ${cycleCount.toLocaleString()}</li>
-                            <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
-                            <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
-                            <li>Reached Non-Positive Value: ${nonPositiveValueCount.toLocaleString()}</li>
-                            <li>Invalid Parameters (X=0): ${invalidParamsCount.toLocaleString()}</li>
-                        </ul>
-
-                        <h4 class="font-semibold text-lg mt-4 mb-2">Paper-Specific Metrics:</h4>
-                        <p class="mb-1"><strong>Max Stopping Time t(n) in Range:</strong> ${overallMaxStoppingTime_t.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Max Coefficient Stopping Time &tau;(n) in Range:</strong> ${overallMaxCoefficientStoppingTime_tau.toLocaleString()}</p>
-                        <p class="mb-1"><strong>Total Paradoxical Occurrences Across All Sequences:</strong> ${overallTotalParadoxicalOccurrences.toLocaleString()}</p>
-                    `;
-                }
-            }, 50); // Small delay to let the "Generating..." message show
-        }
-
-
-        // Function to render the Radial 9-net (currently unused on index.html)
-        function render9Net(data) {
-            // This function is included in script.js but is not currently called by index.html's DOMContentLoaded or buttons.
-            // It would be used if you switched the default visualization for the main page.
-            console.log("render9Net called, but index.html is configured for drawNineNetCanvas (Unfolded Box).");
-            if (!canvas) {
-                canvas = document.getElementById('singleNineNetCanvas');
-                ctx = canvas.getContext('2d');
-            }
-
-            // Adjust canvas resolution for sharper drawing
-            const dpi = window.devicePixelRatio || 1;
-            canvas.width = canvas.offsetWidth * dpi;
-            canvas.height = canvas.offsetHeight * dpi;
-            ctx.scale(dpi, dpi);
-
-            centerX = canvas.offsetWidth / 2;
-            centerY = canvas.offsetHeight / 2;
-            nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
-
-            ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-
-            ctx.save();
-            ctx.translate(centerX + translateX, centerY + translateY);
-            ctx.scale(scale, scale);
-
-            const sequence = data.sequence;
-            if (sequence.length < 2) {
-                if (sequence.length === 1) {
-                    const num = sequence[0];
-                    ctx.beginPath();
-                    ctx.arc(0, 0, nodeRadius, 0, 2 * Math.PI);
-                    ctx.fillStyle = DEFAULT_NODE_COLOR;
-                    ctx.fill();
-                    ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-                    ctx.lineWidth = 1;
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#000';
-                    ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(num, 0, 0);
-                }
-                ctx.restore();
-                return;
-            }
-
-            const normalizedLength = Math.min(sequence.length, 100);
-            nodeRadius = minNodeRadius + (maxNodeRadius - minNodeRadius) * (1 - normalizedLength / 100);
-            let lineThickness = minLineThickness + (maxLineThickness - minLineThickness) * (1 - normalizedLength / 100);
-
-            for (let i = 0; i < sequence.length - 1; i++) {
-                const startNum = sequence[i];
-                const endNum = sequence[i + 1];
-
-                const startAngle = (startNum % 9) * (2 * Math.PI / 9);
-                const startRadius = 50 + startNum * 0.1;
-
-                const endAngle = (endNum % 9) * (2 * Math.PI / 9);
-                const endRadius = 50 + endNum * 0.1;
-
-                const x1 = startRadius * Math.cos(startAngle);
-                const y1 = startRadius * Math.sin(startAngle);
-                const x2 = endRadius * Math.cos(endAngle);
-                const y2 = endRadius * Math.sin(endAngle);
-
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.strokeStyle = DEFAULT_LINE_COLOR;
-                ctx.lineWidth = lineThickness;
-                ctx.stroke();
-            }
-
-            for (let i = 0; i < sequence.length; i++) {
-                const num = sequence[i];
-                const angle = (num % 9) * (2 * Math.PI / 9);
-                const radius = 50 + num * 0.1;
-
-                const x = radius * Math.cos(angle);
-                const y = radius * Math.sin(angle);
-
-                ctx.beginPath();
-                ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
-                ctx.fillStyle = DEFAULT_NODE_COLOR;
-                ctx.fill();
-                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                ctx.fillStyle = '#000';
-                ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(num, x, y);
-            }
-
-            ctx.restore();
-        }
-
-        // Function to display single sequence statistics
-        function displaySequenceStats(data) {
-            const currentSequenceDetails = document.getElementById('currentSequenceDetails');
-            if (!currentSequenceDetails) return;
-
-            // Update the content of the stats display
-            document.getElementById('currentParams').textContent = `N=${data.startN.toLocaleString()}, X=${data.x_param}, Y=${data.y_param}, Z=${data.z_param}`;
-            document.getElementById('currentSteps').textContent = data.steps.toLocaleString();
-            document.getElementById('currentType').textContent = data.type;
-            document.getElementById('currentMin').textContent = data.minVal.toLocaleString();
-            document.getElementById('currentMax').textContent = data.maxVal.toLocaleString();
-            document.getElementById('currentSum').textContent = data.sumVal.toLocaleString();
-            document.getElementById('currentAvg').textContent = typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal;
-            document.getElementById('currentStdDev').textContent = typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.stdDev;
-            document.getElementById('currentStoppingTime').textContent = data.stoppingTime_t === -1 ? 'N/A' : data.stoppingTime_t;
-            document.getElementById('currentIsParadoxical').textContent = data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No';
-            document.getElementById('currentSequenceOutput').textContent = data.sequence.join(' → ');
-
-            currentSequenceDetails.classList.remove('hidden'); // Show the stats section
-        }
-
-
-        // Function to display bulk universe statistics
-        function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, yStart, yEnd, zStart, zEnd) {
-            // This function needs to be adapted to update the specific elements in index.html
-            // For now, let's just log a message or update a placeholder in the bulk section
-            const bulkResultsDiv = document.getElementById('bulkOutput'); // Assuming you add a div with this ID in index.html
-            if (bulkResultsDiv) {
-                bulkResultsDiv.textContent = `Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`;
-                bulkResultsDiv.classList.remove('hidden');
-            }
-            console.log(`Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`);
-
-            let totalSteps = 0;
-            let maxOverallVal = 0; // Max value encountered across all sequences
-            let minOverallVal = Infinity; // Min value encountered across all sequences
-            let totalSumVals = 0;
-            let totalSequencesCalculated = 0;
-
-            let convergenceCount = 0;
-            let cycleCount = 0;
-            let exceededMaxCount = 0;
-            let maxIterationsReachedCount = 0;
-            let nonPositiveValueCount = 0;
-            let invalidParamsCount = 0;
-
-            let overallMaxStoppingTime_t = 0;
-            let overallMaxCoefficientStoppingTime_tau = 0;
-            let overallTotalParadoxicalOccurrences = 0;
-
-            const errorMessageDiv = document.getElementById('errorMessage');
-            errorMessageDiv.textContent = ''; // Clear previous errors
-
-            let processedCount = 0;
-            const totalCombinations = (xEnd - xStart + 1) * (yEnd - yStart + 1) * (zEnd - zStart + 1);
-
-            // Placeholder for bulk progress/results in index.html, if you want to display it
-            const progressBar = document.getElementById('bulk-progress');
-
-
-            // Use setTimeout to allow UI to update and prevent freezing for large computations
-            setTimeout(() => {
-                for (let x = xStart; x <= xEnd; x++) {
-                    for (let y = yStart; y <= yEnd; y++) {
-                        for (let z = zStart; z <= zEnd; z++) {
-                            const result = calculateCollatzSequence(startN_fixed, maxIterations, x, y, z);
-                            totalSequencesCalculated++;
-
-                            if (result.type === "Invalid Parameters (X is 0)") {
-                                invalidParamsCount++;
-                                processedCount++;
-                                if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
-                                continue;
-                            }
-
-                            totalSteps += result.steps;
-                            totalSumVals += result.sumVal;
-
-                            if (result.maxVal > maxOverallVal) maxOverallVal = result.maxVal;
-                            if (result.minVal < minOverallVal) minOverallVal = result.minVal;
-                            
-                            if (result.converges_to_1) convergenceCount++;
-                            if (result.type === "Cycle Detected") cycleCount++;
-                            if (result.type === "Exceeded Max Safe Integer") exceededMaxCount++;
-                            if (result.type === "Max Iterations Reached") maxIterationsReachedCount++;
-                            if (result.type === "Reached Non-Positive Value") nonPositiveValueCount++;
-
-                            if (result.stoppingTime_t !== 'N/A' && result.stoppingTime_t > overallMaxStoppingTime_t) {
-                                overallMaxStoppingTime_t = result.stoppingTime_t;
-                            }
-                            if (result.coefficientStoppingTime_tau !== 'N/A' && result.coefficientStoppingTime_tau > overallMaxCoefficientStoppingTime_tau) {
-                                overallMaxCoefficientStoppingTime_tau = result.coefficientStoppingTime_tau;
-                            }
-                            overallTotalParadoxicalOccurrences += result.paradoxicalOccurrences.length;
-
-                            processedCount++;
-                            if (progressBar) progressBar.textContent = `${((processedCount / totalCombinations) * 100).toFixed(2)}%`;
-                        }
-                    }
-                }
-
-                const avgSteps = totalSequencesCalculated > 0 ? (totalSteps / totalSequencesCalculated).toFixed(2) : 'N/A';
-                const avgSumVal = totalSequencesCalculated > 0 ? (totalSumVals / totalSequencesCalculated).toFixed(2) : 'N/A';
-                
+                // Final update to bulkOutputDiv with all statistics
                 if (bulkOutputDiv) {
                     bulkOutputDiv.innerHTML = `
                         <h3 class="text-xl font-bold text-blue-200 mb-4">Universe Statistics (N=${startN_fixed.toLocaleString()}, X=${xStart}-${xEnd}, Y=${yStart}-${yEnd}, Z=${zStart}-${zEnd})</h3>
@@ -1467,7 +1009,7 @@
         // Event listeners for DOM content loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Log the script version to the console for debugging
-            console.log("Script Version: 2025-07-01_V5 (Combined)");
+            console.log("Script Version: 2025-07-01_V6 (Combined)");
 
             canvas = document.getElementById('singleNineNetCanvas');
             if (canvas) {
@@ -1510,8 +1052,8 @@
                     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
                     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
-                    const worldX = (mouseX - (centerX + translateX)) / scale;
-                    const worldY = (mouseY - (centerY + translateY)) / scale;
+                    const worldX = (mouseX - (canvas.offsetWidth / 2 / dpi + translateX)) / scale; // Corrected worldX calculation
+                    const worldY = (mouseY - (canvas.offsetHeight / 2 / dpi + translateY)) / scale; // Corrected worldY calculation
 
                     if (e.deltaY < 0) {
                         scale *= scaleAmount;
@@ -1521,8 +1063,8 @@
 
                     scale = Math.max(0.1, Math.min(scale, 10)); // Keep scale within reasonable limits
 
-                    translateX = -worldX * scale + mouseX - centerX;
-                    translateY = -worldY * scale + mouseY - centerY;
+                    translateX = -worldX * scale + mouseX - (canvas.offsetWidth / 2 / dpi); // Recalculate translateX
+                    translateY = -worldY * scale + mouseY - (canvas.offsetHeight / 2 / dpi); // Recalculate translateY
 
                     if (currentSequenceData) {
                         drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
