@@ -36,6 +36,9 @@ let currentSequenceData = null;
 // Global array to store runs for history (resets on page refresh unless persistence is added)
 let calculatedRuns = [];
 
+// NEW: Global padding variable for the unfolded box visualization
+const PADDING_BETWEEN_GROUPS = 10; // Padding between the large 3x3 remainder groups
+
 // ==========================================================
 // End of Global Variable Declarations
 // ==========================================================
@@ -70,8 +73,6 @@ function drawNineNetCanvas(data) {
     const sequence = data.sequence; // Access sequence from data object
     const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
 
-    const paddingBetweenGroups = 10; // Padding between the large 3x3 remainder groups
-
     // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
     // This layout creates the "unfolded box" or "cross" shape
     const layout = [
@@ -96,8 +97,8 @@ function drawNineNetCanvas(data) {
     // Calculate the size of each individual *cell* (smallest square)
     // We want the total drawing to fit within the canvas.
     // Total available width for content (after padding for edges)
-    const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * paddingBetweenGroups;
-    const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * paddingBetweenGroups;
+    const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+    const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
 
     // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
     // So, total cells across = effectiveLayoutCols * 3
@@ -109,8 +110,8 @@ function drawNineNetCanvas(data) {
     const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
 
     // Calculate total drawing dimensions for centering
-    const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * paddingBetweenGroups;
-    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes; // Corrected: use paddingBetweenBoxes for rows too
+    const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS; // Corrected to use PADDING_BETWEEN_GROUPS
 
     // Calculate initial offset to center the entire 9-net drawing
     const initialOffsetX = -totalDrawingWidth / 2;
@@ -141,8 +142,8 @@ function drawNineNetCanvas(data) {
     for (let remainder = 0; remainder < layout.length; remainder++) {
         const pos = layout[remainder];
         if (pos) {
-            const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * paddingBetweenGroups);
-            const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * paddingBetweenGroups);
+            const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * PADDING_BETWEEN_GROUPS);
+            const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * PADDING_BETWEEN_GROUPS);
 
             // Draw outline for the 3x3 remainder group
             ctx.beginPath();
@@ -314,10 +315,8 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the Radial 9-net (This is kept in case other pages use it, but not for index.html's main canvas)
+// Function to render the Radial 9-net (kept for other pages if needed, but not used by index.html's main canvas now)
 function render9Net(data) {
-    // This function is not primarily used by index.html's main canvas anymore,
-    // but kept here in case other visualization pages link to this script.
     if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
