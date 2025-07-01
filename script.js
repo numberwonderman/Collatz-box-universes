@@ -3,8 +3,9 @@
 // ==========================================================
 
 // Default canvas colors (will be updated by color pickers)
-let DEFAULT_LINE_COLOR = '#00f'; // Blue - for divisible operation
-let DEFAULT_NODE_COLOR = '#ff0'; // Yellow - for multiply/add operation
+// These match the default values in index.html for consistency
+let DEFAULT_LINE_COLOR = '#0000ff'; // Blue - for divisible operation
+let DEFAULT_NODE_COLOR = '#ffff00'; // Yellow - for multiply/add operation
 const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
 const DEFAULT_NODE_RADIUS = 5;
 
@@ -32,14 +33,15 @@ let dpi = window.devicePixelRatio || 1;
 // Stores the current sequence data for rendering
 let currentSequenceData = null;
 
-// Global array to store runs for history
-let calculatedRuns = []; // This needs to be global if renderHistory uses it globally
+// Global array to store runs for history (resets on page refresh unless persistence is added)
+let calculatedRuns = [];
 
 // ==========================================================
 // End of Global Variable Declarations
 // ==========================================================
 
-// Function to render the Unfolded Box (9-Net)
+// Function to render the Unfolded Box (9-Net) visualization
+// This function is intended for the main index.html page
 function drawNineNetCanvas(data) {
     // Ensure canvas and ctx are initialized. This is crucial if the function is called before DOMContentLoaded.
     if (!canvas) {
@@ -51,7 +53,7 @@ function drawNineNetCanvas(data) {
         ctx = canvas.getContext('2d');
     }
 
-    // Adjust canvas resolution for sharper drawing
+    // Adjust canvas resolution for sharper drawing on high-DPI screens
     const dpi = window.devicePixelRatio || 1;
     canvas.width = canvas.offsetWidth * dpi;
     canvas.height = canvas.offsetHeight * dpi;
@@ -61,19 +63,20 @@ function drawNineNetCanvas(data) {
     centerY = canvas.offsetHeight / 2;
     nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
 
-    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight); // Clear the entire canvas
 
-    ctx.save();
+    ctx.save(); // Save the current canvas state (transforms)
     // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
     ctx.translate(centerX + translateX, centerY + translateY);
     ctx.scale(scale, scale);
 
     const sequence = data.sequence; // Access sequence from data object
-    const xValue = data.xValue; // Get xValue from data object (needed for divisibility check)
+    const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
 
-    const paddingBetweenBoxes = 10; // Padding between the large remainder boxes
+    const paddingBetweenBoxes = 10; // Padding between the large remainder boxes (faces)
 
     // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
+    // This layout creates the "unfolded box" or "cross" shape
     const layout = [
         {r: 0, c: 1}, // Remainder 0: Top-middle face
         {r: 1, c: 0}, // Remainder 1: Middle-left face
@@ -86,62 +89,70 @@ function drawNineNetCanvas(data) {
         {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
     ];
 
+    // Determine the effective grid dimensions for calculating face size
     const maxLayoutColIndex = Math.max(...layout.map(p => p.c));
     const maxLayoutRowIndex = Math.max(...layout.map(p => p.r));
 
-    const effectiveLayoutCols = maxLayoutColIndex + 1;
-    const effectiveLayoutRows = maxLayoutRowIndex + 1;
+    const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
+    const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-    const potentialFaceSizeByWidth = (canvas.offsetWidth - (effectiveLayoutCols - 1) * paddingBetweenBoxes) / effectiveLayoutCols;
-    const potentialFaceSizeByHeight = (canvas.offsetHeight - (effectiveLayoutRows - 1) * paddingBetweenBoxes) / effectiveLayoutRows;
+    // Calculate the size of each "face" (larger box) based on canvas dimensions
+    const potentialFaceSizeByWidth = (canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * paddingBetweenBoxes) / effectiveLayoutCols;
+    const potentialFaceSizeByHeight = (canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * paddingBetweenBoxes) / effectiveLayoutRows;
 
-    const faceSize = Math.min(potentialFaceSizeByWidth, potentialFaceSizeByHeight) * 0.95;
+    const faceSize = Math.min(potentialFaceSizeByWidth, potentialFaceSizeByHeight) * 0.95; // Use 95% to add some margin
 
+    // Calculate total drawing dimensions for centering
     const NINE_NET_TOTAL_DRAW_WIDTH = effectiveLayoutCols * faceSize + (effectiveLayoutCols - 1) * paddingBetweenBoxes;
     const NINE_NET_TOTAL_DRAW_HEIGHT = effectiveLayoutRows * faceSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes;
 
+    // Calculate initial offset to center the entire 9-net drawing
     const initialOffsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
     const initialOffsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
 
-    const remainderBoxCoords = {};
+    const remainderBoxCoords = {}; // Store coordinates for each remainder box
     for (let i = 0; i < layout.length; i++) {
         const pos = layout[i];
         const boxX = initialOffsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
         const boxY = initialOffsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
         remainderBoxCoords[i] = { x: boxX, y: boxY, width: faceSize, height: faceSize };
 
+        // Draw outline for each remainder box
         ctx.beginPath();
         ctx.rect(boxX, boxY, faceSize, faceSize);
-        ctx.strokeStyle = '#555';
+        ctx.strokeStyle = '#555'; // Gray outline
         ctx.lineWidth = 1;
         ctx.stroke();
     }
 
+    // Draw the sequence numbers within their respective remainder boxes
     for (let i = 0; i < sequence.length; i++) {
         const num = sequence[i];
-        const remainder = num % 9;
+        const remainder = num % 9; // Determine which of the 9 remainder boxes this number belongs to
 
         const box = remainderBoxCoords[remainder];
-        if (box) {
-            if (num % xValue === 0) {
-                ctx.fillStyle = DEFAULT_LINE_COLOR;
-            } else {
-                ctx.fillStyle = DEFAULT_NODE_COLOR;
+        if (box) { // If a valid box exists for this remainder
+            // Set fill color based on divisibility by xValue
+            if (num % xValue === 0) { // If divisible by X
+                ctx.fillStyle = DEFAULT_LINE_COLOR; // Use the "Divisible Color"
+            } else { // If not divisible by X
+                ctx.fillStyle = DEFAULT_NODE_COLOR; // Use the "Multiply/Add Color"
             }
-            ctx.fillRect(box.x, box.y, box.width, box.height);
+            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box
 
-            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
             ctx.lineWidth = 1;
-            ctx.strokeRect(box.x, box.y, box.width, box.height);
+            ctx.strokeRect(box.x, box.y, box.width, box.height); // Draw border
 
-            ctx.fillStyle = '#000';
-            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`;
+            // Draw the number text
+            ctx.fillStyle = '#000'; // Black text color
+            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Dynamic font size
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
         }
     }
-    ctx.restore();
+    ctx.restore(); // Restore canvas state
 }
 
 
@@ -265,6 +276,105 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
         coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
         paradoxicalOccurrences: paradoxicalOccurrences
     };
+}
+
+// Function to render the Radial 9-net (This is kept in case other pages use it, but not for index.html's main canvas)
+function render9Net(data) {
+    // This function is not primarily used by index.html's main canvas anymore,
+    // but kept here in case other visualization pages link to this script.
+    if (!canvas) {
+        canvas = document.getElementById('singleNineNetCanvas');
+        ctx = canvas.getContext('2d');
+    }
+
+    const dpi = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpi;
+    canvas.height = canvas.offsetHeight * dpi;
+    ctx.scale(dpi, dpi);
+
+    centerX = canvas.offsetWidth / 2;
+    centerY = canvas.offsetHeight / 2;
+    nodeRadius = DEFAULT_NODE_RADIUS;
+
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+    ctx.save();
+    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.scale(scale, scale);
+
+    const sequence = data.sequence;
+    if (sequence.length < 2) {
+        if (sequence.length === 1) {
+            const num = sequence[0];
+            ctx.beginPath();
+            ctx.arc(0, 0, nodeRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_NODE_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#000';
+            ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num, 0, 0);
+        }
+        ctx.restore();
+        return;
+    }
+
+    const normalizedLength = Math.min(sequence.length, 100);
+    nodeRadius = minNodeRadius + (maxNodeRadius - minNodeRadius) * (1 - normalizedLength / 100);
+    let lineThickness = minLineThickness + (maxLineThickness - minLineThickness) * (1 - normalizedLength / 100);
+
+    for (let i = 0; i < sequence.length - 1; i++) {
+        const startNum = sequence[i];
+        const endNum = sequence[i + 1];
+
+        const startAngle = (startNum % 9) * (2 * Math.PI / 9);
+        const startRadius = 50 + startNum * 0.1;
+
+        const endAngle = (endNum % 9) * (2 * Math.PI / 9);
+        const endRadius = 50 + endNum * 0.1;
+
+        const x1 = startRadius * Math.cos(startAngle);
+        const y1 = startRadius * Math.sin(startAngle);
+        const x2 = endRadius * Math.cos(endAngle);
+        const y2 = endRadius * Math.sin(endAngle);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = DEFAULT_LINE_COLOR;
+        ctx.lineWidth = lineThickness;
+        ctx.stroke();
+    }
+
+    for (let i = 0; i < sequence.length; i++) {
+        const num = sequence[i];
+        const angle = (num % 9) * (2 * Math.PI / 9);
+        const radius = 50 + num * 0.1;
+
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = DEFAULT_NODE_COLOR;
+        ctx.fill();
+        ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#000';
+        ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(num, x, y);
+    }
+
+    ctx.restore();
 }
 
 // Function to display single sequence statistics
@@ -397,21 +507,6 @@ function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, ySt
 }
 
 /**
- * Helper function to validate a single number input.
- * @param {string} value - The input string value.
- * @param {string} name - The name of the input for error messages.
- * @param {boolean} allowZero - Whether zero is a valid input.
- * @returns {string|null} Error message if invalid, otherwise null.
- */
-const validateNumberInput = (value, name, allowZero = false) => {
-    const num = parseInt(value, 10);
-    if (isNaN(num) || (!allowZero && num === 0) || !Number.isInteger(num)) {
-        return `${name} must be a valid integer${allowZero ? '' : ' (non-zero)'}.`;
-    }
-    return null; // No error
-};
-
-/**
  * Renders the calculated runs into the history display.
  */
 const renderHistory = () => {
@@ -495,8 +590,9 @@ const renderHistory = () => {
         viewIn3dBtn.className = 'mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400';
         viewIn3dBtn.setAttribute('title', 'Launches 3D visualization of this ruleset');
         viewIn3dBtn.addEventListener('click', () => {
+            // Pass parameters to the 3D viewer
             const url = `box-universe-fps.html?n=${run.startN}&x=${run.x_param}&y=${run.y_param}&z=${run.z_param}`;
-            window.open(url, '_blank');
+            window.open(url, '_blank'); // Open in new tab
         });
         runDiv.appendChild(viewIn3dBtn);
 
@@ -505,8 +601,9 @@ const renderHistory = () => {
         viewIn2dBtn.className = 'mt-4 ml-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-md shadow-md transition duration-200 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400';
         viewIn2dBtn.setAttribute('title', 'Launches 2D Slicer visualization of this ruleset');
         viewIn2dBtn.addEventListener('click', () => {
+            // Pass parameters and current colors to the 2D slicer
             const url = `slicer.html?n=${run.startN}&x=${run.x_param}&y=${run.y_param}&z=${run.z_param}&divColor=${encodeURIComponent(DEFAULT_LINE_COLOR)}&mulColor=${encodeURIComponent(DEFAULT_NODE_COLOR)}`;
-            window.open(url, '_blank');
+            window.open(url, '_blank'); // Open in new tab
         });
         runDiv.appendChild(viewIn2dBtn);
 
@@ -558,7 +655,7 @@ function updateCalculatorMode() {
         if (bulkSequenceStats) bulkSequenceStats.classList.add('hidden'); // Hide bulk stats when switching to single
         // Re-draw canvas if there's existing data, or clear it
         if (currentSequenceData) {
-            drawNineNetCanvas(currentSequenceData);
+            drawNineNetCanvas(currentSequenceData); // Use drawNineNetCanvas for unfolded box
         } else {
             if (ctx && canvas) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -592,7 +689,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.fillStyle = '#888';
         ctx.fillText('Enter a number and click "Calculate Single"', canvas.width / 2 / dpi, canvas.height / 2 / dpi);
 
-        // Canvas interaction listeners
+        // Canvas interaction listeners for drag and zoom
         canvas.addEventListener('mousedown', (e) => {
             isDragging = true;
             lastX = e.clientX;
@@ -607,9 +704,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 translateX += dx;
                 translateY += dy;
                 lastX = e.clientX;
-                lastY = e.clientY; // Corrected: Should be e.clientY
+                lastY = e.clientY;
                 if (currentSequenceData) {
-                    drawNineNetCanvas(currentSequenceData);
+                    drawNineNetCanvas(currentSequenceData); // Re-render with new translation (using unfolded box)
                 }
             }
         });
@@ -620,7 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         canvas.addEventListener('mouseout', () => {
-            isDragging = false;
+            isDragging = false; // Stop dragging if mouse leaves canvas
             canvas.style.cursor = 'grab';
         });
 
@@ -639,13 +736,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 scale /= scaleAmount;
             }
 
-            scale = Math.max(0.1, Math.min(scale, 10));
+            scale = Math.max(0.1, Math.min(scale, 10)); // Keep scale within reasonable limits
 
             translateX = -worldX * scale + mouseX - centerX;
             translateY = -worldY * scale + mouseY - centerY;
 
             if (currentSequenceData) {
-                drawNineNetCanvas(currentSequenceData);
+                drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
             }
         });
     }
@@ -691,8 +788,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentSequenceData.z_param = zValue;
 
             displaySequenceStats(currentSequenceData);
-            currentSequenceData.xValue = xValue; // Ensure xValue is available for drawing
-            drawNineNetCanvas(currentSequenceData);
+            drawNineNetCanvas(currentSequenceData); // Call unfolded box after calculation
 
             // Add to history
             calculatedRuns.push(currentSequenceData);
@@ -735,7 +831,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Color picker event listeners
-    // Removed 'const' here to avoid re-declaration errors
     const divColorPicker = document.getElementById('divColorPicker');
     if (divColorPicker) {
         divColorPicker.addEventListener('input', (e) => {
@@ -744,8 +839,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Ensure xValue is available for drawing when color changes
                 // If currentSequenceData doesn't have x_param, get it from the input
                 const xValueForDrawing = currentSequenceData.x_param || parseInt(document.getElementById('xValue').value);
-                currentSequenceData.xValue = xValueForDrawing; // Update xValue in currentSequenceData
-                drawNineNetCanvas(currentSequenceData);
+                currentSequenceData.x_param = xValueForDrawing; // Update x_param in currentSequenceData
+                drawNineNetCanvas(currentSequenceData); // Use drawNineNetCanvas for unfolded box
             }
         });
     }
@@ -757,8 +852,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (currentSequenceData) {
                 // Ensure xValue is available for drawing when color changes
                 const xValueForDrawing = currentSequenceData.x_param || parseInt(document.getElementById('xValue').value);
-                currentSequenceData.xValue = xValueForDrawing; // Update xValue in currentSequenceData
-                drawNineNetCanvas(currentSequenceData);
+                currentSequenceData.x_param = xValueForDrawing; // Update x_param in currentSequenceData
+                drawNineNetCanvas(currentSequenceData); // Use drawNineNetCanvas for unfolded box
             }
         });
     }
@@ -845,13 +940,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // IMPORTANT: Ensure divColorPicker and mulColorPicker are already defined from earlier in DOMContentLoaded
     // Do NOT re-declare them here.
-    if (divColorParam && divColorPicker) { // Check if divColorPicker exists from earlier declaration
+    if (divColorParam) { // Check if divColorPicker exists from earlier declaration
         DEFAULT_LINE_COLOR = divColorParam;
-        divColorPicker.value = divColorParam;
+        if (divColorPicker) divColorPicker.value = divColorParam;
     }
-    if (mulColorParam && mulColorPicker) { // Check if mulColorPicker exists from earlier declaration
+    if (mulColorParam) { // Check if mulColorPicker exists from earlier declaration
         DEFAULT_NODE_COLOR = mulColorParam;
-        mulColorPicker.value = mulColorParam;
+        if (mulColorPicker) mulColorPicker.value = mulColorParam;
     }
 
 
@@ -878,10 +973,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(defaultN) && defaultN > 0 && !isNaN(defaultX) && defaultX !== 0 && !isNaN(defaultY) && !isNaN(defaultZ)) {
             const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ);
             if (defaultResult.type !== "error") {
-                defaultResult.xValue = defaultX; // Store xValue for drawing logic
+                defaultResult.x_param = defaultX; // Ensure x_param is stored for drawing logic
                 currentSequenceData = defaultResult; // Store for future canvas interactions
                 drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
-                // displaySequenceStats(defaultResult); // Optionally display stats on initial load
             }
         }
     }
