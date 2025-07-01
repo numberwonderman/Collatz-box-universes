@@ -8,13 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- Font Awesome for icons (IMPORTANT: This needs to be present for icons to show) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- MathJax for LaTeX rendering (NEWLY ADDED) -->
+    <!-- MathJax for LaTeX rendering -->
     <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
     <script>
         // MathJax configuration: Explicitly define inline math delimiters
-        // This tells MathJax to look for '$...$' for inline equations.
         window.MathJax = {
             tex: {
                 inlineMath: [['$', '$'], ['\\(', '\\)']]
@@ -43,7 +42,6 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            /* Corrected: Using the blue-purple gradient from your original desired design */
             background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
             min-height: 100vh;
             display: flex;
@@ -52,131 +50,124 @@
             padding: 1rem;
             color: #f8fafc; /* Light text for consistency */
         }
-        /* Corrected: Styling for the main container from your original desired design */
         .bg-white.bg-opacity-10 {
             background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px); /* Tailwind's backdrop-blur-lg equivalent */
-            border-radius: 16px; /* Tailwind's rounded-2xl equivalent */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Tailwind's shadow-2xl equivalent */
-            border: 1px solid rgba(59, 130, 246, 0.5); /* Tailwind's border border-blue-700 equivalent */
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(59, 130, 246, 0.5);
         }
-        /* Mission statement specific styling */
         p.project-mission {
-            max-width: 700px; /* Constrain width for readability */
+            max-width: 700px;
             text-align: center;
             font-size: 0.9em;
-            color: #c0c0c0; /* Lighter color for secondary text */
-            margin-top: -15px; /* Adjust spacing with elements above */
-            margin-bottom: 25px; /* Space before next section */
+            color: #c0c0c0;
+            margin-top: -15px;
+            margin-bottom: 25px;
             line-height: 1.5;
         }
-        /* Styling for input fields */
         input[type="number"] {
-            background-color: rgba(30, 64, 175, 0.5); /* Blue-900 with opacity */
+            background-color: rgba(30, 64, 175, 0.5);
             color: white;
-            border-color: #1d4ed8; /* Blue-700 */
-            border-radius: 0.75rem; /* rounded-xl */
-            padding: 0.75rem; /* p-3 */
+            border-color: #1d4ed8;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
             transition: all 0.2s ease-in-out;
             border-width: 1px;
-            box-sizing: border-box; /* Ensure padding doesn't expand width */
-            width: 100%; /* For responsive layout */
+            box-sizing: border-box;
+            width: 100%;
         }
-        /* FIX: Corrected placeholder styling */
         input[type="number"]::placeholder {
-            color: #93c5fd; /* Blue-200 */
-            opacity: 1; /* Firefox default is 0.5 */
+            color: #93c5fd;
+            opacity: 1;
         }
-        input[type="number"]::-webkit-input-placeholder { /* Chrome, Safari, Edge */
+        input[type="number"]::-webkit-input-placeholder {
             color: #93c5fd;
         }
-        input[type="number"]::-moz-placeholder { /* Firefox */
+        input[type="number"]::-moz-placeholder {
             color: #93c5fd;
         }
-        input[type="number"]:-ms-input-placeholder { /* IE 10-11 */
+        input[type="number"]:-ms-input-placeholder {
             color: #93c5fd;
         }
 
         input[type="number"]:focus {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* ring-2 focus:ring-blue-400 */
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
         }
-        /* Styling for buttons */
         button {
-            padding: 0.75rem 1.5rem; /* px-6 py-3 */
-            border-radius: 0.75rem; /* rounded-xl */
-            font-weight: 700; /* font-bold */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-            transition: all 0.3s ease-in-out; /* transform transition duration-300 ease-in-out */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease-in-out;
             cursor: pointer;
         }
         button:hover {
-            transform: scale(1.05); /* hover:scale-105 */
+            transform: scale(1.05);
         }
         button:focus {
             outline: none;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* focus:ring-2 focus:ring-blue-400 */
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
         }
-        /* Specific button colors from image references */
-        #calculateSingle { background-color: #2563eb; } /* blue-600 */
-        #calculateSingle:hover { background-color: #1d4ed8; } /* blue-700 */
-        #generateBulk { background-color: #9333ea; } /* purple-600 */
-        #generateBulk:hover { background-color: #7e22ce; } /* purple-700 */
-        #launchVisualization { background-color: #8b5cf6; } /* purple-500 */
-        #launchVisualization:hover { background-color: #7c3aed; } /* purple-600 */
+        #calculateSingle { background-color: #2563eb; }
+        #calculateSingle:hover { background-color: #1d4ed8; }
+        #generateBulk { background-color: #9333ea; }
+        #generateBulk:hover { background-color: #7e22ce; }
+        #launchVisualization { background-color: #8b5cf6; }
+        #launchVisualization:hover { background-color: #7c3aed; }
 
 
         /* Specific styling for the 9-net canvas */
         #singleNineNetCanvas {
-            background-color: rgba(0, 0, 0, 0.2); /* Slightly transparent dark background for the canvas */
+            background-color: rgba(0, 0, 0, 0.2);
         }
 
         /* Gold star styling */
         .gold-star {
             color: gold;
-            font-size: 1.25rem; /* text-xl */
-            margin-left: 0.25rem; /* ml-1 */
-            display: inline-block; /* To align with text */
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.7); /* Subtle glow */
+            font-size: 1.25rem;
+            margin-left: 0.25rem;
+            display: inline-block;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
         }
         .flex.items-center {
             display: flex;
             align-items: center;
         }
         .flex.items-center input {
-            flex-grow: 1; /* Allow input to take available space */
+            flex-grow: 1;
         }
         /* Styling for radio options in visualization tools */
         .radio-option {
             display: flex;
             align-items: center;
-            background-color: rgba(45, 55, 72, 0.7); /* gray-800 with opacity */
+            background-color: rgba(45, 55, 72, 0.7);
             padding: 0.75rem 1.25rem;
             border-radius: 0.75rem;
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
-            border: 1px solid rgba(74, 85, 104, 0.5); /* gray-600 with opacity */
+            border: 1px solid rgba(74, 85, 104, 0.5);
         }
         .radio-option:hover {
-            background-color: rgba(74, 85, 104, 0.7); /* darker gray on hover */
+            background-color: rgba(74, 85, 104, 0.7);
         }
         .radio-option input[type="radio"] {
             margin-right: 0.75rem;
-            /* Hide default radio button */
             appearance: none;
             -webkit-appearance: none;
             width: 1.25rem;
             height: 1.25rem;
-            border: 2px solid #a0aec0; /* gray-400 */
+            border: 2px solid #a0aec0;
             border-radius: 50%;
             outline: none;
             cursor: pointer;
             position: relative;
-            flex-shrink: 0; /* Prevent shrinking */
+            flex-shrink: 0;
         }
         .radio-option input[type="radio"]:checked {
-            border-color: #6366f1; /* indigo-500 */
-            background-color: #6366f1; /* indigo-500 */
+            border-color: #6366f1;
+            background-color: #6366f1;
         }
         .radio-option input[type="radio"]:checked::before {
             content: '';
@@ -190,9 +181,9 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        .radio-option i { /* Font Awesome icon styling */
+        .radio-option i {
             margin-right: 0.5rem;
-            color: #90cdf4; /* blue-300 */
+            color: #90cdf4;
             font-size: 1.2rem;
         }
         /* Custom print styles to ensure readability */
@@ -233,7 +224,7 @@
                 color: #333 !important;
             }
             canvas {
-                display: none !important; /* Hide canvases in print */
+                display: none !important;
             }
         }
     </style>
@@ -333,7 +324,7 @@
             <button id="generateBulk" class="w-full mb-6">
                 Generate Box Universe (Bulk)
             </button>
-            <!-- NEW: Div for bulk output and progress -->
+            <!-- Div for bulk output and progress -->
             <div id="bulkOutput" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
                 <p class="text-white">Processing: <span id="bulk-progress">0%</span></p>
                 <!-- Bulk statistics will be inserted here by JavaScript -->
@@ -365,32 +356,32 @@
             <div class="flex flex-wrap justify-center gap-4">
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="index.html" checked class="mr-2">
-                    <i class="fas fa-home"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-home"></i>
                     <span>Main Hub (OG 9-Net / Unfolded Box View)</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="box-universe-viewer.html" class="mr-2">
-                    <i class="fas fa-cubes"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-cubes"></i>
                     <span>Box Universe Viewer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="slicer.html" class="mr-2">
-                    <i class="fas fa-expand-alt"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-expand-alt"></i>
                     <span>2D Pseudo-3D Slicer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="box-universe-fps.html" class="mr-2">
-                    <i class="fas fa-vr-cardboard"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-vr-cardboard"></i>
                     <span>Box Universe FPS (3D Slicer)</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="collatz-dragon.html" class="mr-2">
-                    <i class="fas fa-dragon"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-dragon"></i>
                     <span>Collatz Dragon Explorer</span>
                 </label>
                 <label class="radio-option">
                     <input type="radio" name="visualization" value="collatz-lines-explorer.html" class="mr-2">
-                    <i class="fas fa-chart-line"></i> <!-- ICON ADDED -->
+                    <i class="fas fa-chart-line"></i>
                     <span>Collatz Line Universe Explorer</span>
                 </label>
                 <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
@@ -401,7 +392,7 @@
     </div>
 
     <script>
-        // SCRIPT VERSION: 2025-07-01_V6 - Combined into single HTML file. Visual and LaTeX fixes.
+        // SCRIPT VERSION: 2025-07-01_V7 - Combined into single HTML file. 9-Net layout and readability fixes.
 
         // ==========================================================
         // Consolidate ALL Global Variable Declarations at the Top
@@ -416,8 +407,7 @@
         // Variables for canvas and rendering context
         let canvas;
         let ctx;
-        let centerX;
-        let centerY;
+        // centerX and centerY are now calculated dynamically within drawNineNetCanvas
         let nodeRadius;
         let maxNodeRadius = 10;
         let minNodeRadius = 2;
@@ -470,9 +460,6 @@
             ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
             ctx.save(); // Save the current canvas state (transforms)
-            // Apply translation and scale BEFORE calculating layout, so it works on the "unscaled" canvas dimensions
-            ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
-            ctx.scale(scale, scale);
 
             const sequence = data.sequence; // Access sequence from data object
             const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
@@ -499,29 +486,35 @@
             const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
             const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-            // Calculate the size of each individual *cell* (smallest square within a 3x3 group)
-            // We want the total drawing to fit within the canvas.
-            // Total available width for content (after padding for edges and between groups)
-            const totalHorizontalPadding = (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-            const totalVerticalPadding = (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
+            // Calculate groupSize such that the entire grid of groups plus padding fits within the canvas
+            const canvasW = canvas.offsetWidth / dpi;
+            const canvasH = canvas.offsetHeight / dpi;
 
-            const availableWidthForCells = canvas.offsetWidth / dpi - totalHorizontalPadding;
-            const availableHeightForCells = canvas.offsetHeight / dpi - totalVerticalPadding;
+            // Calculate potential groupSize based on width and height constraints
+            // Each group is 3x3 cells. The total width/height for cells is (num_groups * 3 * cellSize)
+            // The total width/height for padding is (num_groups - 1) * PADDING_BETWEEN_GROUPS
+            // Let gS = groupSize.
+            // (effectiveLayoutCols * gS) + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS = canvasW
+            // (effectiveLayoutRows * gS) + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS = canvasH
 
-            // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
-            const potentialCellSizeByWidth = availableWidthForCells / (effectiveLayoutCols * 3);
-            const potentialCellSizeByHeight = availableHeightForCells / (effectiveLayoutRows * 3);
+            const gS_from_width = (canvasW - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS) / effectiveLayoutCols;
+            const gS_from_height = (canvasH - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS) / effectiveLayoutRows;
 
-            const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
-            const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
+            const groupSize = Math.min(gS_from_width, gS_from_height) * 0.9; // Use 90% to add some margin around the entire structure
+            const cellSize = groupSize / 3; // Each remainder group is a 3x3 grid of cells
 
-            // Recalculate total drawing dimensions based on the derived cellSize and groupSize
-            const actualTotalDrawingWidth = effectiveLayoutCols * groupSize + totalHorizontalPadding;
-            const actualTotalDrawingHeight = effectiveLayoutRows * groupSize + totalVerticalPadding;
+            // Recalculate total drawing dimensions based on the derived groupSize
+            const actualTotalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+            const actualTotalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
 
             // Calculate initial offset to center the entire 9-net drawing
-            const initialOffsetX = -actualTotalDrawingWidth / 2;
-            const initialOffsetY = -actualTotalDrawingHeight / 2;
+            // These offsets are relative to the top-left corner of the canvas (0,0)
+            const initialOffsetX = (canvasW - actualTotalDrawingWidth) / 2;
+            const initialOffsetY = (canvasH - actualTotalDrawingHeight) / 2;
+
+            // Apply global transformations (drag and zoom) after initial centering
+            ctx.translate(translateX, translateY); // Apply user drag
+            ctx.scale(scale, scale); // Apply user zoom
 
             // Store the final number for each cell (remainder, cellX, cellY)
             // This ensures only the last number to occupy a cell is drawn, matching the image.
@@ -548,6 +541,7 @@
             for (let remainder = 0; remainder < layout.length; remainder++) {
                 const pos = layout[remainder];
                 if (pos) {
+                    // Calculate group position relative to the initialOffsetX, initialOffsetY (which centers the whole grid)
                     const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * PADDING_BETWEEN_GROUPS);
                     const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * PADDING_BETWEEN_GROUPS);
 
@@ -583,7 +577,7 @@
                                         ctx.stroke();
 
                                         // Draw the number text
-                                        ctx.fillStyle = '#000'; // Black text color
+                                        ctx.fillStyle = '#fff'; // Changed text color to white for better contrast
                                         ctx.font = `${Math.max(8, cellSize * 0.4)}px Arial`; // Dynamic font size based on cellSize
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'middle';
@@ -726,8 +720,6 @@
 
         // Function to render the Radial 9-net (currently unused on index.html)
         function render9Net(data) {
-            // This function is included in script.js but is not currently called by index.html's DOMContentLoaded or buttons.
-            // It would be used if you switched the default visualization for the main page.
             console.log("render9Net called, but index.html is configured for drawNineNetCanvas (Unfolded Box).");
             if (!canvas) {
                 canvas = document.getElementById('singleNineNetCanvas');
@@ -740,8 +732,9 @@
             canvas.height = canvas.offsetHeight * dpi;
             ctx.scale(dpi, dpi);
 
-            centerX = canvas.offsetWidth / 2;
-            centerY = canvas.offsetHeight / 2;
+            // centerX and centerY should be calculated relative to the current canvas dimensions
+            const centerX = canvas.offsetWidth / 2 / dpi;
+            const centerY = canvas.offsetHeight / 2 / dpi;
             nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
 
             ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
@@ -1009,7 +1002,7 @@
         // Event listeners for DOM content loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Log the script version to the console for debugging
-            console.log("Script Version: 2025-07-01_V6 (Combined)");
+            console.log("Script Version: 2025-07-01_V7 (Combined)");
 
             canvas = document.getElementById('singleNineNetCanvas');
             if (canvas) {
@@ -1049,22 +1042,26 @@
                 canvas.addEventListener('wheel', (e) => {
                     e.preventDefault();
                     const scaleAmount = 1.1;
+                    // Mouse coordinates relative to the canvas
                     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
                     const mouseY = e.clientY - canvas.getBoundingClientRect().top;
 
-                    const worldX = (mouseX - (canvas.offsetWidth / 2 / dpi + translateX)) / scale; // Corrected worldX calculation
-                    const worldY = (mouseY - (canvas.offsetHeight / 2 / dpi + translateY)) / scale; // Corrected worldY calculation
+                    // Calculate world coordinates (before current translation/scale)
+                    // This is crucial for zooming into the mouse pointer
+                    const worldX = (mouseX - translateX) / scale;
+                    const worldY = (mouseY - translateY) / scale;
 
-                    if (e.deltaY < 0) {
+                    if (e.deltaY < 0) { // Zoom in
                         scale *= scaleAmount;
-                    } else {
+                    } else { // Zoom out
                         scale /= scaleAmount;
                     }
 
                     scale = Math.max(0.1, Math.min(scale, 10)); // Keep scale within reasonable limits
 
-                    translateX = -worldX * scale + mouseX - (canvas.offsetWidth / 2 / dpi); // Recalculate translateX
-                    translateY = -worldY * scale + mouseY - (canvas.offsetHeight / 2 / dpi); // Recalculate translateY
+                    // Recalculate translation to keep the "world point" under the mouse
+                    translateX = mouseX - worldX * scale;
+                    translateY = mouseY - worldY * scale;
 
                     if (currentSequenceData) {
                         drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
@@ -1082,6 +1079,8 @@
             // Function to update section visibility
             function updateCalculatorMode() {
                 const singleNineNetContainer = document.getElementById('singleNineNetContainer'); // Get the container div for the canvas
+                const currentSequenceDetails = document.getElementById('currentSequenceDetails');
+                const bulkOutputDiv = document.getElementById('bulkOutput');
 
                 if (modeSingle.checked) {
                     singleSection.classList.remove('hidden');
@@ -1090,8 +1089,6 @@
                         singleNineNetContainer.classList.remove('hidden'); // Ensure canvas container is visible in single mode
                     }
                     // IMPORTANT: Only try to render if currentSequenceData exists or if it's an initial load
-                    // The initial load logic is handled by the DOMContentLoaded block below this function.
-                    // This function primarily handles mode switching.
                     if (currentSequenceData) {
                         drawNineNetCanvas(currentSequenceData); // Re-render if data already exists (e.g., after a mode switch back)
                     } else {
@@ -1113,14 +1110,8 @@
                     }
                 }
                 // Optionally hide stats when switching modes to prevent confusion
-                document.getElementById('currentSequenceDetails').classList.add('hidden'); // Corrected ID
-                // Note: There's no 'bulkSequenceStats' in the provided index.html,
-                // so this line might cause an error if not handled by an `if` check or if the ID is not added.
-                // For now, let's assume it's `bulkOutput` as used in displayBulkUniverseStats
-                const bulkOutputDiv = document.getElementById('bulkOutput');
-                if (bulkOutputDiv) {
-                    bulkOutputDiv.classList.add('hidden');
-                }
+                currentSequenceDetails.classList.add('hidden');
+                bulkOutputDiv.classList.add('hidden');
             }
 
             // Set initial visibility on page load
@@ -1250,8 +1241,7 @@
                         const zValue = zValue_str ? parseInt(zValue_str) : 1;
 
                         if (isNaN(startN) || isNaN(xValue) || isNaN(yValue) || isNaN(zValue)) {
-                            // Changed alert to console.error as per instructions
-                            console.error('Please enter valid numbers for N, X, Y, and Z.');
+                            console.error('Please enter valid numbers for N, X, Y, and Z.'); // Changed alert to console.error
                             return; // Stop the function execution
                         }
 
@@ -1319,7 +1309,7 @@
                 const defaultZ = parseInt(zValueInput.value);
                 const maxSteps = 10000;
                 // Pass all parameters to calculateCollatzSequence
-                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ); // Corrected parameter order and count
+                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ);
                 if (defaultResult.type !== "error") {
                     drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
                 }
