@@ -110,7 +110,7 @@ function drawNineNetCanvas(data) {
 
     // Calculate total drawing dimensions for centering
     const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * paddingBetweenGroups;
-    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * paddingBetweenGroups;
+    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes; // Corrected: use paddingBetweenBoxes for rows too
 
     // Calculate initial offset to center the entire 9-net drawing
     const initialOffsetX = -totalDrawingWidth / 2;
@@ -314,8 +314,10 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the Radial 9-net (kept for other pages if needed, but not used by index.html's main canvas now)
+// Function to render the Radial 9-net (This is kept in case other pages use it, but not for index.html's main canvas)
 function render9Net(data) {
+    // This function is not primarily used by index.html's main canvas anymore,
+    // but kept here in case other visualization pages link to this script.
     if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
@@ -944,7 +946,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Initial load logic for single calculation (from URL parameters or defaults)
+    // --- Initial load logic for single calculation (from URL parameters or defaults) ---
     function getQueryParams() {
         const params = {};
         window.location.search.substring(1).split('&').forEach(param => {
