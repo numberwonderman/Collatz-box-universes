@@ -6,25 +6,6 @@
     <title>Box Universe Explorer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome for icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <!-- MathJax for LaTeX rendering -->
-    <script type="text/javascript">
-        // MathJax configuration: This tells MathJax to look for inline math enclosed in $...$
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']]
-            },
-            svg: {
-                fontCache: 'global' // Caches fonts globally for better performance
-            }
-        };
-    </script>
-    <script type="text/javascript" id="MathJax-script" async
-            src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
-
     <style>
         /* Custom scrollbar for history div */
         .custom-scrollbar::-webkit-scrollbar {
@@ -44,227 +25,15 @@
         }
         body {
             font-family: 'Inter', sans-serif;
-            /* Corrected: Using the blue-purple gradient from your original desired design */
-            background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            color: #f8fafc; /* Light text for consistency */
-        }
-        /* Corrected: Styling for the main container from your original desired design */
-        .bg-white.bg-opacity-10 {
-            background-color: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px); /* Tailwind's backdrop-blur-lg equivalent */
-            border-radius: 16px; /* Tailwind's rounded-2xl equivalent */
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Tailwind's shadow-2xl equivalent */
-            border: 1px solid rgba(59, 130, 246, 0.5); /* Tailwind's border border-blue-700 equivalent */
-        }
-        /* Mission statement specific styling */
-        p.project-mission {
-            max-width: 700px; /* Constrain width for readability */
-            text-align: center;
-            font-size: 0.9em;
-            color: #c0c0c0; /* Lighter color for secondary text */
-            margin-top: -15px; /* Adjust spacing with elements above */
-            margin-bottom: 25px; /* Space before next section */
-            line-height: 1.5;
-        }
-        /* Styling for input fields */
-        input[type="number"] {
-            background-color: rgba(30, 64, 175, 0.5); /* Blue-900 with opacity */
-            color: white;
-            border-color: #1d4ed8; /* Blue-700 */
-            border-radius: 0.75rem; /* rounded-xl */
-            padding: 0.75rem; /* p-3 */
-            transition: all 0.2s ease-in-out;
-            border-width: 1px;
-            box-sizing: border-box; /* Ensure padding doesn't expand width */
-            width: 100%; /* For responsive layout */
-        }
-        /* FIX: Corrected placeholder styling */
-        input[type="number"]::placeholder {
-            color: #93c5fd; /* Blue-200 */
-            opacity: 1; /* Firefox default is 0.5 */
-        }
-        input[type="number"]::-webkit-input-placeholder { /* Chrome, Safari, Edge */
-            color: #93c5fd;
-        }
-        input[type="number"]::-moz-placeholder { /* Firefox */
-            color: #93c5fd;
-        }
-        input[type="number"]:-ms-input-placeholder { /* IE 10-11 */
-            color: #93c5fd;
-        }
-
-        input[type="number"]:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* ring-2 focus:ring-blue-400 */
-        }
-        /* Styling for buttons */
-        button {
-            padding: 0.75rem 1.5rem; /* px-6 py-3 */
-            border-radius: 0.75rem; /* rounded-xl */
-            font-weight: 700; /* font-bold */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-            transition: all 0.3s ease-in-out; /* transform transition duration-300 ease-in-out */
-            cursor: pointer;
-        }
-        button:hover {
-            transform: scale(1.05); /* hover:scale-105 */
-        }
-        button:focus {
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5); /* focus:ring-2 focus:ring-blue-400 */
-        }
-        /* Specific button colors from image references */
-        #calculateSingle { background-color: #2563eb; } /* blue-600 */
-        #calculateSingle:hover { background-color: #1d4ed8; } /* blue-700 */
-        #generateBulk { background-color: #9333ea; } /* purple-600 */
-        #generateBulk:hover { background-color: #7e22ce; } /* purple-700 */
-        #launchVisualization { background-color: #8b5cf6; } /* purple-500 */
-        #launchVisualization:hover { background-color: #7c3aed; } /* purple-600 */
-
-
-        /* Specific styling for the 9-net canvas */
-        #singleNineNetCanvas {
-            background-color: rgba(0, 0, 0, 0.2); /* Slightly transparent dark background for the canvas */
-        }
-
-        /* Gold star styling */
-        .gold-star {
-            color: gold;
-            font-size: 1.25rem; /* text-xl */
-            margin-left: 0.25rem; /* ml-1 */
-            display: inline-block; /* To align with text */
-            text-shadow: 0 0 5px rgba(255, 215, 0, 0.7); /* Subtle glow */
-        }
-        .flex.items-center {
-            display: flex;
-            align-items: center;
-        }
-        .flex.items-center input {
-            flex-grow: 1; /* Allow input to take available space */
-        }
-        /* Styling for radio options in visualization tools */
-        .radio-option {
-            display: flex;
-            align-items: center;
-            background-color: rgba(45, 55, 72, 0.7); /* gray-800 with opacity */
-            padding: 0.75rem 1.25rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            border: 1px solid rgba(74, 85, 104, 0.5); /* gray-600 with opacity */
-        }
-        .radio-option:hover {
-            background-color: rgba(74, 85, 104, 0.7); /* darker gray on hover */
-        }
-        .radio-option input[type="radio"] {
-            margin-right: 0.75rem;
-            /* Hide default radio button */
-            appearance: none;
-            -webkit-appearance: none;
-            width: 1.25rem;
-            height: 1.25rem;
-            border: 2px solid #a0aec0; /* gray-400 */
-            border-radius: 50%;
-            outline: none;
-            cursor: pointer;
-            position: relative;
-            flex-shrink: 0; /* Prevent shrinking */
-        }
-        .radio-option input[type="radio"]:checked {
-            border-color: #6366f1; /* indigo-500 */
-            background-color: #6366f1; /* indigo-500 */
-        }
-        .radio-option input[type="radio"]:checked::before {
-            content: '';
-            display: block;
-            width: 0.6rem;
-            height: 0.6rem;
-            background-color: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        .radio-option i { /* Font Awesome icon styling */
-            margin-right: 0.5rem;
-            color: #90cdf4; /* blue-300 */
-            font-size: 1.2rem;
-        }
-        /* Custom print styles to ensure readability */
-        @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                margin: 0;
-                padding: 0;
-            }
-            .bg-white.bg-opacity-10 {
-                background-color: white !important;
-                box-shadow: none !important;
-                border: none !important;
-                backdrop-filter: none !important;
-                padding: 1rem !important;
-            }
-            button, input, label, #errorMessage, .gold-star, .color-picker-group, .radio-option input, .radio-option i {
-                display: none !important;
-            }
-            h1, h2, p, .text-white, .text-blue-200, .text-blue-300 {
-                color: black !important;
-                text-shadow: none !important;
-            }
-            #historyContainer {
-                display: block !important;
-                background-color: transparent !important;
-                border: none !important;
-                box-shadow: none !important;
-            }
-            #runsHistory {
-                max-height: none !important;
-                overflow-y: visible !important;
-            }
-            .bg-blue-800.bg-opacity-40, .bg-blue-900.bg-opacity-60 {
-                background-color: #f0f0f0 !important;
-                border: 1px solid #ccc !important;
-                color: #333 !important;
-            }
-            canvas {
-                display: none !important; /* Hide canvases in print */
-            }
+            /* Using Tailwind classes for the gradient background as per your original code */
+            background: linear-gradient(to bottom right, #1a202c, #4a5568); /* Example gradient */
         }
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-700 text-white p-8">
+        <h1 class="text-5xl font-extrabold text-center mb-10 text-blue-300">Collatz Box Universes Explorer</h1>
 
-    <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
-        <h1 class="text-4xl font-extrabold text-center text-white mb-6 drop-shadow-lg">
-            Box Universe Explorer
-        </h1>
-
-        <p class="project-mission">
-            Explore and visualize generalized Collatz sequences to discover hidden patterns,
-            foster intuition, and gain new perspectives on dynamical systems.
-            A journey of visual discovery beyond traditional analysis.
-        </p>
-
-        <div class="mb-8 text-white text-lg leading-relaxed text-center">
-            <p class="mb-3">
-                Explore your generalized Collatz sequence where the rules are defined by X, Y, and Z coordinates.
-            </p>
-            <p class="font-semibold text-xl mb-4">
-                Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
-            </p>
-            <p class="text-sm text-blue-200">
-                (Standard Collatz uses X=2, Y=3, Z=1)
-            </p>
-        </div>
-
-        <!-- NEW: Mode Selection (Single/Bulk) -->
         <div class="mb-6 text-center">
             <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
             <label for="modeSingle" class="text-white text-lg mr-6">Single Calculation</label>
@@ -272,127 +41,113 @@
             <input type="radio" id="modeBulk" name="calculatorMode" value="bulk" class="mr-2">
             <label for="modeBulk" class="text-white text-lg">Bulk Universe</label>
         </div>
+        <div id="singleCalculatorSection" class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Single Sequence Calculator</h2>
 
-        <!-- Single Sequence Calculator Section (NOW WRAPPED IN ID) -->
-        <div id="singleCalculatorSection">
-            <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)" />
-                <div class="flex items-center">
-                    <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)" />
-                    <span id="x-star" class="gold-star">⭐</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <div class="mb-4">
+                        <label for="startNumber" class="block text-blue-200 text-sm font-bold mb-2">Starting Number (N):</label>
+                        <input type="number" id="startNumber" value="27" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white">
+                    </div>
+                    <div class="mb-4">
+                        <label for="xValue" class="block text-blue-200 text-sm font-bold mb-2">Divisor (X):</label>
+                        <input type="number" id="xValue" value="2" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white">
+                    </div>
+                    <div class="mb-4">
+                        <label for="yValue" class="block text-blue-200 text-sm font-bold mb-2">Multiplier (Y):</label>
+                        <input type="number" id="yValue" value="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white">
+                    </div>
+                    <div class="mb-6">
+                        <label for="zValue" class="block text-blue-200 text-sm font-bold mb-2">Adder (Z):</label>
+                        <input type="number" id="zValue" value="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button id="calculateSingle" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
+                            Calculate Single Sequence
+                        </button>
+                    </div>
+                    <div id="errorMessage" class="text-red-400 mt-4 text-center"></div>
                 </div>
-                <div class="flex items-center">
-                    <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)" />
-                    <span id="y-star" class="gold-star">⭐</span>
-                </div>
-                <div class="flex items-center">
-                    <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)" />
-                    <span id="z-star" class="gold-star">⭐</span>
+
+                <div>
+                    <div class="mb-4">
+                        <label for="divColorPicker" class="block text-blue-200 text-sm font-bold mb-2">Divisible (Line) Color:</label>
+                        <input type="color" id="divColorPicker" value="#008000" class="w-full h-10 border-0 rounded overflow-hidden cursor-pointer">
+                    </div>
+                    <div class="mb-4">
+                        <label for="mulColorPicker" class="block text-blue-200 text-sm font-bold mb-2">Multiply/Add (Node) Color:</label>
+                        <input type="color" id="mulColorPicker" value="#FFA500" class="w-full h-10 border-0 rounded overflow-hidden cursor-pointer">
+                    </div>
                 </div>
             </div>
 
-            <button id="calculateSingle" class="w-full mb-4">
-                Calculate Single Sequence
-            </button>
-
-            <!-- Container for the single 9-net canvas visualization -->
-            <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
-                <!-- Canvas dimensions updated to correctly fit the 9-net drawing -->
-                <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
+            <div class="mt-8 text-center bg-gray-700 rounded-lg p-4">
+                <h3 class="text-xl font-semibold text-blue-200 mb-4">9-Net Visualization</h3>
+                <canvas id="singleNineNetCanvas" class="bg-gray-600 rounded-lg mx-auto" width="500" height="500" style="width: 100%; max-width: 500px; height: auto; cursor: grab;"></canvas>
             </div>
 
-            <!-- Section for current sequence details and stats, displayed after calculation -->
-            <div id="currentSequenceDetails" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
-                <h3 class="text-xl font-bold text-blue-200 mb-3">Current Sequence Results:</h3>
-                <p class="text-blue-300 mb-2">Parameters: <span id="currentParams">N=--, X=--, Y=--, Z=--</span></p>
-                <p class="text-blue-300 mb-2">Steps: <span id="currentSteps">--</span> | Type: <span id="currentType">--</span></p>
-                <p class="text-blue-300 mb-2">Range: [<span id="currentMin">--</span> to <span id="currentMax">--</span>]</p>
-                <p class="text-blue-300 mb-2">Sum: <span id="currentSum">--</span></p>
-                <p class="text-blue-300 mb-2">Average: <span id="currentAvg">--</span></p>
-                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
-                <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
-                <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
-                <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
-                    <span id="currentSequenceOutput">Sequence will appear here.</span>
-                </div>
+            <div id="singleSequenceStats" class="mt-8 bg-gray-700 p-6 rounded-lg text-blue-100 hidden">
             </div>
         </div>
 
-        <!-- Bulk Universe Calculator Section (NOW WRAPPED IN ID) -->
-        <div id="bulkCalculatorSection" class="hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <input type="number" id="xStart" value="1" placeholder="X Start" />
-                <input type="number" id="xEnd" value="3" placeholder="X End" />
-                <input type="number" id="yStart" value="1" placeholder="Y Start" />
-                <input type="number" id="yEnd" value="3" placeholder="Y End" />
-                <input type="number" id="zStart" value="1" placeholder="Z Start" />
-                <input type="number" id="zEnd" value="1" placeholder="Z End" />
+        <div id="bulkCalculatorSection" class="bg-gray-800 p-6 rounded-lg shadow-lg mt-8">
+            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Bulk Universe Calculator</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div>
+                    <label class="block text-blue-200 text-sm font-bold mb-2">X (Divisor) Range:</label>
+                    <input type="number" id="xStart" value="1" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white mb-2" placeholder="Start X">
+                    <input type="number" id="xEnd" value="5" min="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white" placeholder="End X">
+                </div>
+                <div>
+                    <label class="block text-blue-200 text-sm font-bold mb-2">Y (Multiplier) Range:</label>
+                    <input type="number" id="yStart" value="1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white mb-2" placeholder="Start Y">
+                    <input type="number" id="yEnd" value="5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white" placeholder="End Y">
+                </div>
+                <div>
+                    <label class="block text-blue-200 text-sm font-bold mb-2">Z (Adder) Range:</label>
+                    <input type="number" id="zStart" value="0" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white mb-2" placeholder="Start Z">
+                    <input type="number" id="zEnd" value="5" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-gray-600 text-white" placeholder="End Z">
+                </div>
             </div>
 
-            <button id="generateBulk" class="w-full mb-6">
-                Generate Box Universe (Bulk)
-            </button>
-
-            <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
-                <!-- Bulk stats will be displayed here -->
+            <div class="flex items-center justify-center mt-6">
+                <button id="generateBulk" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
+                    Generate Bulk Universe Stats
+                </button>
             </div>
-        </div>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 color-picker-group">
-            <div class="flex items-center space-x-2 text-white">
-                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
-                <input type="color" id="divColorPicker" value="#0000ff"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-            <div class="flex items-center space-x-2 text-white">
-                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
-                <input type="color" id="mulColorPicker" value="#ffff00"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            <div id="bulkSequenceStats" class="mt-8 bg-gray-700 p-6 rounded-lg text-blue-100 hidden">
             </div>
         </div>
-        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
-        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
-            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+        <div id="historyContainer" class="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg hidden">
+            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">History of Sequences</h2>
+            <div id="historyList" class="custom-scrollbar h-64 overflow-y-auto bg-gray-700 p-4 rounded-md">
+                <p class="text-center text-gray-400">No history yet.</p>
             </div>
         </div>
 
         <div class="text-center mt-10">
             <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Visualization Tools</h2>
             <div class="flex flex-wrap justify-center gap-4">
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="index.html" checked class="mr-2">
-                    <i class="fas fa-home"></i> <!-- ICON ADDED -->
-                    <span>Main Hub (OG 9-Net / Unfolded Box View)</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="box-universe-viewer.html" class="mr-2">
-                    <i class="fas fa-cubes"></i> <!-- ICON ADDED -->
-                    <span>Box Universe Viewer</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="slicer.html" class="mr-2">
-                    <i class="fas fa-expand-alt"></i> <!-- ICON ADDED -->
-                    <span>2D Pseudo-3D Slicer</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="box-universe-fps.html" class="mr-2">
-                    <i class="fas fa-vr-cardboard"></i> <!-- ICON ADDED -->
-                    <span>Box Universe FPS (3D Slicer)</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="collatz-dragon.html" class="mr-2">
-                    <i class="fas fa-dragon"></i> <!-- ICON ADDED -->
-                    <span>Collatz Dragon Explorer</span>
-                </label>
-                <label class="radio-option">
-                    <input type="radio" name="visualization" value="collatz-lines-explorer.html" class="mr-2">
-                    <i class="fas fa-chart-line"></i> <!-- ICON ADDED -->
-                    <span>Collatz Line Universe Explorer</span>
-                </label>
+                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
+                    <input type="radio" id="visRadial" name="visualization" value="radial.html" checked class="mr-2">
+                    <label for="visRadial" class="text-white">Radial Visualization</label>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
+                    <input type="radio" id="vis2DGrid" name="visualization" value="2d_grid.html" class="mr-2">
+                    <label for="vis2DGrid" class="text-white">2D Grid/Slicing</label>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
+                    <input type="radio" id="visBox" name="visualization" value="box.html" class="mr-2">
+                    <label for="visBox" class="text-white">3D Box Model</label>
+                </div>
+                <div class="bg-gray-800 p-4 rounded-lg flex items-center">
+                    <input type="radio" id="visNetwork" name="visualization" value="network.html" class="mr-2">
+                    <label for="visNetwork" class="text-white">Network Graph</label>
+                </div>
                 <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-200">
                     Launch Selected Visualization
                 </button>
