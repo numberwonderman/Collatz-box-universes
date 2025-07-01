@@ -3,8 +3,8 @@
 // ==========================================================
 
 // Default canvas colors (will be updated by color pickers)
-let DEFAULT_LINE_COLOR = '#008000'; // Green - for divisible operation (matches image's green)
-let DEFAULT_NODE_COLOR = '#FFA500'; // Orange - for multiply/add operation (matches image's orange)
+let DEFAULT_LINE_COLOR = '#00f'; // Blue - for divisible operation
+let DEFAULT_NODE_COLOR = '#ff0'; // Yellow - for multiply/add operation
 const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
 const DEFAULT_NODE_RADIUS = 5;
 
@@ -32,201 +32,174 @@ let dpi = window.devicePixelRatio || 1;
 // Stores the current sequence data for rendering
 let currentSequenceData = null;
 
-// Global array to store runs for history (resets on page refresh unless persistence is added)
-let calculatedRuns = [];
-
-// NEW: Global padding variable for the unfolded box visualization
-const PADDING_BETWEEN_GROUPS = 10; // Padding between the large 3x3 remainder groups
-
 // ==========================================================
 // End of Global Variable Declarations
 // ==========================================================
 
-// Function to render the Unfolded Box (9-Net) visualization
-// This function is intended for the main index.html page
-function drawNineNetCanvas(data) {
-    // Ensure canvas and ctx are initialized. This is crucial if the function is called before DOMContentLoaded.
-    if (!canvas) {
+// Function to render the Unfolded Box (9-Net)
+// This function was originally embedded in index.html
+function drawNineNetCanvas(data) { // Renamed parameter from canvas, sequence, xVal, divColor, mulColor to accept 'data' object directly
+    if (!canvas) { // Ensure canvas and ctx are initialized
         canvas = document.getElementById('singleNineNetCanvas');
-        if (!canvas) {
-            console.error("Canvas element 'singleNineNetCanvas' not found. Cannot draw.");
-            return;
-        }
         ctx = canvas.getContext('2d');
     }
 
-    // Adjust canvas resolution for sharper drawing on high-DPI screens
+    // Adjust canvas resolution for sharper drawing
     const dpi = window.devicePixelRatio || 1;
     canvas.width = canvas.offsetWidth * dpi;
     canvas.height = canvas.offsetHeight * dpi;
     ctx.scale(dpi, dpi);
 
-    // Clear the entire canvas
+    centerX = canvas.offsetWidth / 2;
+    centerY = canvas.offsetHeight / 2;
+    nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
+
     ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
-    ctx.save(); // Save the current canvas state (transforms)
-    // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
-    ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
-    ctx.scale(scale, scale);
+    ctx.save();
+    // Apply translation and scale BEFORE calculating layout, so it works on the "unscaled" canvas dimensions
+    // The current translateX, translateY, scale are for the *content* not the canvas itself.
+    // We need to calculate the layout relative to the canvas's current displayed size, then apply the user's drag/zoom.
 
     const sequence = data.sequence; // Access sequence from data object
-    const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
+    const xValue = data.xValue; // Get xValue from data object (needed for divisibility check)
 
-    // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
-    // This layout creates the "unfolded box" or "cross" shape
+    const paddingBetweenBoxes = 10; // Padding between the large remainder boxes
+
+    // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
+    // These define the top-left corner (row, col) for each remainder's box.
     const layout = [
-        {r: 0, c: 1}, // Remainder 0: Top-middle group
-        {r: 1, c: 0}, // Remainder 1: Middle-left group
-        {r: 1, c: 1}, // Remainder 2: Center group
-        {r: 1, c: 2}, // Remainder 3: Middle-right group
-        {r: 1, c: 3}, // Remainder 4: Far-right group
-        {r: 2, c: 1}, // Remainder 5: Bottom-middle group
+        {r: 0, c: 1}, // Remainder 0: Top-middle face
+        {r: 1, c: 0}, // Remainder 1: Middle-left face
+        {r: 1, c: 1}, // Remainder 2: Center face
+        {r: 1, c: 2}, // Remainder 3: Middle-right face
+        {r: 1, c: 3}, // Remainder 4: Far-right face
+        {r: 2, c: 1}, // Remainder 5: Bottom-middle face
         {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
         {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
         {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
     ];
 
-    // Determine the effective grid dimensions for calculating group size
-    const maxLayoutColIndex = Math.max(...layout.map(p => p.c));
-    const maxLayoutRowIndex = Math.max(...layout.map(p => p.r));
+    // Determine the effective number of rows and columns based on the layout array's max indices
+    const maxLayoutColIndex = Math.max(...layout.map(p => p.c)); // max is 3
+    const maxLayoutRowIndex = Math.max(...layout.map(p => p.r)); // max is 2
 
-    const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
-    const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
+    const effectiveLayoutCols = maxLayoutColIndex + 1; // 4 conceptual columns
+    const effectiveLayoutRows = maxLayoutRowIndex + 1; // 3 conceptual rows
 
-    // Calculate the size of each individual *cell* (smallest square)
-    // We want the total drawing to fit within the canvas.
-    // Total available width for content (after padding for edges)
-    const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-    const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
+    // Calculate faceSize such that the entire grid of faces plus padding fits within the canvas
+    // We use canvas.offsetWidth and canvas.offsetHeight as the available space
+    const potentialFaceSizeByWidth = (canvas.offsetWidth - (effectiveLayoutCols - 1) * paddingBetweenBoxes) / effectiveLayoutCols;
+    const potentialFaceSizeByHeight = (canvas.offsetHeight - (effectiveLayoutRows - 1) * paddingBetweenBoxes) / effectiveLayoutRows;
 
-    // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
-    // So, total cells across = effectiveLayoutCols * 3
-    // Total cells down = effectiveLayoutRows * 3
-    const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
-    const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
+    // Choose the smaller faceSize to ensure it fits both dimensions, and add a small buffer
+    const faceSize = Math.min(potentialFaceSizeByWidth, potentialFaceSizeByHeight) * 0.95; // 5% buffer
 
-    const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
-    const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
+    // Recalculate total drawing dimensions based on the new faceSize
+    const NINE_NET_TOTAL_DRAW_WIDTH = effectiveLayoutCols * faceSize + (effectiveLayoutCols - 1) * paddingBetweenBoxes;
+    const NINE_NET_TOTAL_DRAW_HEIGHT = effectiveLayoutRows * faceSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes;
 
-    // Calculate total drawing dimensions for centering
-    const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS; // Corrected to use PADDING_BETWEEN_GROUPS
+    // Center the overall 9-net drawing in the canvas's current view
+    // These offsets are for the *entire grid* relative to the canvas center (0,0 point after ctx.translate to centerX, centerY)
+    const initialOffsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
+    const initialOffsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
 
-    // Calculate initial offset to center the entire 9-net drawing
-    const initialOffsetX = -totalDrawingWidth / 2;
-    const initialOffsetY = -totalDrawingHeight / 2;
+    // Apply user's drag and zoom transformations
+    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.scale(scale, scale);
 
-    // Store the final number for each cell (remainder, cellX, cellY)
-    // This ensures only the last number to occupy a cell is drawn, matching the image.
-    const cellContents = {}; // Structure: {remainder: {cellY: {cellX: num}}}
+    // Store the drawing coordinates for each remainder box
+    const remainderBoxCoords = {};
+    for (let i = 0; i < layout.length; i++) {
+        const pos = layout[i];
+        // Calculate box position relative to the initialOffsetX, initialOffsetY (which centers the whole grid)
+        const boxX = initialOffsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
+        const boxY = initialOffsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
+        remainderBoxCoords[i] = { x: boxX, y: boxY, width: faceSize, height: faceSize };
 
-    // Process the sequence to determine the final content of each cell
+        // Draw the empty box outline for each remainder
+        ctx.beginPath();
+        ctx.rect(boxX, boxY, faceSize, faceSize);
+        ctx.strokeStyle = '#555'; // A neutral color for empty boxes
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    // Now, iterate through the sequence and draw numbers into their respective boxes
+    // For simplicity, we'll draw each number in the center of its box.
+    // If multiple numbers map to the same box, they will overlap, but we will see the last one.
+    // To see all, we'd need more complex text layout or smaller markers.
     for (let i = 0; i < sequence.length; i++) {
         const num = sequence[i];
         const remainder = num % 9;
-        const cellInGroupX = (num % 3);
-        // Invert cellY to match the image's vertical arrangement
-        const cellInGroupY = 2 - Math.floor((num / 3) % 3); // Invert Y-axis (0=bottom, 2=top)
 
-        if (!cellContents[remainder]) {
-            cellContents[remainder] = {};
-        }
-        if (!cellContents[remainder][cellInGroupY]) {
-            cellContents[remainder][cellInGroupY] = {};
-        }
-        cellContents[remainder][cellInGroupY][cellInGroupX] = num;
-    }
-
-    // Now, draw the cells based on the final `cellContents`
-    for (let remainder = 0; remainder < layout.length; remainder++) {
-        const pos = layout[remainder];
-        if (pos) {
-            const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * PADDING_BETWEEN_GROUPS);
-            const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * PADDING_BETWEEN_GROUPS);
-
-            // Draw outline for the 3x3 remainder group
-            ctx.beginPath();
-            ctx.rect(groupX, groupY, groupSize, groupSize);
-            ctx.strokeStyle = '#555'; // Gray outline for the 3x3 groups
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            // Draw content of each cell within this remainder group
-            if (cellContents[remainder]) {
-                for (let cellInGroupY = 0; cellInGroupY < 3; cellInGroupY++) {
-                    if (cellContents[remainder][cellInGroupY]) {
-                        for (let cellInGroupX = 0; cellInGroupX < 3; cellInGroupX++) {
-                            const num = cellContents[remainder][cellInGroupY][cellInGroupX];
-                            if (num !== undefined) {
-                                const cellAbsX = groupX + (cellInGroupX * cellSize);
-                                const cellAbsY = groupY + (cellInGroupY * cellSize);
-
-                                ctx.beginPath();
-                                ctx.rect(cellAbsX, cellAbsY, cellSize, cellSize);
-
-                                // Set fill color based on divisibility by xValue
-                                if (num % xValue === 0) { // If divisible by X
-                                    ctx.fillStyle = DEFAULT_LINE_COLOR; // Green
-                                } else { // If not divisible by X
-                                    ctx.fillStyle = DEFAULT_NODE_COLOR; // Orange
-                                }
-                                ctx.fill();
-                                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
-                                ctx.lineWidth = 1;
-                                ctx.stroke();
-
-                                // Draw the number text
-                                ctx.fillStyle = '#000'; // Black text color
-                                ctx.font = `${Math.max(8, cellSize * 0.4)}px Arial`; // Dynamic font size based on cellSize
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(num.toString(), cellAbsX + cellSize / 2, cellAbsY + cellSize / 2);
-                            }
-                        }
-                    }
-                }
+        const box = remainderBoxCoords[remainder];
+        if (box) {
+            // Determine color based on divisibility
+            if (num % xValue === 0) {
+                ctx.fillStyle = DEFAULT_LINE_COLOR; // Blue for divisible
+            } else {
+                ctx.fillStyle = DEFAULT_NODE_COLOR; // Yellow for multiply/add
             }
+            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box with the color
+
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(box.x, box.y, box.width, box.height); // Redraw border on top
+
+            ctx.fillStyle = '#000'; // Text color
+            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Adjust font size based on box size
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
         }
     }
-    ctx.restore(); // Restore canvas state
+    ctx.restore();
 }
 
-
-// Collatz function as per user's definition (kept consistent)
+// Collatz function as per user's definition
+// Rule: If n % X == 0, then n -> n / X. Otherwise, n -> n * Y + Z.
+// Standard Collatz uses X=2, Y=3, Z=1
 function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
     let sequence = [startN];
     let current = startN;
     let steps = 0;
-    let yPlusZ_operations = 0;
+    let yPlusZ_operations = 0; // Counts (Y*n + Z) operations, equivalent to 'oddCount' for standard Collatz
     let maxVal = startN;
     let minVal = startN;
     let sumVal = startN;
 
-    let stoppingTime_t = Infinity;
-    let coefficientStoppingTime_tau = Infinity;
-    let paradoxicalOccurrences = [];
+    let stoppingTime_t = Infinity; // Least j such that T^j(n) < n
+    let coefficientStoppingTime_tau = Infinity; // Least j such that C_j(n) < 1
+    let paradoxicalOccurrences = []; // Array to store {step, value, coefficient} for paradoxical points
 
     const initialN = startN;
 
-    if (x_param === 0) {
+    // Parameter validation
+    if (x_param === 0) { // Divisor (X) cannot be zero
         return {
             startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN,
             avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false,
             stoppingTime_t: 'N/A', coefficientStoppingTime_tau: 'N/A', paradoxicalOccurrences: []
         };
     }
+    // Handle trivial case where startN is 1 for standard Collatz, might not apply for generalized
+    // But if startN is 1, and the rule eventually leads to 1, steps should be 0.
     if (startN === 1) {
         return {
             startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
             avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
-            stoppingTime_t: 0,
-            coefficientStoppingTime_tau: 1,
+            stoppingTime_t: 0, // It's already < initialN if initialN > 1
+            coefficientStoppingTime_tau: 1, // C_0(n) = Y^0 / X^0 = 1
             paradoxicalOccurrences: []
         };
     }
 
-    while (current !== 1 && steps < maxIterations) {
-        if (steps > maxIterations * 2 && maxIterations > 0) {
+
+    while (current !== 1 && steps < maxIterations) { // Continue until 1 or max iterations
+        // Check for potential infinite loop or very large numbers before calculation
+        // Add a safety break for extremely long sequences that might not converge or cycle.
+        if (steps > maxIterations * 2 && maxIterations > 0) { // If it goes way over maxIterations
              return {
                 startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
                 avgVal: sumVal / sequence.length, stdDev: 0, type: "Exceeded Max Iterations (Possible Divergence)",
@@ -236,15 +209,16 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
             };
         }
 
-        if (current % x_param === 0) {
+        if (current % x_param === 0) { // If n is divisible by X
             current = current / x_param;
-        } else {
+        } else { // Otherwise (n % X !== 0)
             current = (y_param * current + z_param);
-            yPlusZ_operations++;
+            yPlusZ_operations++; // Count occurrences of the (Y*n + Z) operation
         }
 
         steps++;
 
+        // Check for overflow, non-finite, or non-positive numbers (important for divergence)
         if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
             let errorType = "Exceeded Max Safe Integer";
             if (current <= 0) errorType = "Reached Non-Positive Value";
@@ -257,6 +231,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
             };
         }
 
+        // Cycle detection - check if current number has appeared before
         if (sequence.includes(current)) {
             return {
                 startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
@@ -269,20 +244,26 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
 
         sequence.push(current);
 
+        // Update statistics
         if (current > maxVal) maxVal = current;
         if (current < minVal) minVal = current;
         sumVal += current;
 
+        // Calculate current coefficient C_j(n) = (Y^q) / (X^j) where q is count of (Y*n+Z) operations, j is total steps
+        // C_0(n) = 1 (when steps is 0, yPlusZ_operations is 0, Y^0/X^0 = 1)
         const currentCoefficient = (steps === 0) ? 1 : (Math.pow(y_param, yPlusZ_operations) / Math.pow(x_param, steps));
 
+        // Check for stopping time t(n) - first j such that T^j(n) < n
         if (stoppingTime_t === Infinity && current < initialN) {
             stoppingTime_t = steps;
         }
 
+        // Check for coefficient stopping time tau(n) - first j such that C_j(n) < 1
         if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
             coefficientStoppingTime_tau = steps;
         }
 
+        // Check for paradoxical sequence condition (C_j(n) < 1 AND T^j(n) >= n)
         if (currentCoefficient < 1 && current >= initialN) {
             paradoxicalOccurrences.push({
                 step: steps,
@@ -301,6 +282,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
         type = "Max Iterations Reached";
     }
 
+    // Calculate Standard Deviation
     let mean = sumVal / sequence.length;
     let sumOfSquaredDifferences = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
     let stdDev = Math.sqrt(sumOfSquaredDifferences / sequence.length);
@@ -314,7 +296,7 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the Radial 9-net (This is the one that was in your previous working state)
+// Function to render the Radial 9-net
 function render9Net(data) {
     if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas'); // Use the correct ID from user's HTML
@@ -417,22 +399,39 @@ function render9Net(data) {
 
 // Function to display single sequence statistics
 function displaySequenceStats(data) {
-    const statsDiv = document.getElementById('currentSequenceDetails'); // Correct ID from index_html_final_icons_fix
+    const statsDiv = document.getElementById('singleSequenceStats'); // Correct ID
     if (!statsDiv) return;
 
-    // Update individual spans
-    document.getElementById('currentParams').textContent = `N=${data.startN.toLocaleString()}, X=${data.x_param}, Y=${data.y_param}, Z=${data.z_param}`;
-    document.getElementById('currentSteps').textContent = data.steps.toLocaleString();
-    document.getElementById('currentType').textContent = data.type;
-    document.getElementById('currentMin').textContent = data.minVal.toLocaleString();
-    document.getElementById('currentMax').textContent = data.maxVal.toLocaleString();
-    document.getElementById('currentSum').textContent = data.sumVal.toLocaleString();
-    document.getElementById('currentAvg').textContent = typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal;
-    document.getElementById('currentStdDev').textContent = typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.stdDev;
-    document.getElementById('currentStoppingTime').textContent = data.stoppingTime_t === 'N/A' ? 'N/A' : data.stoppingTime_t.toLocaleString();
-    document.getElementById('currentIsParadoxical').textContent = data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No';
-    document.getElementById('currentSequenceOutput').textContent = data.sequence.join(' → ');
+    // Build the paradoxical occurrences list HTML
+    let paradoxicalListHtml = '';
+    if (data.paradoxicalOccurrences.length > 0) {
+        paradoxicalListHtml = `
+            <p class="font-semibold mt-2">Paradoxical Occurrences (C<sub>j</sub>(n) &lt; 1 AND T<sup>j</sup>(n) &gt;= n):</p>
+            <ul class="list-disc list-inside ml-4">
+                ${data.paradoxicalOccurrences.map(p => `
+                    <li>Step ${p.step}: Value = ${p.value.toLocaleString()}, Coefficient = ${p.coefficient}</li>
+                `).join('')}
+            </ul>
+        `;
+    } else {
+        paradoxicalListHtml = '<p class="mt-2"><strong>Paradoxical Occurrences:</strong> None found.</p>';
+    }
 
+    statsDiv.innerHTML = `
+        <p class="font-semibold text-lg mb-2">Sequence Statistics for N=${data.startN.toLocaleString()}</p>
+        <p><strong>Initial Value:</strong> ${data.startN.toLocaleString()}</p>
+        <p><strong>Steps (J):</strong> ${data.steps.toLocaleString()}</p>
+        <p><strong>Max Value:</strong> ${data.maxVal.toLocaleString()}</p>
+        <p><strong>Min Value:</strong> ${data.minVal.toLocaleString()}</p>
+        <p><strong>Sum of Values:</strong> ${data.sumVal.toLocaleString()}</p>
+        <p><strong>Average Value:</strong> ${data.avgVal.toFixed(2)}</p>
+        <p><strong>Standard Deviation:</strong> ${data.stdDev.toFixed(2)}</p>
+        <p><strong>Result Type:</strong> ${data.type}</p>
+        <p><strong>Converges to 1:</strong> ${data.converges_to_1 ? 'Yes' : 'No'}</p>
+        <p><strong>Stopping Time t(n) (first j where T<sup>j</sup>(n) &lt; n):</strong> ${data.stoppingTime_t !== 'N/A' ? data.stoppingTime_t.toLocaleString() : 'N/A'}</p>
+        <p><strong>Coefficient Stopping Time &tau;(n) (first j where C<sub>j</sub>(n) &lt; 1):</strong> ${data.coefficientStoppingTime_tau !== 'N/A' ? data.coefficientStoppingTime_tau.toLocaleString() : 'N/A'}</p>
+        ${paradoxicalListHtml}
+    `;
     statsDiv.classList.remove('hidden'); // Ensure it's visible
 }
 
@@ -531,7 +530,6 @@ function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, ySt
                 <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
                 <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
                 <li>Reached Non-Positive Value: ${nonPositiveValueCount.toLocaleString()}</li>
-                <li>Invalid Parameters (X=0): ${invalidParamsCount.toLocaleString()}</li>
             </ul>
 
             <h4 class="font-semibold text-lg mt-4 mb-2">Paper-Specific Metrics:</h4>
@@ -602,7 +600,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (currentSequenceData) {
                 drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
-            }
+                }
         });
     }
 
@@ -635,7 +633,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.font = '20px Arial';
                     ctx.textAlign = 'center';
                     ctx.fillStyle = '#888';
-                    // Adjust text position for DPI
                     ctx.fillText('Enter a number and click "Calculate Single"', canvas.width / 2 / dpi, canvas.height / 2 / dpi);
                 }
             }
@@ -646,9 +643,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (singleNineNetContainer) {
                 singleNineNetContainer.classList.add('hidden'); // Ensure canvas container is hidden in bulk mode
             }
+            // Also clear the canvas when switching to bulk mode
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
         }
         // Optionally hide stats when switching modes to prevent confusion
-        document.getElementById('currentSequenceDetails').classList.add('hidden'); // Corrected ID
+        document.getElementById('singleSequenceStats').classList.add('hidden');
         document.getElementById('bulkSequenceStats').classList.add('hidden');
     }
 
@@ -685,11 +686,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             currentSequenceData = calculateCollatzSequence(startN, maxIterationsSingle, xValue, yValue, zValue);
-            // Pass x_param, y_param, z_param to the data object for displaySequenceStats to use
-            currentSequenceData.x_param = xValue;
-            currentSequenceData.y_param = yValue;
-            currentSequenceData.z_param = zValue;
-
             displaySequenceStats(currentSequenceData);
             drawNineNetCanvas(currentSequenceData); // Call unfolded box after calculation
         });
@@ -769,8 +765,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const zValue = zValue_str ? parseInt(zValue_str) : 1;
 
                 if (isNaN(startN) || isNaN(xValue) || isNaN(yValue) || isNaN(zValue)) {
-                    // Replaced alert with a more user-friendly message in the errorMessageDiv
-                    document.getElementById('errorMessage').textContent = 'Please enter valid numbers for N, X, Y, and Z.';
+                    alert('Please enter valid numbers for N, X, Y, and Z.');
                     return; // Stop the function execution
                 }
 
@@ -787,8 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Navigate to the selected URL with parameters
                 window.open(selectedUrl, '_self'); // Use _self to open in the same tab, or _blank for new tab
             } else {
-                // Replaced alert with a more user-friendly message in the errorMessageDiv
-                document.getElementById('errorMessage').textContent = 'Please select a visualization tool to launch.';
+                alert('Please select a visualization tool to launch.');
             }
         });
     }
@@ -830,10 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
         zValueInput.value = zParam;
 
         // Automatically trigger the single calculation
-        // Using a small timeout to ensure all DOM elements are fully rendered before click
-        setTimeout(() => {
-            calculateSingleButton.click();
-        }, 100); 
+        calculateSingleButton.click();
     } else if (singleNineNetCanvasElement && startNumberInput && xValueInput && yValueInput && zValueInput) {
         // If no URL parameters, perform initial draw with default values from input fields
         const defaultN = parseInt(startNumberInput.value);
@@ -841,61 +832,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultY = parseInt(yValueInput.value);
         const defaultZ = parseInt(zValueInput.value);
         const maxSteps = 10000;
-        // The calculateCollatzSequence function expects x_param, y_param, z_param as direct arguments
-        const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ);
-        
-        // Pass x_param, y_param, z_param to the data object for drawNineNetCanvas to use
-        // This ensures the draw function has access to the X value for color logic
-        defaultResult.x_param = defaultX; 
-        defaultResult.y_param = defaultY;
-        defaultResult.z_param = defaultZ;
-
-        if (defaultResult.type !== "error") { // Assuming "error" type for invalid parameters
+        const defaultResult = calculateCollatzSequence(defaultN, defaultX, defaultY, defaultZ, maxSteps);
+        if (defaultResult.type !== "error") {
             drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
-            displaySequenceStats(defaultResult); // Display stats for the default sequence
         }
     }
 
     // Call renderHistory and updateGoldStarVisibility if those functions exist
     // These functions need to be defined somewhere in your script.js or included HTML
-    // Placeholder functions if they are not defined elsewhere to prevent errors
-    function renderHistory() {
-        const historyContainer = document.getElementById('historyContainer');
-        const runsHistory = document.getElementById('runsHistory');
-        if (historyContainer && runsHistory) {
-            if (calculatedRuns.length > 0) {
-                historyContainer.classList.remove('hidden');
-                runsHistory.innerHTML = calculatedRuns.map(run => `
-                    <div class="bg-blue-800 bg-opacity-40 rounded-lg p-3 mb-2 text-blue-100 text-sm">
-                        <strong>N=${run.startN}, X=${run.x_param}, Y=${run.y_param}, Z=${run.z_param}</strong><br>
-                        Steps: ${run.steps}, Type: ${run.type}<br>
-                        Avg: ${run.avgVal.toFixed(2)}, Max: ${run.maxVal.toLocaleString()}
-                    </div>
-                `).join('');
-            } else {
-                historyContainer.classList.add('hidden');
-            }
-        }
-    }
-
-    function updateGoldStarVisibility() {
-        // This function would typically check conditions for gold stars (e.g., if X, Y, Z are 2, 3, 1)
-        // For now, let's just ensure they are visible if their parent elements exist.
-        const xStar = document.getElementById('x-star');
-        const yStar = document.getElementById('y-star');
-        const zStar = document.getElementById('z-star');
-
-        // Check if current X, Y, Z values match standard Collatz (2, 3, 1)
-        const currentX = parseInt(document.getElementById('xValue').value);
-        const currentY = parseInt(document.getElementById('yValue').value);
-        const currentZ = parseInt(document.getElementById('zValue').value);
-
-        if (xStar) xStar.style.display = (currentX === 2) ? 'inline-block' : 'none';
-        if (yStar) yStar.style.display = (currentY === 3) ? 'inline-block' : 'none';
-        if (zStar) zStar.style.display = (currentZ === 1) ? 'inline-block' : 'none';
-    }
-
-
     if (typeof renderHistory === 'function') {
         renderHistory();
     }
