@@ -732,9 +732,8 @@
             canvas.height = canvas.offsetHeight * dpi;
             ctx.scale(dpi, dpi);
 
-            // centerX and centerY should be calculated relative to the current canvas dimensions
-            const centerX = canvas.offsetWidth / 2 / dpi;
-            const centerY = canvas.offsetHeight / 2 / dpi;
+            centerX = canvas.offsetWidth / 2;
+            centerY = canvas.offsetHeight / 2;
             nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
 
             ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
@@ -1040,7 +1039,7 @@
                 });
 
                 canvas.addEventListener('wheel', (e) => {
-                    e.preventDefault();
+                    e.preventDefault(); // Keep this to prevent page scroll
                     const scaleAmount = 1.1;
                     // Mouse coordinates relative to the canvas
                     const mouseX = e.clientX - canvas.getBoundingClientRect().left;
@@ -1066,7 +1065,7 @@
                     if (currentSequenceData) {
                         drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
                     }
-                });
+                }, { passive: false }); // Explicitly set passive to false because we use preventDefault()
             }
 
             // --- START New Mode Switching Code ---
@@ -1309,7 +1308,7 @@
                 const defaultZ = parseInt(zValueInput.value);
                 const maxSteps = 10000;
                 // Pass all parameters to calculateCollatzSequence
-                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ);
+                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ); // Corrected parameter order and count
                 if (defaultResult.type !== "error") {
                     drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
                 }
