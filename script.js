@@ -70,7 +70,7 @@ function drawNineNetCanvas(data) {
     ctx.scale(scale, scale);
 
     const sequence = data.sequence; // Access sequence from data object
-    const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
+    const xValue = data.x_param; // Get xValue from data object (needed for divisibility check) - CORRECTED TO x_param
 
     // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
     // This layout creates the "unfolded box" or "cross" shape
@@ -310,8 +310,112 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
         avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
         stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
         coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
-        paradoxicalOccurrences: paradoxicalOccurrences
+        paradoxicalOccurrences: paradoxicalOccurrences,
+        x_param: x_param, // Ensure x_param is included in the returned data object
+        y_param: y_param,
+        z_param: z_param
     };
+}
+
+// Function to render the Radial 9-net
+function render9Net(data) {
+    if (!canvas) {
+        canvas = document.getElementById('singleNineNetCanvas'); // Use the correct ID from user's HTML
+        ctx = canvas.getContext('2d');
+    }
+
+    // Adjust canvas resolution for sharper drawing
+    const dpi = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpi;
+    canvas.height = canvas.offsetHeight * dpi;
+    ctx.scale(dpi, dpi);
+
+    centerX = canvas.offsetWidth / 2;
+    centerY = canvas.offsetHeight / 2;
+    nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
+
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+    ctx.save();
+    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.scale(scale, scale);
+
+    const sequence = data.sequence;
+    if (sequence.length < 2) {
+        // If sequence is too short, just draw the starting node if it exists
+        if (sequence.length === 1) {
+            const num = sequence[0];
+            ctx.beginPath();
+            ctx.arc(0, 0, nodeRadius, 0, 2 * Math.PI); // Draw at center for single node
+            ctx.fillStyle = DEFAULT_NODE_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#000'; // Text color
+            ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num, 0, 0);
+        }
+        ctx.restore();
+        return;
+    }
+
+    const normalizedLength = Math.min(sequence.length, 100);
+    nodeRadius = minNodeRadius + (maxNodeRadius - minNodeRadius) * (1 - normalizedLength / 100);
+    let lineThickness = minLineThickness + (maxLineThickness - minLineThickness) * (1 - normalizedLength / 100);
+
+    // Draw lines first
+    for (let i = 0; i < sequence.length - 1; i++) {
+        const startNum = sequence[i];
+        const endNum = sequence[i + 1];
+
+        const startAngle = (startNum % 9) * (2 * Math.PI / 9);
+        const startRadius = 50 + startNum * 0.1;
+
+        const endAngle = (endNum % 9) * (2 * Math.PI / 9);
+        const endRadius = 50 + endNum * 0.1;
+
+        const x1 = startRadius * Math.cos(startAngle);
+        const y1 = startRadius * Math.sin(startAngle);
+        const x2 = endRadius * Math.cos(endAngle);
+        const y2 = endRadius * Math.sin(endAngle);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = DEFAULT_LINE_COLOR; // Use dynamically set color
+        ctx.lineWidth = lineThickness;
+        ctx.stroke();
+    }
+
+    // Draw nodes second, so they appear on top of lines
+    for (let i = 0; i < sequence.length; i++) {
+        const num = sequence[i];
+        const angle = (num % 9) * (2 * Math.PI / 9);
+        const radius = 50 + num * 0.1;
+
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = DEFAULT_NODE_COLOR; // Use dynamically set color
+        ctx.fill();
+        ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#000'; // Text color
+        ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(num, x, y);
+    }
+
+    ctx.restore();
 }
 
 // Function to display single sequence statistics
@@ -348,8 +452,8 @@ function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, ySt
     console.log(`Calculating bulk stats for N=${startN_fixed} with X from ${xStart} to ${xEnd}, Y from ${yStart} to ${yEnd}, Z from ${zStart} to ${zEnd}.`);
 
     let totalSteps = 0;
-    let maxOverallVal = 0;
-    let minOverallVal = Infinity;
+    let maxOverallVal = 0; // Max value encountered across all sequences
+    let minOverallVal = Infinity; // Min value encountered across all sequences
     let totalSumVals = 0;
     let totalSequencesCalculated = 0;
 
@@ -657,7 +761,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (currentSequenceData) {
                 drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
-                }
+            }
         });
     }
 
@@ -699,10 +803,6 @@ document.addEventListener('DOMContentLoaded', () => {
             bulkSection.classList.remove('hidden');
             if (singleNineNetContainer) {
                 singleNineNetContainer.classList.add('hidden'); // Ensure canvas container is hidden in bulk mode
-            }
-            // Also clear the canvas when switching to bulk mode
-            if (ctx && canvas) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
             }
         }
         // Optionally hide stats when switching modes to prevent confusion
@@ -911,7 +1011,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const defaultY = parseInt(yValueInput.value);
         const defaultZ = parseInt(zValueInput.value);
         const maxSteps = 10000;
-        const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ); // Corrected parameter order
+        // Pass all parameters to calculateCollatzSequence
+        const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ); // Corrected parameter order and count
         if (defaultResult.type !== "error") {
             drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
         }
@@ -929,4 +1030,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderHistory(); // Ensure history container visibility is correctly set on load
     updateGoldStarVisibility(); // Initial call to set gold star visibility on page load
+
+    // Trigger MathJax typesetting after DOM is ready and content is stable
+    if (window.MathJax) {
+        MathJax.typesetPromise();
+    }
 }); // CLOSING BRACE FOR THE MAIN DOMContentLoaded LISTENER
