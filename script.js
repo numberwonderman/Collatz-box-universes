@@ -3,9 +3,9 @@
 // ==========================================================
 
 // Default canvas colors (will be updated by color pickers)
-// These match the default values in index.html for consistency
-let DEFAULT_LINE_COLOR = '#0000ff'; // Blue - for divisible operation
-let DEFAULT_NODE_COLOR = '#ffff00'; // Yellow - for multiply/add operation
+// These now match the orange/green theme from the user's desired image
+let DEFAULT_LINE_COLOR = '#008000'; // Green - for divisible operation (matches image's green)
+let DEFAULT_NODE_COLOR = '#FFA500'; // Orange - for multiply/add operation (matches image's orange)
 const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
 const DEFAULT_NODE_RADIUS = 5;
 
@@ -59,104 +59,140 @@ function drawNineNetCanvas(data) {
     canvas.height = canvas.offsetHeight * dpi;
     ctx.scale(dpi, dpi);
 
-    centerX = canvas.offsetWidth / 2;
-    centerY = canvas.offsetHeight / 2;
-    nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
-
-    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight); // Clear the entire canvas
+    // Clear the entire canvas
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
 
     ctx.save(); // Save the current canvas state (transforms)
     // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
-    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
     ctx.scale(scale, scale);
 
     const sequence = data.sequence; // Access sequence from data object
     const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
 
-    const paddingBetweenBoxes = 10; // Padding between the large remainder boxes (faces)
+    const paddingBetweenGroups = 10; // Padding between the large 3x3 remainder groups
 
-    // Define the positions of the 9 "faces" on a 4x3 grid of `faceSize` blocks
+    // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
     // This layout creates the "unfolded box" or "cross" shape
     const layout = [
-        {r: 0, c: 1}, // Remainder 0: Top-middle face
-        {r: 1, c: 0}, // Remainder 1: Middle-left face
-        {r: 1, c: 1}, // Remainder 2: Center face
-        {r: 1, c: 2}, // Remainder 3: Middle-right face
-        {r: 1, c: 3}, // Remainder 4: Far-right face
-        {r: 2, c: 1}, // Remainder 5: Bottom-middle face
+        {r: 0, c: 1}, // Remainder 0: Top-middle group
+        {r: 1, c: 0}, // Remainder 1: Middle-left group
+        {r: 1, c: 1}, // Remainder 2: Center group
+        {r: 1, c: 2}, // Remainder 3: Middle-right group
+        {r: 1, c: 3}, // Remainder 4: Far-right group
+        {r: 2, c: 1}, // Remainder 5: Bottom-middle group
         {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
         {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
         {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
     ];
 
-    // Determine the effective grid dimensions for calculating face size
+    // Determine the effective grid dimensions for calculating group size
     const maxLayoutColIndex = Math.max(...layout.map(p => p.c));
     const maxLayoutRowIndex = Math.max(...layout.map(p => p.r));
 
     const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
     const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-    // Calculate the size of each "face" (larger box) based on canvas dimensions
-    const potentialFaceSizeByWidth = (canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * paddingBetweenBoxes) / effectiveLayoutCols;
-    const potentialFaceSizeByHeight = (canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * paddingBetweenBoxes) / effectiveLayoutRows;
+    // Calculate the size of each individual *cell* (smallest square)
+    // We want the total drawing to fit within the canvas.
+    // Total available width for content (after padding for edges)
+    const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * paddingBetweenGroups;
+    const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * paddingBetweenGroups;
 
-    const faceSize = Math.min(potentialFaceSizeByWidth, potentialFaceSizeByHeight) * 0.95; // Use 95% to add some margin
+    // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
+    // So, total cells across = effectiveLayoutCols * 3
+    // Total cells down = effectiveLayoutRows * 3
+    const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
+    const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
+
+    const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
+    const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
 
     // Calculate total drawing dimensions for centering
-    const NINE_NET_TOTAL_DRAW_WIDTH = effectiveLayoutCols * faceSize + (effectiveLayoutCols - 1) * paddingBetweenBoxes;
-    const NINE_NET_TOTAL_DRAW_HEIGHT = effectiveLayoutRows * faceSize + (effectiveLayoutRows - 1) * paddingBetweenBoxes;
+    const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * paddingBetweenGroups;
+    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * paddingBetweenGroups;
 
     // Calculate initial offset to center the entire 9-net drawing
-    const initialOffsetX = -NINE_NET_TOTAL_DRAW_WIDTH / 2;
-    const initialOffsetY = -NINE_NET_TOTAL_DRAW_HEIGHT / 2;
+    const initialOffsetX = -totalDrawingWidth / 2;
+    const initialOffsetY = -totalDrawingHeight / 2;
 
-    const remainderBoxCoords = {}; // Store coordinates for each remainder box
-    for (let i = 0; i < layout.length; i++) {
-        const pos = layout[i];
-        const boxX = initialOffsetX + (pos.c * faceSize) + (pos.c * paddingBetweenBoxes);
-        const boxY = initialOffsetY + (pos.r * faceSize) + (pos.r * paddingBetweenBoxes);
-        remainderBoxCoords[i] = { x: boxX, y: boxY, width: faceSize, height: faceSize };
+    // Store the final number for each cell (remainder, cellX, cellY)
+    // This ensures only the last number to occupy a cell is drawn, matching the image.
+    const cellContents = {}; // Structure: {remainder: {cellY: {cellX: num}}}
 
-        // Draw outline for each remainder box
-        ctx.beginPath();
-        ctx.rect(boxX, boxY, faceSize, faceSize);
-        ctx.strokeStyle = '#555'; // Gray outline
-        ctx.lineWidth = 1;
-        ctx.stroke();
-    }
-
-    // Draw the sequence numbers within their respective remainder boxes
+    // Process the sequence to determine the final content of each cell
     for (let i = 0; i < sequence.length; i++) {
         const num = sequence[i];
-        const remainder = num % 9; // Determine which of the 9 remainder boxes this number belongs to
+        const remainder = num % 9;
+        const cellInGroupX = (num % 3);
+        // Invert cellY to match the image's vertical arrangement
+        const cellInGroupY = 2 - Math.floor((num / 3) % 3); // Invert Y-axis (0=bottom, 2=top)
 
-        const box = remainderBoxCoords[remainder];
-        if (box) { // If a valid box exists for this remainder
-            // Set fill color based on divisibility by xValue
-            if (num % xValue === 0) { // If divisible by X
-                ctx.fillStyle = DEFAULT_LINE_COLOR; // Use the "Divisible Color"
-            } else { // If not divisible by X
-                ctx.fillStyle = DEFAULT_NODE_COLOR; // Use the "Multiply/Add Color"
-            }
-            ctx.fillRect(box.x, box.y, box.width, box.height); // Fill the box
+        if (!cellContents[remainder]) {
+            cellContents[remainder] = {};
+        }
+        if (!cellContents[remainder][cellInGroupY]) {
+            cellContents[remainder][cellInGroupY] = {};
+        }
+        cellContents[remainder][cellInGroupY][cellInGroupX] = num;
+    }
 
-            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
+    // Now, draw the cells based on the final `cellContents`
+    for (let remainder = 0; remainder < layout.length; remainder++) {
+        const pos = layout[remainder];
+        if (pos) {
+            const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * paddingBetweenGroups);
+            const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * paddingBetweenGroups);
+
+            // Draw outline for the 3x3 remainder group
+            ctx.beginPath();
+            ctx.rect(groupX, groupY, groupSize, groupSize);
+            ctx.strokeStyle = '#555'; // Gray outline for the 3x3 groups
             ctx.lineWidth = 1;
-            ctx.strokeRect(box.x, box.y, box.width, box.height); // Draw border
+            ctx.stroke();
 
-            // Draw the number text
-            ctx.fillStyle = '#000'; // Black text color
-            ctx.font = `${Math.max(8, faceSize * 0.2)}px Arial`; // Dynamic font size
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(num.toString(), box.x + box.width / 2, box.y + box.height / 2);
+            // Draw content of each cell within this remainder group
+            if (cellContents[remainder]) {
+                for (let cellInGroupY = 0; cellInGroupY < 3; cellInGroupY++) {
+                    if (cellContents[remainder][cellInGroupY]) {
+                        for (let cellInGroupX = 0; cellInGroupX < 3; cellInGroupX++) {
+                            const num = cellContents[remainder][cellInGroupY][cellInGroupX];
+                            if (num !== undefined) {
+                                const cellAbsX = groupX + (cellInGroupX * cellSize);
+                                const cellAbsY = groupY + (cellInGroupY * cellSize);
+
+                                ctx.beginPath();
+                                ctx.rect(cellAbsX, cellAbsY, cellSize, cellSize);
+
+                                // Set fill color based on divisibility by xValue
+                                if (num % xValue === 0) { // If divisible by X
+                                    ctx.fillStyle = DEFAULT_LINE_COLOR; // Green
+                                } else { // If not divisible by X
+                                    ctx.fillStyle = DEFAULT_NODE_COLOR; // Orange
+                                }
+                                ctx.fill();
+                                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
+
+                                // Draw the number text
+                                ctx.fillStyle = '#000'; // Black text color
+                                ctx.font = `${Math.max(8, cellSize * 0.4)}px Arial`; // Dynamic font size based on cellSize
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(num.toString(), cellAbsX + cellSize / 2, cellAbsY + cellSize / 2);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
     ctx.restore(); // Restore canvas state
 }
 
 
-// Collatz function as per user's definition
+// Collatz function as per user's definition (kept consistent)
 function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
     let sequence = [startN];
     let current = startN;
@@ -278,10 +314,8 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
     };
 }
 
-// Function to render the Radial 9-net (This is kept in case other pages use it, but not for index.html's main canvas)
+// Function to render the Radial 9-net (kept for other pages if needed, but not used by index.html's main canvas now)
 function render9Net(data) {
-    // This function is not primarily used by index.html's main canvas anymore,
-    // but kept here in case other visualization pages link to this script.
     if (!canvas) {
         canvas = document.getElementById('singleNineNetCanvas');
         ctx = canvas.getContext('2d');
