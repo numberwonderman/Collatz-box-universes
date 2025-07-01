@@ -33,7 +33,7 @@ let dpi = window.devicePixelRatio || 1;
 let currentSequenceData = null;
 
 // Global array to store runs for history
-let calculatedRuns = [];
+let calculatedRuns = []; // This needs to be global if renderHistory uses it globally
 
 // ==========================================================
 // End of Global Variable Declarations
@@ -735,13 +735,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Color picker event listeners
+    // Removed 'const' here to avoid re-declaration errors
     const divColorPicker = document.getElementById('divColorPicker');
     if (divColorPicker) {
         divColorPicker.addEventListener('input', (e) => {
             DEFAULT_LINE_COLOR = e.target.value;
             if (currentSequenceData) {
-                const xValue = parseInt(document.getElementById('xValue').value);
-                currentSequenceData.xValue = xValue;
+                // Ensure xValue is available for drawing when color changes
+                // If currentSequenceData doesn't have x_param, get it from the input
+                const xValueForDrawing = currentSequenceData.x_param || parseInt(document.getElementById('xValue').value);
+                currentSequenceData.xValue = xValueForDrawing; // Update xValue in currentSequenceData
                 drawNineNetCanvas(currentSequenceData);
             }
         });
@@ -752,8 +755,9 @@ document.addEventListener('DOMContentLoaded', () => {
         mulColorPicker.addEventListener('input', (e) => {
             DEFAULT_NODE_COLOR = e.target.value;
             if (currentSequenceData) {
-                const xValue = parseInt(document.getElementById('xValue').value);
-                currentSequenceData.xValue = xValue;
+                // Ensure xValue is available for drawing when color changes
+                const xValueForDrawing = currentSequenceData.x_param || parseInt(document.getElementById('xValue').value);
+                currentSequenceData.xValue = xValueForDrawing; // Update xValue in currentSequenceData
                 drawNineNetCanvas(currentSequenceData);
             }
         });
@@ -838,17 +842,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const zValueInput = document.getElementById('zValue');
     const calculateSingleButton = document.getElementById('calculateSingle');
     const singleNineNetCanvasElement = document.getElementById('singleNineNetCanvas');
-    const divColorPicker = document.getElementById('divColorPicker');
-    const mulColorPicker = document.getElementById('mulColorPicker');
 
-
-    if (divColorParam) {
+    // IMPORTANT: Ensure divColorPicker and mulColorPicker are already defined from earlier in DOMContentLoaded
+    // Do NOT re-declare them here.
+    if (divColorParam && divColorPicker) { // Check if divColorPicker exists from earlier declaration
         DEFAULT_LINE_COLOR = divColorParam;
-        if (divColorPicker) divColorPicker.value = divColorParam;
+        divColorPicker.value = divColorParam;
     }
-    if (mulColorParam) {
+    if (mulColorParam && mulColorPicker) { // Check if mulColorPicker exists from earlier declaration
         DEFAULT_NODE_COLOR = mulColorParam;
-        if (mulColorPicker) mulColorPicker.value = mulColorParam;
+        mulColorPicker.value = mulColorParam;
     }
 
 
