@@ -392,7 +392,7 @@
     </div>
 
     <script>
-        // SCRIPT VERSION: 2025-07-01_V7 - Combined into single HTML file. 9-Net layout and readability fixes.
+        // SCRIPT VERSION: 2025-07-01_V8 - Combined into single HTML file. Definitive 9-Net layout and readability fixes.
 
         // ==========================================================
         // Consolidate ALL Global Variable Declarations at the Top
@@ -936,7 +936,7 @@
 
                         <h4 class="font-semibold text-lg mt-4 mb-2">Sequence Outcomes:</h4>
                         <ul class="list-disc list-inside ml-4">
-                            <li>Converges to 1: ${convergenceCount.toLocaleString()} (${totalSequencesCalculated > 0 ? ((convergenceCount / totalSequencesCalculated) * 100).toFixed(2) : '0.00'}%)</li>
+                            <li>Converges to 1: ${convergenceCount.toLocaleString()} (${totalSequencesCalculated > 0 ? ((convergenceCount / totalCombinations) * 100).toFixed(2) : '0.00'}%)</li>
                             <li>Cycles Detected: ${cycleCount.toLocaleString()}</li>
                             <li>Max Iterations Reached: ${maxIterationsReachedCount.toLocaleString()}</li>
                             <li>Exceeded Max Safe Integer: ${exceededMaxCount.toLocaleString()}</li>
@@ -1001,7 +1001,7 @@
         // Event listeners for DOM content loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Log the script version to the console for debugging
-            console.log("Script Version: 2025-07-01_V7 (Combined)");
+            console.log("Script Version: 2025-07-01_V8 (Combined)");
 
             canvas = document.getElementById('singleNineNetCanvas');
             if (canvas) {
@@ -1308,7 +1308,7 @@
                 const defaultZ = parseInt(zValueInput.value);
                 const maxSteps = 10000;
                 // Pass all parameters to calculateCollatzSequence
-                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ); // Corrected parameter order and count
+                const defaultResult = calculateCollatzSequence(defaultN, maxSteps, defaultX, defaultY, defaultZ);
                 if (defaultResult.type !== "error") {
                     drawNineNetCanvas(defaultResult); // Use drawNineNetCanvas for unfolded box on initial load
                 }
