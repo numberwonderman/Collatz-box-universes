@@ -1,0 +1,157 @@
+// --- Global Variables for Radial Viewer ---
+
+// Canvas and Context (will be assigned later when canvas element exists)
+let canvas;
+let ctx;
+
+// Center of the canvas (will be calculated based on canvas size)
+let centerX;
+let centerY;
+
+// Pan and Zoom variables (initialize to default values)
+let translateX = 0;
+let translateY = 0;
+let scale = 1;
+
+// Node and Line Sizing Parameters
+const DEFAULT_NODE_RADIUS = 10; // Or whatever your preferred default is
+const minNodeRadius = 3;      // Minimum size for nodes
+const maxNodeRadius = 15;     // Maximum size for nodes
+
+const minLineThickness = 1;   // Minimum thickness for lines
+const maxLineThickness = 4;   // Maximum thickness for lines
+
+// Default Colors
+const DEFAULT_NODE_COLOR = '#4CAF50'; // Green example
+const DEFAULT_NODE_BORDER_COLOR = '#212121'; // Dark gray/black
+const DEFAULT_LINE_COLOR = '#9E9E9E'; // Medium gray
+
+// You'll also need the DEFAULT_MODULUS, which we discussed
+const DEFAULT_MODULUS = 9;
+
+// --- End Global Variables ---
+
+
+// Now, your render9Net function would go here
+// You'll likely want to define a default somewhere, e.g.,
+// const DEFAULT_MODULUS = 9; // Or make it a global setting
+//ok
+function render9Net(data, modulus = DEFAULT_MODULUS) { // Added 'modulus' parameter with a default of 9
+   console.log("Radial Viewer: render9Net called.");
+    if (!canvas) {
+        canvas = document.getElementById('radialViewerCanvas');
+        ctx = canvas.getContext('2d');
+    }
+    const pig=2;
+
+    // Adjust canvas resolution for sharper drawing
+    const dpi = window.devicePixelRatio || 1;
+    canvas.width = canvas.offsetWidth * dpi;
+    canvas.height = canvas.offsetHeight * dpi;
+    ctx.scale(dpi, dpi);
+
+    centerX = canvas.offsetWidth / 2;
+    centerY = canvas.offsetHeight / 2;
+    nodeRadius = DEFAULT_NODE_RADIUS; // Reset to default for new render
+
+    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
+
+    ctx.save();
+    ctx.translate(centerX + translateX, centerY + translateY);
+    ctx.scale(scale, scale);
+
+    const sequence = data.sequence;
+    if (sequence.length < 2) {
+        if (sequence.length === 1) {
+            const num = sequence[0];
+            ctx.beginPath();
+            ctx.arc(0, 0, nodeRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = DEFAULT_NODE_COLOR;
+            ctx.fill();
+            ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.fillStyle = '#000';
+            ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(num, 0, 0);
+        }
+        ctx.restore();
+        return;
+    }
+
+    const normalizedLength = Math.min(sequence.length, 100);
+    nodeRadius = minNodeRadius + (maxNodeRadius - minNodeRadius) * (1 - normalizedLength / 100);
+    let lineThickness = minLineThickness + (maxLineThickness - minLineThickness) * (1 - normalizedLength / 100);
+
+    for (let i = 0; i < sequence.length - 1; i++) {
+        const startNum = sequence[i];
+        const endNum = sequence[i + 1];
+
+        // Replace 9 with 'modulus'
+        const startAngle = (startNum % modulus) * (2 * Math.PI / modulus);
+        const startRadius = 50 + startNum * 0.1;
+
+        // Replace 9 with 'modulus'
+        const endAngle = (endNum % modulus) * (2 * Math.PI / modulus);
+        const endRadius = 50 + endNum * 0.1;
+
+        const x1 = startRadius * Math.cos(startAngle);
+        const y1 = startRadius * Math.sin(startAngle);
+        const x2 = endRadius * Math.cos(endAngle);
+        const y2 = endRadius * Math.sin(endAngle);
+
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = DEFAULT_LINE_COLOR;
+        ctx.lineWidth = lineThickness;
+        ctx.stroke();
+    }
+
+    for (let i = 0; i < sequence.length; i++) {
+        const num = sequence[i];
+        // Replace 9 with 'modulus'
+        const angle = (num % modulus) * (2 * Math.PI / modulus);
+        const radius = 50 + num * 0.1;
+
+        const x = radius * Math.cos(angle);
+        const y = radius * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = DEFAULT_NODE_COLOR;
+        ctx.fill();
+        ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = '#000';
+        ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(num, x, y);
+    }
+
+    ctx.restore();
+}
+
+// And then you'll need a way to get the canvas element and call render9Net
+// For example, using a DOMContentLoaded listener:
+document.addEventListener('DOMContentLoaded', () => {
+    canvas = document.getElementById('radialViewerCanvas'); // IMPORTANT: Make sure your HTML has an element with this ID
+    if (canvas) {
+        ctx = canvas.getContext('2d');
+        // You'll likely want to call render9Net here with some initial data
+        // For example: render9Net({ sequence: [1, 4, 2, 1] }, DEFAULT_MODULUS);
+        // Or get data from URL parameters as we discussed.
+    } else {
+        console.error("Canvas element with ID 'radialViewerCanvas' not found!");
+    }
+});
+
+
+
+
