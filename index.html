@@ -461,18 +461,23 @@
 
             ctx.save(); // Save the current canvas state (transforms)
 
+            // Apply translation and scale for the main canvas, not for grid items
+            // For the main canvas, we apply the user's drag and zoom directly
+            ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
+            ctx.scale(scale, scale);
+
+
             const sequence = data.sequence; // Access sequence from data object
             const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
 
             // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
             // This layout creates the "unfolded box" or "cross" shape
-            // The positions are (row, col) in a conceptual 3x4 grid for the cross shape.
             const layout = [
                 {r: 0, c: 1}, // Remainder 0: Top-middle group
                 {r: 1, c: 0}, // Remainder 1: Middle-left group
                 {r: 1, c: 1}, // Remainder 2: Center group
                 {r: 1, c: 2}, // Remainder 3: Middle-right group
-                {r: 1, c: 3}, // Remainder 4: Far-right group (part of the cross)
+                {r: 1, c: 3}, // Remainder 4: Far-right group
                 {r: 2, c: 1}, // Remainder 5: Bottom-middle group
                 {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
                 {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
@@ -486,35 +491,27 @@
             const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
             const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-            // Calculate groupSize such that the entire grid of groups plus padding fits within the canvas
-            const canvasW = canvas.offsetWidth / dpi;
-            const canvasH = canvas.offsetHeight / dpi;
+            // Calculate the size of each individual *cell* (smallest square)
+            // We want the total drawing to fit within the canvas.
+            // Total available width for content (after padding for edges)
+            const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+            const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
 
-            // Calculate potential groupSize based on width and height constraints
-            // Each group is 3x3 cells. The total width/height for cells is (num_groups * 3 * cellSize)
-            // The total width/height for padding is (num_groups - 1) * PADDING_BETWEEN_GROUPS
-            // Let gS = groupSize.
-            // (effectiveLayoutCols * gS) + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS = canvasW
-            // (effectiveLayoutRows * gS) + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS = canvasH
+            // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
+            const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
+            const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
 
-            const gS_from_width = (canvasW - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS) / effectiveLayoutCols;
-            const gS_from_height = (canvasH - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS) / effectiveLayoutRows;
+            const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
+            const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
 
-            const groupSize = Math.min(gS_from_width, gS_from_height) * 0.9; // Use 90% to add some margin around the entire structure
-            const cellSize = groupSize / 3; // Each remainder group is a 3x3 grid of cells
-
-            // Recalculate total drawing dimensions based on the derived groupSize
-            const actualTotalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-            const actualTotalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
+            // Calculate total drawing dimensions for centering
+            const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
+            const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
 
             // Calculate initial offset to center the entire 9-net drawing
             // These offsets are relative to the top-left corner of the canvas (0,0)
-            const initialOffsetX = (canvasW - actualTotalDrawingWidth) / 2;
-            const initialOffsetY = (canvasH - actualTotalDrawingHeight) / 2;
-
-            // Apply global transformations (drag and zoom) after initial centering
-            ctx.translate(translateX, translateY); // Apply user drag
-            ctx.scale(scale, scale); // Apply user zoom
+            const initialOffsetX = -totalDrawingWidth / 2;
+            const initialOffsetY = -totalDrawingHeight / 2;
 
             // Store the final number for each cell (remainder, cellX, cellY)
             // This ensures only the last number to occupy a cell is drawn, matching the image.
@@ -1047,8 +1044,9 @@
 
                     // Calculate world coordinates (before current translation/scale)
                     // This is crucial for zooming into the mouse pointer
-                    const worldX = (mouseX - translateX) / scale;
-                    const worldY = (mouseY - translateY) / scale;
+                    const worldX = (mouseX / dpi - (canvas.offsetWidth / 2 / dpi + translateX)) / scale;
+                    const worldY = (mouseY / dpi - (canvas.offsetHeight / 2 / dpi + translateY)) / scale;
+
 
                     if (e.deltaY < 0) { // Zoom in
                         scale *= scaleAmount;
@@ -1059,8 +1057,9 @@
                     scale = Math.max(0.1, Math.min(scale, 10)); // Keep scale within reasonable limits
 
                     // Recalculate translation to keep the "world point" under the mouse
-                    translateX = mouseX - worldX * scale;
-                    translateY = mouseY - worldY * scale;
+                    translateX = mouseX / dpi - worldX * scale - (canvas.offsetWidth / 2 / dpi);
+                    translateY = mouseY / dpi - worldY * scale - (canvas.offsetHeight / 2 / dpi);
+
 
                     if (currentSequenceData) {
                         drawNineNetCanvas(currentSequenceData); // Re-render with new scale and translation (using unfolded box)
@@ -1314,30 +1313,14 @@
                 }
             }
 
-            // Ensure the canvas width/height are explicitly set to the drawing dimensions for the 9-net
-            if (singleNineNetCanvasElement) {
-                // These constants should match the intended drawing dimensions for the 9-net
-                // They are used in drawNineNetCanvas for layout calculation, but also need to be set on the canvas element itself
-                const NINE_NET_DRAW_WIDTH = 380; // Example, adjust as needed
-                const NINE_NET_DRAW_HEIGHT = 290; // Example, adjust as needed
-                singleNineNetCanvasElement.width = NINE_NET_DRAW_WIDTH;
-                singleNineNetCanvasElement.height = NINE_NET_DRAW_HEIGHT;
+            // Call renderHistory and updateGoldStarVisibility if those functions exist
+            // These functions need to be defined somewhere in your script.js or included HTML
+            if (typeof renderHistory === 'function') {
+                renderHistory();
             }
-
-            renderHistory(); // Ensure history container visibility is correctly set on load
-            updateGoldStarVisibility(); // Initial call to set gold star visibility on page load
-
-            // Trigger MathJax typesetting after DOM is ready and content is stable
-            // Use a small timeout to give MathJax a moment to be fully ready
-            setTimeout(() => {
-                if (window.MathJax) {
-                    MathJax.typesetPromise().then(() => {
-                        console.log("MathJax typesetting complete.");
-                    }).catch((err) => {
-                        console.error("MathJax typesetting failed:", err);
-                    });
-                }
-            }, 100); // Small delay
+            if (typeof updateGoldStarVisibility === 'function') {
+                updateGoldStarVisibility();
+            }
         }); // CLOSING BRACE FOR THE MAIN DOMContentLoaded LISTENER
     </script>
 </body>
