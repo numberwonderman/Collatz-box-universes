@@ -392,7 +392,7 @@
     </div>
 
     <script>
-        // SCRIPT VERSION: 2025-07-01_V8 - Combined into single HTML file. Definitive 9-Net layout and readability fixes.
+        // SCRIPT VERSION: 2025-07-01_V9 - Combined into single HTML file. Removed red border from individual 9-net cells.
 
         // ==========================================================
         // Consolidate ALL Global Variable Declarations at the Top
@@ -401,7 +401,7 @@
         // Default canvas colors (will be updated by color pickers)
         let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation (matches image's green)
         let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation (matches image's orange)
-        const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
+        const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, but now unused for individual cells)
         const DEFAULT_NODE_RADIUS = 5;
 
         // Variables for canvas and rendering context
@@ -561,9 +561,9 @@
                                             ctx.fillStyle = DEFAULT_NODE_COLOR; // Orange
                                         }
                                         ctx.fill();
-                                        ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
-                                        ctx.lineWidth = 1;
-                                        ctx.stroke();
+                                        // Removed: ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Removed red border from individual cells
+                                        // Removed: ctx.lineWidth = 1;
+                                        // Removed: ctx.stroke();
 
                                         // Draw the number text - Changed to black for better contrast as per screenshot
                                         ctx.fillStyle = '#000'; // Black text color
@@ -990,7 +990,7 @@
         // Event listeners for DOM content loaded
         document.addEventListener('DOMContentLoaded', () => {
             // Log the script version to the console for debugging
-            console.log("Script Version: 2025-07-01_V8 (Combined)");
+            console.log("Script Version: 2025-07-01_V9 (Combined)");
 
             canvas = document.getElementById('singleNineNetCanvas');
             if (canvas) {
