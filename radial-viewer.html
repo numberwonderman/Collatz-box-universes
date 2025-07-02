@@ -128,7 +128,129 @@
 
             ctx.restore();
         }
+function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
+            let sequence = [startN];
+            let current = startN;
+            let steps = 0;
+            let yPlusZ_operations = 0;
+            let maxVal = startN;
+            let minVal = startN;
+            let sumVal = startN;
 
+            let stoppingTime_t = Infinity;
+            let coefficientStoppingTime_tau = Infinity;
+            let paradoxicalOccurrences = [];
+
+            const initialN = startN;
+
+            if (x_param === 0) {
+                return {
+                    startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN,
+                    avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false,
+                    stoppingTime_t: 'N/A', coefficientStoppingTime_tau: 'N/A', paradoxicalOccurrences: []
+                };
+            }
+            if (startN === 1) {
+                return {
+                    startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
+                    avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
+                    stoppingTime_t: 0,
+                    coefficientStoppingTime_tau: 1,
+                    paradoxicalOccurrences: []
+                };
+            }
+
+            while (current !== 1 && steps < maxIterations) {
+                if (steps > maxIterations * 2 && maxIterations > 0) {
+                     return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: "Exceeded Max Iterations (Possible Divergence)",
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                if (current % x_param === 0) {
+                    current = current / x_param;
+                } else {
+                    current = (y_param * current + z_param);
+                    yPlusZ_operations++;
+                }
+
+                steps++;
+
+                if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
+                    let errorType = "Exceeded Max Safe Integer";
+                    if (current <= 0) errorType = "Reached Non-Positive Value";
+                    return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: errorType,
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                if (sequence.includes(current)) {
+                    return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected",
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                sequence.push(current);
+
+                if (current > maxVal) maxVal = current;
+                if (current < minVal) minVal = current;
+                sumVal += current;
+
+                const currentCoefficient = (steps === 0) ? 1 : (Math.pow(y_param, yPlusZ_operations) / Math.pow(x_param, steps));
+
+                if (stoppingTime_t === Infinity && current < initialN) {
+                    stoppingTime_t = steps;
+                }
+
+                if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
+                    coefficientStoppingTime_tau = steps;
+                }
+
+                if (currentCoefficient < 1 && current >= initialN) {
+                    paradoxicalOccurrences.push({
+                        step: steps,
+                        value: current,
+                        coefficient: currentCoefficient.toFixed(6)
+                    });
+                }
+            }
+
+            let type = "Unknown";
+            let converges_to_1 = false;
+            if (current === 1) {
+                type = "Converges to 1";
+                converges_to_1 = true;
+            } else if (steps >= maxIterations) {
+                type = "Max Iterations Reached";
+            }
+
+            let mean = sumVal / sequence.length;
+            let sumOfSquaredDifferences = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
+            let stdDev = Math.sqrt(sumOfSquaredDifferences / sequence.length);
+
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
+                stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                paradoxicalOccurrences: paradoxicalOccurrences,
+                x_param: x_param, // Ensure x_param is included in the returned data object
+                y_param: y_param,
+                z_param: z_param
+            };
+        }
         // --- REPLACE THE ENTIRE document.addEventListener SECTION BELOW WITH THIS NEW CODE ---
         document.addEventListener('DOMContentLoaded', () => {
             canvas = document.getElementById('radialViewerCanvas');
@@ -153,11 +275,13 @@
                 console.log(`Parsed URL parameters: n=${n}, x=${x}, y=${y}, z=${z}, modulus=${currentModulus}`);
 
                 // --- End NEW CODE ---
+  const maxIterationsForRadial = 1000; // Define a reasonable limit for the visualization
+        const collatzResult = calculateCollatzSequence(n, maxIterationsForRadial, x, y, z);
 
-                // This is where you will eventually calculate the sequence and call render9Net
-                // For now, let's just use some dummy data to ensure the parsing works:
-                const dummySequence = [n, x, y, z, currentModulus]; // Just showing the parsed values
-                render9Net({ sequence: dummySequence }, currentModulus); // Using dummy data for initial test
+                  
+
+        // Now, pass the *actual* Collatz sequence to render9Net
+        render9Net({ sequence:  collatzResult.sequence }, currentModulus);
 
 
             } else {
