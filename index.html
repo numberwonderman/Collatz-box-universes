@@ -491,18 +491,10 @@
             const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
             const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
 
-            // Calculate the size of each individual *cell* (smallest square)
-            // We want the total drawing to fit within the canvas.
-            // Total available width for content (after padding for edges)
-            const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-            const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
-
-            // Each logical column in `layout` takes up 3 cells, each logical row takes up 3 cells.
-            const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
-            const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
-
-            const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
-            const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
+            // --- ADJUSTMENT FOR VISUALIZATION ---
+            // Use a fixed cell size for a consistent look, similar to your older program's visual.
+            const FIXED_CELL_SIZE = 30; // This is the size of each small square cell within the 3x3 group
+            const groupSize = FIXED_CELL_SIZE * 3; // Each remainder group is a 3x3 grid of cells
 
             // Calculate total drawing dimensions for centering
             const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
@@ -556,11 +548,11 @@
                                 for (let cellInGroupX = 0; cellInGroupX < 3; cellInGroupX++) {
                                     const num = cellContents[remainder][cellInGroupY][cellInGroupX];
                                     if (num !== undefined) {
-                                        const cellAbsX = groupX + (cellInGroupX * cellSize);
-                                        const cellAbsY = groupY + (cellInGroupY * cellSize);
+                                        const cellAbsX = groupX + (cellInGroupX * FIXED_CELL_SIZE);
+                                        const cellAbsY = groupY + (cellInGroupY * FIXED_CELL_SIZE);
 
                                         ctx.beginPath();
-                                        ctx.rect(cellAbsX, cellAbsY, cellSize, cellSize);
+                                        ctx.rect(cellAbsX, cellAbsY, FIXED_CELL_SIZE, FIXED_CELL_SIZE);
 
                                         // Set fill color based on divisibility by xValue
                                         if (num % xValue === 0) { // If divisible by X
@@ -573,12 +565,12 @@
                                         ctx.lineWidth = 1;
                                         ctx.stroke();
 
-                                        // Draw the number text
-                                        ctx.fillStyle = '#fff'; // Changed text color to white for better contrast
-                                        ctx.font = `${Math.max(8, cellSize * 0.4)}px Arial`; // Dynamic font size based on cellSize
+                                        // Draw the number text - Changed to black for better contrast as per screenshot
+                                        ctx.fillStyle = '#000'; // Black text color
+                                        ctx.font = `${Math.max(8, FIXED_CELL_SIZE * 0.4)}px Arial`; // Dynamic font size based on FIXED_CELL_SIZE
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'middle';
-                                        ctx.fillText(num.toString(), cellAbsX + cellSize / 2, cellAbsY + cellSize / 2);
+                                        ctx.fillText(num.toString(), cellAbsX + FIXED_CELL_SIZE / 2, cellAbsY + FIXED_CELL_SIZE / 2);
                                     }
                                 }
                             }
@@ -881,7 +873,7 @@
                 for (let x = xStart; x <= xEnd; x++) {
                     for (let y = yStart; y <= yEnd; y++) {
                         for (let z = zStart; z <= zEnd; z++) {
-                            const result = calculateCollatzSequence(startN_fixed, maxIterations, x, y, z);
+                            const result = calculateCollatzSequence(startN_fixed, MAX_ITERATIONS, x, y, z); // Use MAX_ITERATIONS
                             totalSequencesCalculated++;
 
                             if (result.type === "Invalid Parameters (X is 0)") {
