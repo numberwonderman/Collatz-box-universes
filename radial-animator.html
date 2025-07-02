@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Pseudo-3D Slicer (Radial)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align to top to give space for controls */
+            min-height: 100vh;
+            background-color: #1a202c; /* Dark background similar to index.html */
+            color: #e2e8f0; /* Light text color */
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            background-color: #2d3748; /* Slightly lighter dark background for container */
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2); /* shadow-xl */
+            text-align: center;
+            max-width: 90%; /* Responsive width */
+            margin-bottom: 2rem;
+            width: 100%; /* Ensure it takes full width up to max-width */
+        }
+        /* Adjusted canvas styling for consistency across the app */
+        canvas {
+            display: block;
+            margin: 1.5rem auto; /* mt-6 mb-6 */
+            border-radius: 0.5rem; /* rounded-md */
+            border: 1px solid #4a5568; /* border-gray-600 */
+            max-width: 100%; /* Ensure canvas is responsive */
+            height: auto; /* Maintain aspect ratio */
+        }
+        .param-display {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 1rem;
+            color: #90cdf4; /* blue-300 */
+        }
+        .sequence-info {
+            font-size: 1rem; /* text-base */
+            margin-bottom: 1.5rem;
+            color: #a0aec0; /* gray-400 */
+        }
+        .sequence-numbers {
+            background-color: #1a202c; /* Darker background for sequence numbers */
+            padding: 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            max-height: 8rem; /* max-h-32 */
+            overflow-y: auto;
+            font-size: 0.875rem; /* text-sm */
+            word-break: break-all;
+            color: #cbd5e0; /* gray-300 */
+            margin-bottom: 1.5rem;
+        }
+        .color-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .color-box {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.25rem;
+            border: 1px solid #a0aec0;
+        }
+        /* Styles for slideshow controls */
+        .slideshow-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .slideshow-controls label {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .slideshow-controls select,
+        .slideshow-controls input[type="range"],
+        .slideshow-controls input[type="number"] { /* Added number input styling */
+            background-color: #4a5568;
+            border: 1px solid #64748b;
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        .slideshow-controls button {
+            padding: 0.75rem 1.5rem;
+            background-color: #4299e1; /* Blue for play/stop */
+            color: white;
+            font-weight: bold;
+            border-radius: 0.75rem;
+            transition: background-color 0.3s ease;
+        }
+        .slideshow-controls button:hover {
+            background-color: #3182ce;
+        }
+        /* Styles for the grid of 9-nets */
+        .grid-container {
+            display: grid;
+            /* Calculate minmax based on desired display size, maintaining aspect ratio */
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjusted for better fit */
+            gap: 1.5rem;
+            padding: 1rem;
+            width: 100%;
+            max-width: 1200px; /* Limit overall grid width */
+            margin: 2rem auto;
+            background-color: #2d3748;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+        }
+        .grid-item {
+            background-color: #1a202c;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between; /* Distribute space */
+        }
+        .grid-item canvas {
+            /* Set max-width to a desired display size, height auto to maintain aspect ratio */
+            max-width: 150px; /* Display size for grid items */
+            height: auto; /* Crucial for maintaining aspect ratio */
+            margin: 0.5rem auto;
+            border: 1px solid #4a5568;
+        }
+        .grid-item .info {
+            font-size: 0.875rem;
+            color: #cbd5e0;
+            margin-bottom: 0.5rem;
+        }
+        .grid-item button {
+            background-color: #61dafb; /* Light blue for "View in Main" */
+            color: #1a202c;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin-top: 0.5rem;
+        }
+        .grid-item button:hover {
+            background-color: #21a1f1;
+        }
+        /* Custom styling for the gold star/indicator */
+        .gold-star {
+            color: gold; /* Or use an emoji like '⭐' in the HTML directly */
+            font-size: 1.25rem; /* text-xl */
+            margin-left: 0.25rem; /* ml-1 */
+            display: inline-block; /* To align with text */
+        }
+        /* Styling for small radio options (for axis selection) */
+        .radio-option-small {
+            display: flex;
+            align-items: center;
+            background-color: rgba(45, 55, 72, 0.7); /* gray-800 with opacity */
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            border: 1px solid rgba(74, 85, 104, 0.5); /* gray-600 with opacity */
+            font-size: 0.875rem; /* text-sm */
+        }
+        .radio-option-small:hover {
+            background-color: rgba(74, 85, 104, 0.7);
+        }
+        .radio-option-small input[type="radio"] {
+            margin-right: 0.5rem;
+            appearance: none;
+            -webkit-appearance: none;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #a0aec0;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .radio-option-small input[type="radio"]:checked {
+            border-color: #6366f1;
+            background-color: #6366f1;
+        }
+        .radio-option-small input[type="radio"]:checked::before {
+            content: '';
+            display: block;
+            width: 0.5rem;
+            height: 0.5rem;
+            background-color: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold mb-4">2D Pseudo-3D Slicer (Radial)</h1>
+        <p class="param-display" id="paramDisplay">Loading parameters...</p>
+        <p class="sequence-info" id="sequenceInfo">Calculating sequence...</p>
+        <!-- New element for min/max range -->
+        <p class="sequence-range-info text-gray-400 text-sm mb-2" id="sequenceRangeInfo"></p>
+        <!-- New element for sum -->
+        <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
+        <!-- New element for average -->
+        <p class="sequence-avg-info text-gray-400 text-sm mb-2" id="sequenceAvgInfo"></p>
+        <!-- New element for standard deviation -->
+        <p class="sequence-stddev-info text-gray-400 text-sm mb-2" id="sequenceStdDevInfo"></p>
+        <div class="sequence-numbers" id="sequenceNumbers"></div>
+
+        <!-- Single 9-net canvas (for direct URL viewing) -->
+        <!-- Canvas dimensions will be set by CSS and JS for responsiveness -->
+        <canvas id="nineNetCanvas" class="w-full h-auto max-w-md mx-auto" width="380" height="290"></canvas>
+
+        <div class="color-display">
+            <span class="text-lg">Divisible:</span>
+            <div id="divColorBox" class="color-box"></div>
+            <span class="text-lg">Multiply/Add:</span>
+            <div id="mulColorBox" class="color-box"></div>
+        </div>
+
+        <button onclick="window.close()" class="mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400">
+            Close Slicer
+        </button>
+    </div>
+
+    <!-- Slideshow and Bulk Generation Controls (Moved to top for better flow) -->
+    <div class="container slideshow-controls">
+        <div class="flex flex-col items-center">
+            <label class="text-white font-semibold mb-2">Animate Axis:</label>
+            <div class="flex flex-wrap justify-center gap-2">
+                <label class="radio-option-small">
+                    <input type="radio" name="animationAxisRadio" value="N" checked> N
+                </label>
+                <label class="radio-option-small">
+                    <input type="radio" name="animationAxisRadio" value="X"> X
+                </label>
+                <label class="radio-option-small">
+                    <input type="radio" name="animationAxisRadio" value="Y"> Y
+                </label>
+                <label class="radio-option-small">
+                    <input type="radio" name="animationAxisRadio" value="Z"> Z
+                </label>
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label for="animationSpeed">Speed (ms/step):</label>
+            <input type="range" id="animationSpeed" min="50" max="2000" value="500" class="mt-1">
+            <span id="speedValue" class="text-sm text-gray-400">500</span>
+        </div>
+        <button id="toggleSlideshow" class="px-4 py-2">Play Slideshow</button>
+
+        <div class="flex flex-col items-center">
+            <label class="flex items-center gap-2">N Range:
+                <span id="n-star" class="gold-star hidden">⭐</span>
+            </label>
+            <div class="flex gap-2">
+                <input type="number" id="nMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="nMax" value="50" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label class="flex items-center gap-2">X Range:
+                <span id="x-star" class="gold-star hidden">⭐</span>
+            </label>
+            <div class="flex gap-2">
+                <input type="number" id="xMin" value="2" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="xMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label class="flex items-center gap-2">Y Range:
+                <span id="y-star" class="gold-star hidden">⭐</span>
+            </label>
+            <div class="flex gap-2">
+                <input type="number" id="yMin" value="3" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="yMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <div class="flex flex-col items-center">
+            <label class="flex items-center gap-2">Z Range:
+                <span id="z-star" class="gold-star hidden">⭐</span>
+            </label>
+            <div class="flex gap-2">
+                <input type="number" id="zMin" value="1" min="1" class="w-20 p-2 rounded-md text-center">
+                <input type="number" id="zMax" value="5" min="1" class="w-20 p-2 rounded-md text-center">
+            </div>
+        </div>
+        <button id="applyFilters" class="px-4 py-2 bg-green-500 hover:bg-green-600">Apply Filters</button>
+    </div>
+
+    <!-- Grid for Bulk Generated Universes -->
+    <div id="gridContainer" class="grid-container">
+        <!-- 9-nets will be rendered here -->
+    </div>
+
+    <script>
+        // === Constants for 9-Net Dimensions ===
+        // Radial visualization specific constants
+        const NODE_RADIUS = 5;
+        const MIN_NODE_RADIUS = 2;
+        const MAX_NODE_RADIUS = 10;
+        const MIN_LINE_THICKNESS = 0.5;
+        const MAX_LINE_THICKNESS = 3;
+
+
+        // === Generalized Collatz function ===
+        // This function calculates the generalized Collatz sequence.
+        // It includes error handling for X=0, cycle detection, and max iteration limit.
+        // Now also calculates min, max, sum, and average values in the sequence.
+        function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
+            let sequence = [startN];
+            let current = startN;
+            let steps = 0;
+            let yPlusZ_operations = 0; // Counts (Y*n + Z) operations, equivalent to 'oddCount' for standard Collatz
+            let maxVal = startN;
+            let minVal = startN;
+            let sumVal = startN;
+
+            let stoppingTime_t = Infinity; // Least j such that T^j(n) < n
+            let coefficientStoppingTime_tau = Infinity; // Least j such that C_j(n) < 1
+            let paradoxicalOccurrences = []; // Array to store {step, value, coefficient} for paradoxical points
+
+            const initialN = startN;
+
+            // Parameter validation
+            if (x_param === 0) { // Divisor (X) cannot be zero
+                return {
+                    startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN,
+                    avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false,
+                    stoppingTime_t: 'N/A', coefficientStoppingTime_tau: 'N/A', paradoxicalOccurrences: []
+                };
+            }
+            // Handle trivial case where startN is 1 for standard Collatz, might not apply for generalized
+            // But if startN is 1, and the rule eventually leads to 1, steps should be 0.
+            if (startN === 1) {
+                return {
+                    startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
+                    avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
+                    stoppingTime_t: 0, // It's already < initialN if initialN > 1
+                    coefficientStoppingTime_tau: 1, // C_0(n) = Y^0 / X^0 = 1
+                    paradoxicalOccurrences: []
+                };
+            }
+
+
+            while (current !== 1 && steps < maxIterations) { // Continue until 1 or max iterations
+                // Check for potential infinite loop or very large numbers before calculation
+                // Add a safety break for extremely long sequences that might not converge or cycle.
+                if (steps > maxIterations * 2 && maxIterations > 0) { // If it goes way over maxIterations
+                     return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: "Exceeded Max Iterations (Possible Divergence)",
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                if (current % x_param === 0) { // If n is divisible by X
+                    current = current / x_param;
+                } else { // Otherwise (n % X !== 0)
+                    current = (y_param * current + z_param);
+                    yPlusZ_operations++; // Count occurrences of the (Y*n + Z) operation
+                }
+
+                steps++;
+
+                // Check for overflow, non-finite, or non-positive numbers (important for divergence)
+                if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
+                    let errorType = "Exceeded Max Safe Integer";
+                    if (current <= 0) errorType = "Reached Non-Positive Value";
+                    return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: errorType,
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                // Cycle detection - check if current number has appeared before
+                if (sequence.includes(current)) {
+                    return {
+                        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                        avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected",
+                        converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                        paradoxicalOccurrences: paradoxicalOccurrences
+                    };
+                }
+
+                sequence.push(current);
+
+                // Update statistics
+                if (current > maxVal) maxVal = current;
+                if (current < minVal) minVal = current;
+                sumVal += current;
+
+                // Calculate current coefficient C_j(n) = (Y^q) / (X^j) where q is count of (Y*n+Z) operations, j is total steps
+                // C_0(n) = 1 (when steps is 0, yPlusZ_operations is 0, Y^0/X^0 = 1)
+                const currentCoefficient = (steps === 0) ? 1 : (Math.pow(y_param, yPlusZ_operations) / Math.pow(x_param, steps));
+
+                // Check for stopping time t(n) - first j such that T^j(n) < n
+                if (stoppingTime_t === Infinity && current < initialN) {
+                    stoppingTime_t = steps;
+                }
+
+                // Check for coefficient stopping time tau(n) - first j such that C_j(n) < 1
+                if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
+                    coefficientStoppingTime_tau = steps;
+                }
+
+                // Check for paradoxical sequence condition (C_j(n) < 1 AND T^j(n) >= n)
+                if (currentCoefficient < 1 && current >= initialN) {
+                    paradoxicalOccurrences.push({
+                        step: steps,
+                        value: current,
+                        coefficient: currentCoefficient.toFixed(6)
+                    });
+                }
+            }
+
+            let type = "Unknown";
+            let converges_to_1 = false;
+            if (current === 1) {
+                type = "Converges to 1";
+                converges_to_1 = true;
+            } else if (steps >= maxIterations) {
+                type = "Max Iterations Reached";
+            }
+
+            // Calculate Standard Deviation
+            let mean = sumVal / sequence.length;
+            let sumOfSquaredDifferences = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
+            let stdDev = Math.sqrt(sumOfSquaredDifferences / sequence.length);
+
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
+                stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                paradoxicalOccurrences: paradoxicalOccurrences
+            };
+        }
+
+        // === render9Net function (Radial Visualization) ===
+        /**
+         * Draws the radial 9-net visualization of the sequence on a canvas.
+         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+         * @param {Array<number>} sequence - The sequence of numbers to visualize.
+         * @param {string} divColor - Color for divisible numbers.
+         * @param {string} mulColor - Color for multiply/add numbers.
+         */
+        function render9Net(canvas, sequence, divColor, mulColor) {
+            const ctx = canvas.getContext("2d");
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            // Adjust node and line thickness based on sequence length for better visibility
+            const normalizedLength = Math.min(sequence.length, 100); // Max 100 for scaling
+            const nodeRadius = NODE_RADIUS + (MAX_NODE_RADIUS - MIN_NODE_RADIUS) * (1 - normalizedLength / 100);
+            const lineThickness = MIN_LINE_THICKNESS + (MAX_LINE_THICKNESS - MIN_LINE_THICKNESS) * (1 - normalizedLength / 100);
+
+
+            // Draw lines first (connecting previous to current)
+            for (let i = 0; i < sequence.length - 1; i++) {
+                const startNum = sequence[i];
+                const endNum = sequence[i + 1];
+
+                // Calculate angle and radius for start and end nodes
+                const startAngle = (startNum % 9) * (2 * Math.PI / 9);
+                const startRadius = 50 + startNum * 0.1; // Radius grows with number magnitude
+
+                const endAngle = (endNum % 9) * (2 * Math.PI / 9);
+                const endRadius = 50 + endNum * 0.1;
+
+                // Convert polar to Cartesian coordinates
+                const x1 = centerX + startRadius * Math.cos(startAngle);
+                const y1 = centerY + startRadius * Math.sin(startAngle);
+                const x2 = centerX + endRadius * Math.cos(endAngle);
+                const y2 = centerY + endRadius * Math.sin(endAngle);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = (startNum % 2 === 0) ? divColor : mulColor; // Use actual colors
+                ctx.lineWidth = lineThickness;
+                ctx.stroke();
+            }
+
+            // Draw nodes second, so they appear on top of lines
+            for (let i = 0; i < sequence.length; i++) {
+                const num = sequence[i];
+                const angle = (num % 9) * (2 * Math.PI / 9);
+                const radius = 50 + num * 0.1;
+
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.arc(x, y, nodeRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = (num % 2 === 0) ? divColor : mulColor; // Use actual colors
+                ctx.fill();
+                ctx.strokeStyle = '#f00'; // Red border for nodes
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Draw number label
+                ctx.fillStyle = '#000'; // Black text
+                ctx.font = `${Math.max(8, nodeRadius * 0.8)}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(num, x, y);
+            }
+        }
+
+
+        // Function to parse URL parameters
+        function getUrlParams() {
+            const params = {};
+            window.location.search.substring(1).split('&').forEach(param => {
+                const parts = param.split('=');
+                if (parts.length === 2) {
+                    params[parts[0]] = decodeURIComponent(parts[1]);
+                }
+            });
+            return params;
+        }
+
+        // Global variables for colors (can be overridden by URL params)
+        let divColor = "#34d399"; // Default Green (from index.html's default)
+        let mulColor = "#fb923c"; // Default Orange (from index.html's default)
+
+        // Slideshow Animation Logic
+        let slideshowInterval;
+        let isSlideshowPlaying = false;
+        let currentAnimationValue;
+        let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
+        let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
+        const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
+
+        // Get elements for controls
+        const animationAxisRadios = document.querySelectorAll('input[name="animationAxisRadio"]');
+        const animationSpeedSlider = document.getElementById('animationSpeed');
+        const speedValueSpan = document.getElementById('speedValue');
+        const toggleSlideshowButton = document.getElementById('toggleSlideshow');
+        const nMinInput = document.getElementById('nMin');
+        const nMaxInput = document.getElementById('nMax');
+        const xMinInput = document.getElementById('xMin');
+        const xMaxInput = document.getElementById('xMax');
+        const yMinInput = document.getElementById('yMin');
+        const yMaxInput = document.getElementById('yMax');
+        const zMinInput = document.getElementById('zMin');
+        const zMaxInput = document.getElementById('zMax');
+        const applyFiltersButton = document.getElementById('applyFilters');
+        const gridContainer = document.getElementById('gridContainer');
+        const nineNetCanvas = document.getElementById('nineNetCanvas'); // Main display canvas
+        const paramDisplay = document.getElementById('paramDisplay'); // Main display text
+        const sequenceInfo = document.getElementById('sequenceInfo'); // Main display text
+        const sequenceNumbersDiv = document.getElementById('sequenceNumbers'); // Main display sequence numbers
+        const sequenceRangeInfo = document.getElementById('sequenceRangeInfo');
+        const sequenceSumInfo = document.getElementById('sequenceSumInfo');
+        const sequenceAvgInfo = document.getElementById('sequenceAvgInfo');
+        const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo');
+
+        // Gold star elements for slicer
+        const nStarSlicer = document.getElementById('n-star');
+        const xStarSlicer = document.getElementById('x-star');
+        const yStarSlicer = document.getElementById('y-star');
+        const zStarSlicer = document.getElementById('z-star');
+
+
+        // Update speed value display
+        if (animationSpeedSlider && speedValueSpan) {
+            animationSpeedSlider.addEventListener('input', () => {
+                speedValueSpan.textContent = animationSpeedSlider.value;
+            });
+        }
+
+        // Function to toggle slideshow playback
+        if (toggleSlideshowButton) {
+            toggleSlideshowButton.addEventListener('click', () => {
+                if (isSlideshowPlaying) {
+                    clearInterval(slideshowInterval);
+                    toggleSlideshowButton.textContent = 'Play Slideshow';
+                    isSlideshowPlaying = false;
+                } else {
+                    if (filteredBoxUniverses.length === 0) {
+                        applyAndDrawFilters();
+                        if (filteredBoxUniverses.length === 0) {
+                            console.warn("No universes to play slideshow with. Adjust filter ranges.");
+                            return;
+                        }
+                    }
+
+                    toggleSlideshowButton.textContent = 'Stop Slideshow';
+                    isSlideshowPlaying = true;
+
+                    const axisRadioChecked = document.querySelector('input[name="animationAxisRadio"]:checked');
+                    const axis = axisRadioChecked ? axisRadioChecked.value : 'N';
+
+                    if (axis === 'N') {
+                        currentAnimationValue = parseInt(nMinInput.value);
+                    } else if (axis === 'X') {
+                        currentAnimationValue = parseInt(xMinInput.value);
+                    } else if (axis === 'Y') {
+                        currentAnimationValue = parseInt(yMinInput.value);
+                    } else if (axis === 'Z') {
+                        currentAnimationValue = parseInt(zMinInput.value);
+                    } else {
+                        currentAnimationValue = 0;
+                    }
+
+                    animationStep();
+                    slideshowInterval = setInterval(animationStep, parseInt(animationSpeedSlider.value));
+                }
+            });
+        }
+
+        // Function to perform one step of the animation
+        function animationStep() {
+            const axisRadioChecked = document.querySelector('input[name="animationAxisRadio"]:checked');
+            const axis = axisRadioChecked ? axisRadioChecked.value : 'N';
+
+            let minVal, maxVal;
+
+            if (axis === 'N') {
+                minVal = nMinInput ? parseInt(nMinInput.value) : 1;
+                maxVal = nMaxInput ? parseInt(nMaxInput.value) : 50;
+            } else if (axis === 'X') {
+                minVal = xMinInput ? parseInt(xMinInput.value) : 1;
+                maxVal = xMaxInput ? parseInt(xMaxInput.value) : 5;
+            } else if (axis === 'Y') {
+                minVal = yMinInput ? parseInt(yMinInput.value) : 1;
+                maxVal = yMaxInput ? parseInt(yMaxInput.value) : 5;
+            } else if (axis === 'Z') {
+                minVal = zMinInput ? parseInt(zMinInput.value) : 1;
+                maxVal = zMaxInput ? parseInt(zMaxInput.value) : 5;
+            } else {
+                console.error("Invalid animation axis selected.");
+                return;
+            }
+
+            const currentSliceUniverses = allBoxUniverses.filter(universe => {
+                if (axis === 'N') return universe.n === currentAnimationValue;
+                if (axis === 'X') return universe.x === currentAnimationValue;
+                if (axis === 'Y') return universe.y === currentAnimationValue;
+                if (axis === 'Z') return universe.z === currentAnimationValue;
+                return false;
+            });
+
+            if (currentSliceUniverses.length > 0) {
+                const currentUniverse = currentSliceUniverses[0];
+                paramDisplay.textContent = `N=${currentUniverse.n}, X=${currentUniverse.x}, Y=${currentUniverse.y}, Z=${currentUniverse.z}`;
+                sequenceInfo.textContent = `Steps: ${currentUniverse.steps}, Type: ${currentUniverse.type}`;
+                sequenceRangeInfo.textContent = `Range: [${currentUniverse.minVal} to ${currentUniverse.maxVal}]`;
+                sequenceSumInfo.textContent = `Sum: ${currentUniverse.sumVal}`;
+                sequenceAvgInfo.textContent = `Average: ${typeof currentUniverse.avgVal === 'number' ? currentUniverse.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : currentUniverse.avgVal}`;
+                sequenceStdDevInfo.textContent = `Standard Deviation: ${typeof currentUniverse.stdDev === 'number' ? currentUniverse.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : currentUniverse.stdDev}`;
+                sequenceNumbersDiv.textContent = currentUniverse.sequence.join(' → ');
+
+                if (nStarSlicer) nStarSlicer.style.display = (currentUniverse.n === 27) ? 'inline-block' : 'none';
+                if (xStarSlicer) xStarSlicer.style.display = (currentUniverse.x === 2) ? 'inline-block' : 'none';
+                if (yStarSlicer) yStarSlicer.style.display = (currentUniverse.y === 3) ? 'inline-block' : 'none';
+                if (zStarSlicer) zStarSlicer.style.display = (currentUniverse.z === 1) ? 'inline-block' : 'none';
+
+                render9Net(nineNetCanvas, currentUniverse.sequence, divColor, mulColor);
+            } else {
+                paramDisplay.textContent = `N/A`;
+                sequenceInfo.textContent = `No data for ${axis}=${currentAnimationValue}`;
+                sequenceRangeInfo.textContent = '';
+                sequenceSumInfo.textContent = '';
+                sequenceAvgInfo.textContent = '';
+                sequenceStdDevInfo.textContent = '';
+                sequenceNumbersDiv.textContent = '';
+                if (nineNetCanvas) {
+                    const ctx = nineNetCanvas.getContext('2d');
+                    ctx.clearRect(0, 0, nineNetCanvas.width, nineNetCanvas.height);
+                }
+                if (nStarSlicer) nStarSlicer.style.display = 'none';
+                if (xStarSlicer) xStarSlicer.style.display = 'none';
+                if (yStarSlicer) yStarSlicer.style.display = 'none';
+                if (zStarSlicer) zStarSlicer.style.display = 'none';
+            }
+
+            currentAnimationValue++;
+            if (currentAnimationValue > maxVal) {
+                currentAnimationValue = minVal;
+            }
+        }
+
+        // Function to generate and draw all filtered 9-nets
+        function applyAndDrawFilters() {
+            allBoxUniverses = [];
+            filteredBoxUniverses = [];
+
+            const nMin = parseInt(nMinInput.value);
+            const nMax = parseInt(nMaxInput.value);
+            const xMin = parseInt(xMinInput.value);
+            const xMax = parseInt(xMaxInput.value);
+            const yMin = parseInt(yMinInput.value);
+            const yMax = parseInt(yMaxInput.value);
+            const zMin = parseInt(zMinInput.value);
+            const zMax = parseInt(zMaxInput.value);
+
+            if (isNaN(nMin) || isNaN(nMax) || nMin > nMax || nMin < 1 ||
+                isNaN(xMin) || isNaN(xMax) || xMin > xMax || xMin < 1 ||
+                isNaN(yMin) || isNaN(yMax) || yMin > yMax || yMin < 1 ||
+                isNaN(zMin) || isNaN(zMax) || zMin > zMax || zMin < 1)
+            {
+                console.error("Invalid range inputs. Please check your min/max values.");
+                gridContainer.innerHTML = '<p class="text-red-400">Invalid range inputs. Please check your min/max values.</p>';
+                return;
+            }
+
+            if (isSlideshowPlaying) {
+                clearInterval(slideshowInterval);
+                toggleSlideshowButton.textContent = 'Play Slideshow';
+                isSlideshowPlaying = false;
+            }
+
+            gridContainer.innerHTML = '<p class="text-blue-300">Generating universes...</p>';
+
+            for (let n = nMin; n <= nMax; n++) {
+                for (let x = xMin; x <= xMax; x++) {
+                    for (let y = yMin; y <= yMax; y++) {
+                        for (let z = zMin; z <= zMax; z++) {
+                            if (x === 0) continue;
+
+                            const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z);
+                            allBoxUniverses.push({
+                                n: n, x: x, y: y, z: z,
+                                sequence: result.sequence,
+                                steps: result.steps,
+                                type: result.type,
+                                minVal: result.minVal,
+                                maxVal: result.maxVal,
+                                sumVal: result.sumVal,
+                                avgVal: result.avgVal,
+                                stdDev: result.stdDev
+                            });
+                        }
+                    }
+                }
+            }
+
+            filteredBoxUniverses = [...allBoxUniverses];
+
+            drawFilteredUniverses();
+        }
+
+        // Function to draw the filtered universes in the grid
+        function drawFilteredUniverses() {
+            gridContainer.innerHTML = '';
+
+            if (filteredBoxUniverses.length === 0) {
+                gridContainer.innerHTML = '<p class="text-gray-400">No universes match the current filter criteria.</p>';
+                return;
+            }
+
+            filteredBoxUniverses.forEach(universe => {
+                const gridItem = document.createElement('div');
+                gridItem.className = 'grid-item';
+
+                const itemCanvas = document.createElement('canvas');
+                itemCanvas.width = 150;
+                itemCanvas.height = 150; // Square for radial
+
+                render9Net(itemCanvas, universe.sequence, divColor, mulColor);
+
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'info';
+                infoDiv.innerHTML = `
+                    <p>N=${universe.n}, X=${universe.x}, Y=${universe.y}, Z=${universe.z}</p>
+                    <p>Steps: ${universe.steps}, Type: ${universe.type}</p>
+                `;
+
+                const viewMainButton = document.createElement('button');
+                viewMainButton.textContent = 'View in Main Hub';
+                viewMainButton.onclick = () => {
+                    const params = new URLSearchParams();
+                    params.append('n', universe.n);
+                    params.append('x', universe.x);
+                    params.append('y', universe.y);
+                    params.append('z', universe.z);
+                    params.append('divColor', divColor);
+                    params.append('mulColor', mulColor);
+                    window.open(`index.html?${params.toString()}`, '_blank');
+                };
+
+                gridItem.appendChild(itemCanvas);
+                gridItem.appendChild(infoDiv);
+                gridItem.appendChild(viewMainButton);
+                gridContainer.appendChild(gridItem);
+            });
+        }
+
+        if (applyFiltersButton) {
+            applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+        }
+
+        // Initial load logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getUrlParams();
+            const n = parseInt(params.n) || 10;
+            const x = parseInt(params.x) || 2;
+            const y = parseInt(params.y) || 3;
+            const z = parseInt(params.z) || 1;
+            divColor = params.divColor || divColor;
+            mulColor = params.mulColor || mulColor;
+
+            document.getElementById('divColorBox').style.backgroundColor = divColor;
+            document.getElementById('mulColorBox').style.backgroundColor = mulColor;
+
+            const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z);
+            paramDisplay.textContent = `N=${n}, X=${x}, Y=${y}, Z=${z}`;
+            sequenceInfo.textContent = `Steps: ${result.steps}, Type: ${result.type}`;
+            sequenceRangeInfo.textContent = `Range: [${result.minVal} to ${result.maxVal}]`;
+            sequenceSumInfo.textContent = `Sum: ${result.sumVal}`;
+            sequenceAvgInfo.textContent = `Average: ${typeof result.avgVal === 'number' ? result.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.avgVal}`;
+            sequenceStdDevInfo.textContent = `Standard Deviation: ${typeof result.stdDev === 'number' ? result.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : result.stdDev}`;
+            sequenceNumbersDiv.textContent = result.sequence.join(' → ');
+
+            if (nStarSlicer) nStarSlicer.style.display = (n === 27) ? 'inline-block' : 'none';
+            if (xStarSlicer) xStarSlicer.style.display = (x === 2) ? 'inline-block' : 'none';
+            if (yStarSlicer) yStarSlicer.style.display = (y === 3) ? 'inline-block' : 'none';
+            if (zStarSlicer) zStarSlicer.style.display = (z === 1) ? 'inline-block' : 'none';
+
+            if (nineNetCanvas) {
+                nineNetCanvas.width = nineNetCanvas.offsetWidth;
+                nineNetCanvas.height = nineNetCanvas.offsetWidth; // Make it square
+                render9Net(nineNetCanvas, result.sequence, divColor, mulColor);
+            }
+
+            nMinInput.value = n;
+            nMaxInput.value = n;
+            xMinInput.value = x;
+            xMaxInput.value = x;
+            yMinInput.value = y;
+            yMaxInput.value = y;
+            zMinInput.value = z;
+            zMaxInput.value = z;
+
+            applyAndDrawFilters();
+        });
+    </script>
+</body>
+</html>
