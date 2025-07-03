@@ -194,6 +194,9 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
     <script>
+        // --- DEBUG MODE FLAG ---
+        const DEBUG_MODE = false; // Set to true to enable console logs, false to disable
+
         // --- Global Variables ---
         let scene, camera, renderer, controls; // 'controls' will now be PointerLockControls
         let cubes = [];
@@ -272,11 +275,13 @@
                 }
                 // Avoid adding duplicate consecutive numbers if current repeats (e.g. 0/0 loop)
                 if (sequence.length > 0 && sequence[sequence.length - 1] === current) {
+                    if (DEBUG_MODE) console.log("Cycle detected, breaking sequence generation.");
                     break;
                 }
                 sequence.push(current);
                 iterations++;
             }
+            if (DEBUG_MODE) console.log("Generated sequence:", sequence);
             return sequence;
         }
 
@@ -292,6 +297,7 @@
             );
             scene.add(cube);
             cubes.push(cube);
+            if (DEBUG_MODE) console.log(`Created cube at (${x},${y},${z}) for number ${cube.userData.originalIndex || 'N/A'}`);
             return cube; // Return the created cube
         }
 
@@ -299,6 +305,7 @@
             // Clear existing cubes
             cubes.forEach(cube => scene.remove(cube));
             cubes = [];
+            if (DEBUG_MODE) console.log("Clearing existing cubes and regenerating grid.");
 
             // Get current colors from pickers
             const currentEvenColor = new THREE.Color(document.getElementById('even-color-picker').value);
@@ -321,10 +328,12 @@
                             cube.userData.gridX = i; // Store grid coordinates
                             cube.userData.gridY = j;
                             cube.userData.gridZ = k;
+                            if (DEBUG_MODE) console.log(`Cube at grid (${i},${j},${k}) represents number: ${number}`);
                         }
                     }
                 }
             }
+            if (DEBUG_MODE) console.log(`Grid of ${N_BASE}x${N_BASE}x${N_BASE} cubes created.`);
         }
 
         function getCoordinatesForNumber(n) {
@@ -338,6 +347,7 @@
             // This makes sure the visualization doesn't break, though the cube won't perfectly map to the original number if it's too large.
             // For now, let's keep it simple and assume numbers will mostly be within the grid.
             // For numbers outside the visualized grid, this will return coordinates that wrap around.
+            if (DEBUG_MODE) console.log(`Number ${n} maps to grid coordinates (${x},${y},${z})`);
             return { x, y, z };
         }
 
@@ -353,6 +363,7 @@
                 cube.material.color.copy(originalColor);
                 cube.material.opacity = 0.8;
             });
+            if (DEBUG_MODE) console.log("Resetting all cube colors for path visualization.");
 
             // Highlight cubes along the active path
             for (let i = 0; i <= pathIndex; i++) {
@@ -370,14 +381,25 @@
                     if (targetCube) {
                         targetCube.material.color.set(0xff0000); // Highlight in red
                         targetCube.material.opacity = 1.0;
+                        if (DEBUG_MODE) console.log(`Highlighting cube for number ${num} at (${x},${y},${z})`);
+                    } else {
+                        if (DEBUG_MODE) console.warn(`Cube for number ${num} at (${x},${y},${z}) not found in current grid.`);
                     }
+                } else {
+                    if (DEBUG_MODE) console.warn(`Number ${num} is outside the current grid range (0 to ${N_BASE * N_BASE * N_BASE - 1}).`);
                 }
             }
+            if (DEBUG_MODE) console.log(`Path visualization updated to index ${pathIndex}.`);
         }
 
         // --- Three.js Setup ---
         function initThreeJS() {
             const canvas = document.getElementById('collatzCanvas');
+            if (!canvas) {
+                console.error("Canvas element 'collatzCanvas' not found.");
+                return;
+            }
+            if (DEBUG_MODE) console.log("Initializing Three.js...");
 
             // Scene
             scene = new THREE.Scene();
@@ -388,33 +410,41 @@
             // Position camera slightly back and up to see the grid from an angle
             camera.position.set(N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7);
             camera.lookAt(scene.position);
+            if (DEBUG_MODE) console.log("Camera initialized.");
 
             // Renderer
             renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
             renderer.setSize(canvas.clientWidth, canvas.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            if (DEBUG_MODE) console.log("Renderer initialized.");
 
             // Lighting
             const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Softer ambient
             scene.add(ambientLight);
+            if (DEBUG_MODE) console.log("Ambient light added.");
 
             const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Softer directional
             directionalLight.position.set(5, 5, 5).normalize();
             scene.add(directionalLight);
+            if (DEBUG_MODE) console.log("Directional light added.");
 
             // Grid and Axes Helpers (for orientation)
             // Adjust grid and axes to be slightly larger than the max possible grid size for better visibility
             const helperSize = N_BASE * TOTAL_CUBE_SIZE * 1.5; // Make helpers larger than the grid
             const gridHelper = new THREE.GridHelper(helperSize, N_BASE * 2); // N_BASE * 2 divisions for more detail
             scene.add(gridHelper);
+            if (DEBUG_MODE) console.log("Grid helper added.");
             const axesHelper = new THREE.AxesHelper(helperSize / 2); // Axes adapt to grid size
             scene.add(axesHelper);
+            if (DEBUG_MODE) console.log("Axes helper added.");
 
             // Initialize PointerLockControls
             controls = new THREE.PointerLockControls(camera, document.body); // Attaches to document.body for mouse events
+            if (DEBUG_MODE) console.log("PointerLockControls initialized.");
 
             // Event listener to lock pointer on canvas click
             canvas.addEventListener('click', () => {
+                if (DEBUG_MODE) console.log("Canvas clicked. Attempting to lock pointer.");
                 // If the pointer is not already locked, lock it
                 if (!controls.isLocked) {
                     controls.lock();
@@ -424,21 +454,26 @@
             // Handle PointerLockControls events
             controls.addEventListener('lock', () => {
                 showMessage('Pointer Locked! Use WASD to move, Mouse to look around. Click again to unlock.');
+                if (DEBUG_MODE) console.log("Pointer locked.");
             });
 
             controls.addEventListener('unlock', () => {
                 showMessage('Pointer Unlocked. Click canvas to re-lock.');
+                if (DEBUG_MODE) console.log("Pointer unlocked.");
             });
 
             // Keyboard event listeners for FPS movement
             document.addEventListener('keydown', onKeyDown, false);
             document.addEventListener('keyup', onKeyUp, false);
+            if (DEBUG_MODE) console.log("Keyboard event listeners added.");
 
             create9NetCubes(); // Initial creation of the N_BASE x N_BASE x N_BASE grid
+            if (DEBUG_MODE) console.log("Initial 9-Net cubes created.");
 
             // Handle window resize
             window.addEventListener('resize', onWindowResize, false);
             onWindowResize(); // Call once to set initial size
+            if (DEBUG_MODE) console.log("Three.js setup complete.");
         }
 
         function onWindowResize() {
@@ -464,10 +499,12 @@
             if (renderer) {
                 renderer.setSize(canvas.width, canvas.height);
             }
+            if (DEBUG_MODE) console.log(`Window resized. Canvas set to ${canvas.width}x${canvas.height}.`);
         }
 
         function onKeyDown(event) {
             if (controls.isLocked) { // Only move if pointer is locked
+                if (DEBUG_MODE) console.log("Key down:", event.code);
                 switch (event.code) {
                     case 'KeyW':
                         moveForward = true;
@@ -487,6 +524,7 @@
 
         function onKeyUp(event) {
             if (controls.isLocked) { // Only stop movement if pointer is locked
+                if (DEBUG_MODE) console.log("Key up:", event.code);
                 switch (event.code) {
                     case 'KeyW':
                         moveForward = false;
@@ -524,6 +562,7 @@
                 // Apply movement
                 controls.moveRight(-velocity.x);
                 controls.moveForward(-velocity.z);
+                if (DEBUG_MODE) console.log(`Camera position: X=${camera.position.x.toFixed(2)}, Y=${camera.position.y.toFixed(2)}, Z=${camera.position.z.toFixed(2)}`);
             }
             prevTime = time;
 
@@ -535,6 +574,7 @@
                 if (Date.now() % speedFactor < 10) { // Small number to make it animate every few frames
                     pathIndex++;
                     updatePathVisualization();
+                    if (DEBUG_MODE) console.log(`Animating path: current index ${pathIndex}`);
                 }
             }
 
@@ -584,24 +624,28 @@
             if (params.n) {
                 N_BASE = parseInt(params.n);
                 inputN.value = N_BASE;
+                if (DEBUG_MODE) console.log(`N_BASE set from URL: ${N_BASE}`);
             } else {
                 inputN.value = N_BASE;
             }
             if (params.x) {
                 X_DIVISOR = parseInt(params.x);
                 inputX.value = X_DIVISOR;
+                if (DEBUG_MODE) console.log(`X_DIVISOR set from URL: ${X_DIVISOR}`);
             } else {
                 inputX.value = X_DIVISOR;
             }
             if (params.y) {
                 Y_MULTIPLIER = parseInt(params.y);
                 inputY.value = Y_MULTIPLIER;
+                if (DEBUG_MODE) console.log(`Y_MULTIPLIER set from URL: ${Y_MULTIPLIER}`);
             } else {
                 inputY.value = Y_MULTIPLIER;
             }
             if (params.z) {
                 Z_ADDER = parseInt(params.z);
                 inputZ.value = Z_ADDER;
+                if (DEBUG_MODE) console.log(`Z_ADDER set from URL: ${Z_ADDER}`);
             } else {
                 inputZ.value = Z_ADDER;
             }
@@ -609,14 +653,17 @@
             if (params.evenColor) {
                 evenColorPicker.value = '#' + params.evenColor;
                 evenColor.set(evenColorPicker.value);
+                if (DEBUG_MODE) console.log(`Even color set from URL: ${evenColorPicker.value}`);
             }
             if (params.oddColor) {
                 oddColorPicker.value = '#' + params.oddColor;
                 oddColor.set(oddColorPicker.value);
+                if (DEBUG_MODE) console.log(`Odd color set from URL: ${oddColorPicker.value}`);
             }
 
             // Update GRID_SIZE based on the new N_BASE after parsing params
             GRID_SIZE = N_BASE;
+            if (DEBUG_MODE) console.log(`GRID_SIZE updated to: ${GRID_SIZE}`);
 
             // Update slice range max based on N_BASE
             sliceValueInput.max = N_BASE - 1;
@@ -625,8 +672,10 @@
                 // Ensure value is within bounds of new N_BASE
                 if (currentSliceValue >= N_BASE || currentSliceValue < 0) {
                     currentSliceValue = 0;
+                    if (DEBUG_MODE) console.warn(`Slice value ${params.slice} out of bounds for N_BASE=${N_BASE}, resetting to 0.`);
                 }
                 sliceValueInput.value = currentSliceValue;
+                if (DEBUG_MODE) console.log(`Slice value set from URL: ${currentSliceValue}`);
             } else {
                 sliceValueInput.value = 0;
             }
@@ -635,13 +684,16 @@
             if (params.axis) {
                 currentSliceAxis = params.axis;
                 document.getElementById('slice-axis').value = currentSliceAxis;
+                if (DEBUG_MODE) console.log(`Slice axis set from URL: ${currentSliceAxis}`);
             }
 
             if (params.speed) {
                 animationSpeed = parseInt(params.speed);
                 speedSlider.value = animationSpeed;
+                if (DEBUG_MODE) console.log(`Animation speed set from URL: ${animationSpeed}`);
             }
             document.getElementById('speed-value').textContent = animationSpeed; // Update display
+            if (DEBUG_MODE) console.log("URL parameters initialized.");
         }
 
         // Execute code when the DOM is fully loaded
@@ -649,6 +701,7 @@
             initializeFromUrlParams();
             initThreeJS();
             animate(); // Start animation loop after init
+            if (DEBUG_MODE) console.log("DOMContentLoaded: Three.js initialized and animation started.");
 
             // Event listeners for rule inputs
             document.getElementById('input-n').addEventListener('change', (event) => {
@@ -666,9 +719,11 @@
                         document.getElementById('slice-display').textContent = currentSliceValue;
                     }
                     showMessage(`Grid size (N) set to ${N_BASE}.`);
+                    if (DEBUG_MODE) console.log(`Input N changed to: ${N_BASE}`);
                 } else {
                     event.target.value = N_BASE; // Revert to old value if invalid
                     showMessage("N (Base) must be a positive integer.", 3000);
+                    if (DEBUG_MODE) console.warn(`Invalid N input: ${event.target.value}. Reverted to ${N_BASE}.`);
                 }
             });
 
@@ -677,18 +732,22 @@
                 if (newX !== 0) { // X cannot be 0 to prevent division by zero
                     X_DIVISOR = newX;
                     showMessage(`X (Divisor) set to ${X_DIVISOR}.`);
+                    if (DEBUG_MODE) console.log(`Input X changed to: ${X_DIVISOR}`);
                 } else {
                     event.target.value = X_DIVISOR; // Revert to old value if invalid
                     showMessage("X (Divisor) cannot be zero.", 3000);
+                    if (DEBUG_MODE) console.warn(`Invalid X input: ${event.target.value}. Reverted to ${X_DIVISOR}.`);
                 }
             });
             document.getElementById('input-y').addEventListener('change', (event) => {
                 Y_MULTIPLIER = parseInt(event.target.value);
                 showMessage(`Y (Multiplier) set to ${Y_MULTIPLIER}.`);
+                if (DEBUG_MODE) console.log(`Input Y changed to: ${Y_MULTIPLIER}`);
             });
             document.getElementById('input-z').addEventListener('change', (event) => {
                 Z_ADDER = parseInt(event.target.value);
                 showMessage(`Z (Adder) set to ${Z_ADDER}.`);
+                if (DEBUG_MODE) console.log(`Input Z changed to: ${Z_ADDER}`);
             });
 
             // Event listeners for color pickers
@@ -696,12 +755,14 @@
                 evenColor.set(event.target.value);
                 create9NetCubes(); // Recreate cubes with new colors
                 updatePathVisualization(); // Update path colors if active
+                if (DEBUG_MODE) console.log(`Even color changed to: ${event.target.value}`);
             });
 
             document.getElementById('odd-color-picker').addEventListener('input', (event) => {
                 oddColor.set(event.target.value);
                 create9NetCubes(); // Recreate cubes with new colors
                 updatePathVisualization(); // Update path colors if active
+                if (DEBUG_MODE) console.log(`Odd color changed to: ${event.target.value}`);
             });
 
 
@@ -711,6 +772,7 @@
                 camera.position.set(N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7, N_BASE * TOTAL_CUBE_SIZE * 0.7);
                 camera.lookAt(scene.position);
                 showMessage("View reset! Click canvas to re-lock pointer for movement.");
+                if (DEBUG_MODE) console.log("Reset view button clicked.");
             });
 
             document.getElementById('share-link-btn').addEventListener('click', () => {
@@ -737,12 +799,14 @@
                 document.body.removeChild(tempInput);
 
                 showMessage("Link copied to clipboard!");
+                if (DEBUG_MODE) console.log("Share link copied:", shareUrl);
             });
 
             // Event listeners for UI controls (slicing and animation speed)
             document.getElementById('speed-slider').addEventListener('input', (event) => {
                 animationSpeed = parseInt(event.target.value);
                 document.getElementById('speed-value').textContent = animationSpeed;
+                if (DEBUG_MODE) console.log(`Animation speed set to: ${animationSpeed}`);
             });
 
             document.getElementById('slice-axis').addEventListener('change', (event) => {
@@ -755,16 +819,19 @@
                     sliceValueInput.value = currentSliceValue;
                 }
                 document.getElementById('slice-display').textContent = currentSliceValue;
+                if (DEBUG_MODE) console.log(`Slice axis set to: ${currentSliceAxis}, slice value adjusted to: ${currentSliceValue}`);
             });
 
             document.getElementById('slice-value').addEventListener('input', (event) => {
                 currentSliceValue = parseInt(event.target.value);
                 document.getElementById('slice-display').textContent = currentSliceValue;
+                if (DEBUG_MODE) console.log(`Slice value set to: ${currentSliceValue}`);
             });
         });
 
         // Event listener for canvas click (to start sequence animation)
         document.getElementById('collatzCanvas').addEventListener('click', (event) => {
+            if (DEBUG_MODE) console.log("Canvas click event detected.");
             // Only perform raycasting if pointer is unlocked
             if (controls.isLocked) {
                 // If locked, the click should trigger pointer lock functionality.
@@ -772,6 +839,9 @@
                 // However, Three.js PointerLockControls already handles pointer lock on click.
                 // If a click happens *while locked*, it means the user clicked on something *within* the canvas.
                 // So, we proceed with raycasting.
+                if (DEBUG_MODE) console.log("Pointer is locked, performing raycasting.");
+            } else {
+                if (DEBUG_MODE) console.log("Pointer is unlocked, click will lock pointer.");
             }
 
             const raycaster = new THREE.Raycaster();
@@ -781,6 +851,7 @@
             const rect = canvas.getBoundingClientRect();
             mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
             mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            if (DEBUG_MODE) console.log(`Mouse coordinates: X=${mouse.x.toFixed(2)}, Y=${mouse.y.toFixed(2)}`);
 
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(cubes);
@@ -788,11 +859,14 @@
             if (intersects.length > 0) {
                 const intersectedCube = intersects[0].object;
                 const startingNumber = intersectedCube.userData.originalIndex;
+                if (DEBUG_MODE) console.log(`Intersected cube for number: ${startingNumber}`);
 
                 activePath = generalizedCollatz(startingNumber, X_DIVISOR, Y_MULTIPLIER, Z_ADDER);
                 pathIndex = 0; // Reset animation
                 updatePathVisualization(); // Initial highlight
                 showMessage(`Sequence started from: ${startingNumber}`);
+            } else {
+                if (DEBUG_MODE) console.log("No cubes intersected.");
             }
         });
     </script>
