@@ -7,10 +7,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- IMPORTANT: MathJax configuration MUST come BEFORE the MathJax script itself -->
+    <script>
+        // MathJax readiness flag/promise (kept here for global scope)
+        let mathJaxIsReady = false;
+        let resolveMathJaxReady;
+        const mathJaxReadyPromise = new Promise(resolve => {
+            resolveMathJaxReady = resolve;
+        });
+
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                ready: function() {
+                    console.log('MathJax is ready!');
+                    mathJaxIsReady = true; // Set flag
+                    resolveMathJaxReady(); // Resolve the promise
+                    MathJax.startup.defaultReady(); // Run MathJax's default startup actions for static content
+                }
+            }
+        };
+    </script>
     <!-- MathJax for LaTeX rendering -->
     <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
+
     <style>
         /* Custom scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
@@ -199,13 +227,7 @@
         const DEFAULT_MODULUS = 9; // Default modulus for radial plot
         let currentSequenceData = null; // To store the result of the last calculation
 
-        // MathJax readiness flag/promise
-        let mathJaxIsReady = false;
-        let resolveMathJaxReady;
-        const mathJaxReadyPromise = new Promise(resolve => {
-            resolveMathJaxReady = resolve;
-        });
-
+        // MathJax readiness flag/promise are now defined in the head script block
         // ==========================================================
         // End of Global Variable Declarations
         // ==========================================================
@@ -492,24 +514,6 @@
             document.getElementById('y-star').style.display = (y === 3) ? 'inline-block' : 'none';
             document.getElementById('z-star').style.display = (z === 1) ? 'inline-block' : 'none';
         }
-
-        // MathJax configuration: Ensure typesetting happens after MathJax is fully ready.
-        window.MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']]
-            },
-            svg: {
-                fontCache: 'global'
-            },
-            startup: {
-                ready: function() {
-                    console.log('MathJax is ready!');
-                    mathJaxIsReady = true; // Set flag
-                    resolveMathJaxReady(); // Resolve the promise
-                    MathJax.startup.defaultReady(); // Run MathJax's default startup actions for static content
-                }
-            }
-        };
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
