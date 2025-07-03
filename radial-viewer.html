@@ -198,6 +198,14 @@
         const DEFAULT_LINE_COLOR = '#9E9E9E'; // Gray
         const DEFAULT_MODULUS = 9; // Default modulus for radial plot
         let currentSequenceData = null; // To store the result of the last calculation
+
+        // MathJax readiness flag/promise
+        let mathJaxIsReady = false;
+        let resolveMathJaxReady;
+        const mathJaxReadyPromise = new Promise(resolve => {
+            resolveMathJaxReady = resolve;
+        });
+
         // ==========================================================
         // End of Global Variable Declarations
         // ==========================================================
@@ -429,7 +437,7 @@
         }
 
         // Function to display sequence statistics (copied from index.html)
-        function displaySequenceStats(data) {
+        async function displaySequenceStats(data) { // Made async to await MathJax readiness
             const statsDiv = document.getElementById('currentSequenceDetails');
             if (!statsDiv) return;
 
@@ -465,8 +473,12 @@
             `;
             statsDiv.classList.remove('hidden'); // Ensure it's visible
 
-            if (window.MathJax) {
+            // Wait for MathJax to be ready before typesetting dynamic content
+            await mathJaxReadyPromise;
+            if (window.MathJax && window.MathJax.typesetPromise) {
                 MathJax.typesetPromise([statsDiv]).catch((err) => console.error("MathJax typesetting error:", err));
+            } else {
+                console.warn("MathJax.typesetPromise not available, skipping dynamic typesetting.");
             }
         }
 
@@ -492,7 +504,9 @@
             startup: {
                 ready: function() {
                     console.log('MathJax is ready!');
-                    MathJax.startup.defaultReady(); // Run MathJax's default startup actions
+                    mathJaxIsReady = true; // Set flag
+                    resolveMathJaxReady(); // Resolve the promise
+                    MathJax.startup.defaultReady(); // Run MathJax's default startup actions for static content
                 }
             }
         };
@@ -518,7 +532,6 @@
                 const xFromURL = parseInt(urlParams.get('x'), 10) || 2;
                 const yFromURL = parseInt(urlParams.get('y'), 10) || 3;
                 const zFromURL = parseInt(urlParams.get('z'), 10) || 1;
-                // NEW: Get modulus from URL, prioritize it, then fall back to DEFAULT_MODULUS
                 const modulusFromURL = parseInt(urlParams.get('modulus'), 10);
                 const initialModulus = isNaN(modulusFromURL) ? DEFAULT_MODULUS : Math.max(2, modulusFromURL);
 
@@ -527,12 +540,12 @@
                 xValueInput.value = xFromURL;
                 yValueInput.value = yFromURL;
                 zValueInput.value = zFromURL;
-                modulusValueInput.value = initialModulus; // Use the parsed or default modulus
+                modulusValueInput.value = initialModulus;
 
                 updateGoldStarVisibility(); // Update stars based on initial values
 
                 // Function to perform calculation and render
-                const performCalculationAndRender = () => {
+                const performCalculationAndRender = async () => { // Made async
                     const n = parseInt(startNumberInput.value);
                     const x = parseInt(xValueInput.value);
                     const y = parseInt(yValueInput.value);
@@ -548,27 +561,24 @@
                         errorMessageDiv.textContent = "X (divisor) cannot be zero.";
                         return;
                     }
-                    if (modulus < 2) { // Modulus must be at least 2 for a radial plot
+                    if (modulus < 2) {
                         errorMessageDiv.textContent = "Modulus must be 2 or greater.";
                         return;
                     }
-                    errorMessageDiv.textContent = ""; // Clear any previous error
+                    errorMessageDiv.textContent = "";
 
                     const collatzResult = calculateCollatzSequence(n, maxIterationsForRadial, x, y, z);
-                    currentSequenceData = collatzResult; // Store for stats display
-                    displaySequenceStats(collatzResult);
+                    currentSequenceData = collatzResult;
+                    await displaySequenceStats(collatzResult); // Await the stats display
                     renderRadialVisualization(collatzResult, modulus);
                 };
 
-                // Add event listener for the Calculate button
                 if (calculateButton) {
                     calculateButton.addEventListener('click', performCalculationAndRender);
                 }
 
-                // Initial calculation on page load
-                performCalculationAndRender();
+                performCalculationAndRender(); // Initial calculation on page load
 
-                // Add event listeners for input changes to update gold stars
                 if (xValueInput) xValueInput.addEventListener('input', updateGoldStarVisibility);
                 if (yValueInput) yValueInput.addEventListener('input', updateGoldStarVisibility);
                 if (zValueInput) zValueInput.addEventListener('input', updateGoldStarVisibility);
