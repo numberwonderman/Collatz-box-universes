@@ -411,40 +411,27 @@
         // Variables for canvas and rendering context
         let canvas;
         let ctx;
-        let centerX;
-        let centerY;
-        let nodeRadius;
-        let maxNodeRadius = 10;
-        let minNodeRadius = 2;
-        let maxLineThickness = 3;
-        let minLineThickness = 0.5;
-        // Variables for drag and zoom
+        // Variables for drag and zoom (NOT USED IN 9-NET DRAWING, BUT KEPT FOR CONSISTENCY IF NEEDED ELSEWHERE)
         let isDragging = false;
         let lastX, lastY;
         let translateX = 0;
         let translateY = 0;
-        let scale = 1; // ONLY declare 'scale' once
+        let scale = 1; 
         // Define dpi globally and once
         let dpi = window.devicePixelRatio || 1;
         // Stores the current sequence data for rendering
-        let currentSequenceData = null; // ONLY declare 'currentSequenceData' once
+        let currentSequenceData = null; 
         // ==========================================================
         // End of Global Variable Declarations
         // ==========================================================
 
-        // Helper function to determine if a color is light or dark
+        // Helper function to determine if a color is light or dark (NOT USED IN 9-NET DRAWING)
         function isLight(color) {
-            // Convert hex to RGB
             const hex = color.replace('#', '');
             const r = parseInt(hex.substring(0, 2), 16);
             const g = parseInt(hex.substring(2, 4), 16);
             const b = parseInt(hex.substring(4, 6), 16);
-
-            // Calculate luminance (perceived brightness)
-            // Formula: L = 0.2126*R + 0.7152*G + 0.0722*B (for sRGB)
             const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-
-            // Return true if light, false if dark (threshold can be adjusted)
             return luminance > 0.5;
         }
 
@@ -695,7 +682,9 @@
                 <p class="text-blue-300 mb-2">Average: <span id="currentAvg">${typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
                 <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">${typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
                 <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">${data.stoppingTime_t !== 'N/A' ? data.stoppingTime_t : 'N/A'}</span></p>
+                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">${data.coefficientStoppingTime_tau !== 'N/A' ? data.coefficientStoppingTime_tau : 'N/A'}</span></p>
                 <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">${data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No'}</span></p>
+                ${paradoxicalListHtml}
                 <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
                     <span id="currentSequenceOutput">${data.sequence.join(' → ')}</span>
                 </div>
