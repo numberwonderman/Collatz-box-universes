@@ -681,7 +681,7 @@
                 <p class="text-blue-300 mb-2">Range: [<span id="currentMin">${data.minVal.toLocaleString()}</span> to <span id="currentMax">${data.maxVal.toLocaleString()}</span>]</p>
                 <p class="text-blue-300 mb-2">Sum: <span id="currentSum">${data.sumVal.toLocaleString()}</span></p>
                 <p class="text-blue-300 mb-2">Average: <span id="currentAvg">${typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
-                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">${typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
+                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">${typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.stdDev}</span></p>
                 <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">${data.stoppingTime_t !== 'N/A' ? data.stoppingTime_t : 'N/A'}</span></p>
                 <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">${data.coefficientStoppingTime_tau !== 'N/A' ? data.coefficientStoppingTime_tau.toLocaleString(undefined, { maximumFractionDigits: 6 }) : 'N/A'}</span></p>
                 <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">${data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No'}</span></p>
@@ -1013,7 +1013,31 @@
             if (calculateSingleButton) {
                 calculateSingleButton.click(); // Simulate a click to show initial data
             }
+
+            // This part is now handled by MathJax.startup.ready
+            // if (window.MathJax) {
+            //     MathJax.typesetPromise().catch((err) => console.error("MathJax initial typesetting error (from ready):", err));
+            // }
         });
+
+        // MathJax configuration: Ensure typesetting happens after MathJax is fully ready.
+        // This is a more robust way to handle initial typesetting.
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                ready: function() {
+                    console.log('MathJax is ready!');
+                    MathJax.startup.defaultReady(); // Run MathJax's default startup actions
+                    // You can also add specific typesetting calls here if needed for static content
+                    // MathJax.typesetPromise().catch((err) => console.error("MathJax initial typesetting error (from ready):", err));
+                }
+            }
+        };
     </script>
 </body>
 </html>
