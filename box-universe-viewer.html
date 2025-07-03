@@ -216,9 +216,6 @@
             </div>
         </div>
     </div>
-    // This is a test comment for Git
-let canvas;
-
     <!-- Custom Message Box element -->
     <div id="customMessageBox"></div>
 
@@ -228,6 +225,9 @@ let canvas;
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
     <script>
+        // --- DEBUG MODE FLAG ---
+        const DEBUG_MODE = false; // Set to true to enable console logs, false to disable
+
         // --- Global Three.js Variables ---
         let scene, camera, renderer, controls;
         let meshMap = new Map(); // Stores references to generated Three.js cubes
@@ -262,16 +262,22 @@ let canvas;
 
         // --- Collatz Logic ---
         function generalizedCollatz(n, x, y, z, maxIterations, cycleDetectionLimit) {
-            if (n <= 0) return { sequence: [], type: 'error', message: 'N must be a positive integer' };
-            if (x === 0) return { sequence: [], type: 'error', message: 'X cannot be zero' };
+            if (n <= 0) {
+                if (DEBUG_MODE) console.error('N must be a positive integer');
+                return { sequence: [], type: 'error', message: 'N must be a positive integer' };
+            }
+            if (x === 0) {
+                if (DEBUG_MODE) console.error('X cannot be zero');
+                return { sequence: [], type: 'error', message: 'X cannot be zero' };
+            }
 
             let current = n;
             const history = new Set();
             const historyArray = []; // To reconstruct cycles if found
 
             for (let i = 0; i < maxIterations; i++) {
-                // Console log added here to track progress
-                console.log('Iteration:', i, 'Current number:', current, 'Rule:', `X=${x}, Y=${y}, Z=${z}`);
+                // Console log added here to track progress - now conditional
+                if (DEBUG_MODE) console.log('Iteration:', i, 'Current number:', current, 'Rule:', `X=${x}, Y=${y}, Z=${z}`);
 
                 if (current === 1 && x === 2 && y === 3 && z === 1) {
                     return { type: 'converges' };
@@ -279,6 +285,7 @@ let canvas;
 
                 if (i > cycleDetectionLimit && history.has(current)) {
                     // Cycle detected
+                    if (DEBUG_MODE) console.log('Cycle detected for N,X,Y,Z:', n, x, y, z);
                     return { type: 'cycles' };
                 }
                 history.add(current);
@@ -291,9 +298,11 @@ let canvas;
                 }
 
                 if (Math.abs(current) > Number.MAX_SAFE_INTEGER || Math.abs(current) < Number.MIN_SAFE_INTEGER) {
+                    if (DEBUG_MODE) console.warn('Number too large/small, stopping computation for N,X,Y,Z:', n, x, y, z);
                     return { type: 'diverges', message: 'Number too large/small, stopping computation.' };
                 }
             }
+            if (DEBUG_MODE) console.warn('Max iterations reached without convergence or cycle for N,X,Y,Z:', n, x, y, z);
             return { type: 'diverges', message: 'Max iterations reached without convergence or cycle' };
         }
 
@@ -367,7 +376,7 @@ let canvas;
             window.addEventListener('resize', onWindowResize);
             animate();
 
-            console.log('Three.js initialized successfully with reduced lighting and helpers.');
+            if (DEBUG_MODE) console.log('Three.js initialized successfully with reduced lighting and helpers.');
         }
 
         // --- Three.js Animation Loop ---
@@ -442,7 +451,7 @@ let canvas;
                 }
             });
             meshMap.clear(); // Clear the map of references
-            console.log("Generated cubes cleared.");
+            if (DEBUG_MODE) console.log("Generated cubes cleared.");
         }
 
         async function generateCubes() {
@@ -472,7 +481,7 @@ let canvas;
                 return;
             }
 
-            console.log(`Generating cubes for N=${nValue}, X=[${xMin}-${xMax}], Y=[${yMin}-${yMax}], Z=[${zMin}-${zMax}]`);
+            if (DEBUG_MODE) console.log(`Generating cubes for N=${nValue}, X=[${xMin}-${xMax}], Y=[${yMin}-${yMax}], Z=[${zMin}-${zMax}]`);
 
             for (let x = xMin; x <= xMax; x++) {
                 for (let y = yMin; y <= yMax; y++) {
@@ -489,7 +498,7 @@ let canvas;
             generateBtn.disabled = false;
             resetCameraBtn.disabled = false;
             resetCameraView(); // Call reset camera after generation for optimal view
-            console.log("Cubes generation complete.");
+            if (DEBUG_MODE) console.log("Cubes generation complete.");
         }
 
         // --- Camera Reset Function ---
@@ -500,7 +509,7 @@ let canvas;
             controls.target.set(0, 0, 0);
             controls.update();
             displayMessage("Camera view reset!", "info");
-            console.log("Camera reset to default view.");
+            if (DEBUG_MODE) console.log("Camera reset to default view.");
         }
 
         // --- Event Handlers ---
@@ -513,7 +522,7 @@ let canvas;
             camera.aspect = container.clientWidth / container.clientHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
-            console.log("Window resized.");
+            if (DEBUG_MODE) console.log("Window resized.");
         }
 
         // --- Custom Message Box Function ---
