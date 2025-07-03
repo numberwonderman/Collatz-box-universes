@@ -302,6 +302,7 @@
                 <p class="text-blue-300 mb-2">Average: <span id="currentAvg">--</span></p>
                 <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
                 <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
+                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
                 <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
                 <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
                     <span id="currentSequenceOutput">Sequence will appear here.</span>
@@ -682,7 +683,7 @@
                 <p class="text-blue-300 mb-2">Average: <span id="currentAvg">${typeof data.avgVal === 'number' ? data.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
                 <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">${typeof data.stdDev === 'number' ? data.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : data.avgVal}</span></p>
                 <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">${data.stoppingTime_t !== 'N/A' ? data.stoppingTime_t : 'N/A'}</span></p>
-                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">${data.coefficientStoppingTime_tau !== 'N/A' ? data.coefficientStoppingTime_tau : 'N/A'}</span></p>
+                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">${data.coefficientStoppingTime_tau !== 'N/A' ? data.coefficientStoppingTime_tau.toLocaleString(undefined, { maximumFractionDigits: 6 }) : 'N/A'}</span></p>
                 <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">${data.paradoxicalOccurrences.length > 0 ? 'Yes' : 'No'}</span></p>
                 ${paradoxicalListHtml}
                 <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
@@ -690,6 +691,11 @@
                 </div>
             `;
             statsDiv.classList.remove('hidden'); // Ensure it's visible
+
+            // IMPORTANT: Tell MathJax to typeset the new content
+            if (window.MathJax) {
+                MathJax.typesetPromise([statsDiv]).catch((err) => console.error("MathJax typesetting error:", err));
+            }
         }
         // Function to display bulk universe statistics
         function displayBulkUniverseStats(startN_fixed, maxIterations, xStart, xEnd, yStart, yEnd, zStart, zEnd) {
@@ -1011,4 +1017,3 @@
     </script>
 </body>
 </html>
-
