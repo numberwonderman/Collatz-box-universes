@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+    <!-- IMPORTANT: MathJax configuration MUST come BEFORE the MathJax script itself -->
     <script type="text/javascript">
         // MathJax readiness flag/promise
         let mathJaxIsReady = false;
@@ -32,6 +33,7 @@
             }
         };
     </script>
+    <!-- MathJax for LaTeX rendering -->
     <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
@@ -187,6 +189,7 @@
         <div class="flex flex-col md:flex-row items-center justify-center gap-4 mb-6">
             <label for="slice-axis" class="text-lg font-semibold text-gray-800">Slice Axis:</label>
             <select id="slice-axis" class="p-2 border border-gray-300 rounded-md focus:ring-purple-500 focus:border-purple-500">
+                <option value="none">Show All</option> <!-- NEW: Option to show all cubes -->
                 <option value="x">X-axis</option>
                 <option value="y">Y-axis</option>
                 <option value="z">Z-axis</option>
@@ -220,6 +223,7 @@
     <canvas id="collatzCanvas"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- PointerLockControls for FPS-style camera -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
     <script>
@@ -238,7 +242,7 @@
         let oddColor = new THREE.Color(0xffa07a);  // Default Light Salmon
 
         let animationSpeed = 50; // Initial animation speed
-        let currentSliceAxis = 'x'; // Default slice axis
+        let currentSliceAxis = 'none'; // NEW: Default to 'none' to show all cubes
         let currentSliceValue = 0; // Default slice value
 
         let activePath = []; // Stores the current sequence path for visualization
@@ -364,10 +368,10 @@
                 }
             }
             if (DEBUG_MODE) console.log(`Grid of ${N_BASE}x${N_BASE}x${N_BASE} cubes created.`);
-            // After regenerating, update path visualization if there's an active path
-            if (activePath.length > 0) {
-                updatePathVisualization();
-            }
+            // After regenerating, reset active path and update visualization
+            activePath = []; // Clear any active path on grid regeneration
+            pathIndex = 0;
+            updatePathVisibility(); // Apply slicing or show all based on currentSliceAxis
         }
 
         function getCoordinatesForNumber(n) {
@@ -381,21 +385,47 @@
             return { x, y, z };
         }
 
-        function updatePathVisualization() {
+        // NEW: Function to manage cube visibility based on slicing or path
+        function updatePathVisibility() {
             // Get current colors from pickers for resetting
             const currentEvenColor = new THREE.Color(document.getElementById('even-color-picker').value);
             const currentOddColor = new THREE.Color(document.getElementById('odd-color-picker').value);
 
-            // Reset all cube colors to their original parity-based color
+            // Reset all cube colors and visibility
             cubes.forEach(cube => {
                 const number = cube.userData.originalIndex;
                 const originalColor = (number % 2 === 0) ? currentEvenColor : currentOddColor;
                 cube.material.color.copy(originalColor);
                 cube.material.opacity = 0.8;
+                cube.visible = true; // Start by making all visible, then apply slicing/path
             });
-            if (DEBUG_MODE) console.log("Resetting all cube colors for path visualization.");
+            if (DEBUG_MODE) console.log("Resetting all cube colors and visibility for path/slicing.");
 
-            // Highlight cubes along the active path
+            // Apply slicing effect if active
+            const offsetForCentering = (N_BASE - 1) / 2; // Offset for grid 0..N_BASE-1 to be centered around origin
+
+            if (currentSliceAxis !== 'none') { // Only apply slicing if an axis is selected
+                cubes.forEach(cube => {
+                    const gridX = Math.round((cube.position.x / TOTAL_CUBE_SIZE) + offsetForCentering);
+                    const gridY = Math.round((cube.position.y / TOTAL_CUBE_SIZE) + offsetForCentering);
+                    const gridZ = Math.round((cube.position.z / TOTAL_CUBE_SIZE) + offsetForCentering);
+
+                    let shouldBeVisible = false;
+                    if (currentSliceAxis === 'x' && gridX === currentSliceValue) {
+                        shouldBeVisible = true;
+                    } else if (currentSliceAxis === 'y' && gridY === currentSliceValue) {
+                        shouldBeVisible = true;
+                    } else if (currentSliceAxis === 'z' && gridZ === currentSliceValue) {
+                        shouldBeVisible = true;
+                    }
+                    cube.visible = shouldBeVisible;
+                });
+                if (DEBUG_MODE) console.log(`Slicing applied: axis=${currentSliceAxis}, value=${currentSliceValue}`);
+            } else {
+                if (DEBUG_MODE) console.log("Slicing is off, all cubes are visible.");
+            }
+
+            // Highlight cubes along the active path (this overrides slicing for path cubes)
             for (let i = 0; i <= pathIndex; i++) {
                 const num = activePath[i];
                 // Check if the number is within the current grid (0 to N_BASE^3 - 1)
@@ -411,6 +441,7 @@
                     if (targetCube) {
                         targetCube.material.color.set(0xff0000); // Highlight in red
                         targetCube.material.opacity = 1.0;
+                        targetCube.visible = true; // Ensure highlighted cubes are visible
                         if (DEBUG_MODE) console.log(`Highlighting cube for number ${num} at (${x},${y},${z})`);
                     } else {
                         if (DEBUG_MODE) console.warn(`Cube for number ${num} at (${x},${y},${z}) not found in current grid.`);
@@ -421,6 +452,7 @@
             }
             if (DEBUG_MODE) console.log(`Path visualization updated to index ${pathIndex}.`);
         }
+
 
         // --- Three.js Setup ---
         function initThreeJS() {
@@ -604,34 +636,13 @@
                 const speedFactor = 100 - animationSpeed + 1; // 1 (fastest) to 100 (slowest)
                 if (Date.now() % speedFactor < 10) { // Small number to make it animate every few frames
                     pathIndex++;
-                    updatePathVisualization();
+                    updatePathVisibility(); // Use the new function
                     if (DEBUG_MODE) console.log(`Animating path: current index ${pathIndex}`);
                 }
             }
 
-            // Apply slicing effect
-            const offsetForCentering = (N_BASE - 1) / 2; // Offset for grid 0..N_BASE-1 to be centered around origin
-
-            cubes.forEach(cube => {
-                let shouldBeVisible = true;
-
-                // Cube's grid indices relative to (0,0,0) starting point
-                // Recalculate gridX, Y, Z based on cube's current world position
-                // This ensures slicing works correctly even if camera moves, as it's based on cube's actual position
-                const gridX = Math.round((cube.position.x / TOTAL_CUBE_SIZE) + offsetForCentering);
-                const gridY = Math.round((cube.position.y / TOTAL_CUBE_SIZE) + offsetForCentering);
-                const gridZ = Math.round((cube.position.z / TOTAL_CUBE_SIZE) + offsetForCentering);
-
-                if (currentSliceAxis === 'x' && gridX !== currentSliceValue) {
-                    shouldBeVisible = false;
-                } else if (currentSliceAxis === 'y' && gridY !== currentSliceValue) {
-                    shouldBeVisible = false;
-                } else if (currentSliceAxis === 'z' && gridZ !== currentSliceValue) {
-                    shouldBeVisible = false;
-                }
-
-                cube.visible = shouldBeVisible;
-            });
+            // Apply slicing effect OR show all cubes
+            updatePathVisibility(); // Call every frame to ensure correct visibility based on controls and path
 
             if (renderer && scene && camera && controls) {
                 renderer.render(scene, camera);
@@ -651,6 +662,7 @@
             const oddColorPicker = document.getElementById('odd-color-picker');
             const sliceValueInput = document.getElementById('slice-value');
             const speedSlider = document.getElementById('speed-slider');
+            const sliceAxisSelect = document.getElementById('slice-axis'); // Get reference to select
 
             if (params.n) {
                 N_BASE = parseInt(params.n);
@@ -698,6 +710,18 @@
 
             // Update slice range max based on N_BASE
             sliceValueInput.max = N_BASE - 1;
+
+            // NEW: Set initial slice axis to 'none' if not provided in URL
+            if (params.axis) {
+                currentSliceAxis = params.axis;
+                sliceAxisSelect.value = currentSliceAxis;
+                if (DEBUG_MODE) console.log(`Slice axis set from URL: ${currentSliceAxis}`);
+            } else {
+                currentSliceAxis = 'none'; // Default to show all
+                sliceAxisSelect.value = 'none';
+                if (DEBUG_MODE) console.log(`Slice axis defaulted to: ${currentSliceAxis}`);
+            }
+
             if (params.slice) {
                 currentSliceValue = parseInt(params.slice);
                 // Ensure value is within bounds of new N_BASE
@@ -711,12 +735,6 @@
                 sliceValueInput.value = 0;
             }
             document.getElementById('slice-display').textContent = currentSliceValue; // Update display
-
-            if (params.axis) {
-                currentSliceAxis = params.axis;
-                document.getElementById('slice-axis').value = currentSliceAxis;
-                if (DEBUG_MODE) console.log(`Slice axis set from URL: ${currentSliceAxis}`);
-            }
 
             if (params.speed) {
                 animationSpeed = parseInt(params.speed);
@@ -797,14 +815,12 @@
             document.getElementById('even-color-picker').addEventListener('input', (event) => {
                 evenColor.set(event.target.value);
                 regenerateGrid(); // Use the new function to recreate grid
-                updatePathVisualization(); // Update path colors if active
                 if (DEBUG_MODE) console.log(`Even color changed to: ${event.target.value}`);
             });
 
             document.getElementById('odd-color-picker').addEventListener('input', (event) => {
                 oddColor.set(event.target.value);
                 regenerateGrid(); // Use the new function to recreate grid
-                updatePathVisualization(); // Update path colors if active
                 if (DEBUG_MODE) console.log(`Odd color changed to: ${event.target.value}`);
             });
 
@@ -816,6 +832,16 @@
                 const cameraDistance = N_BASE * TOTAL_CUBE_SIZE * 2.0; // Adjusted for reset as well
                 camera.position.set(cameraDistance, cameraDistance, cameraDistance);
                 camera.lookAt(scene.position);
+                
+                // NEW: Reset slicing to 'none' and clear active path
+                currentSliceAxis = 'none';
+                document.getElementById('slice-axis').value = 'none';
+                currentSliceValue = 0;
+                document.getElementById('slice-value').value = 0;
+                document.getElementById('slice-display').textContent = 0;
+                activePath = []; // Clear active path
+                updatePathVisibility(); // Re-apply visibility to show all cubes
+
                 showMessage("View reset! Click canvas to re-lock pointer for movement.");
                 if (DEBUG_MODE) console.log("Reset view button clicked.");
             });
@@ -864,12 +890,14 @@
                     sliceValueInput.value = currentSliceValue;
                 }
                 document.getElementById('slice-display').textContent = currentSliceValue;
+                updatePathVisibility(); // Apply new slicing
                 if (DEBUG_MODE) console.log(`Slice axis set to: ${currentSliceAxis}, slice value adjusted to: ${currentSliceValue}`);
             });
 
             document.getElementById('slice-value').addEventListener('input', (event) => {
                 currentSliceValue = parseInt(event.target.value);
                 document.getElementById('slice-display').textContent = currentSliceValue;
+                updatePathVisibility(); // Apply new slicing
                 if (DEBUG_MODE) console.log(`Slice value set to: ${currentSliceValue}`);
             });
         });
@@ -903,7 +931,7 @@
 
                 activePath = generalizedCollatz(startingNumber, X_DIVISOR, Y_MULTIPLIER, Z_ADDER);
                 pathIndex = 0; // Reset animation
-                updatePathVisualization(); // Initial highlight
+                updatePathVisibility(); // Initial highlight
                 showMessage(`Sequence started from: ${startingNumber}`);
             } else {
                 if (DEBUG_MODE) console.log("No cubes intersected.");
