@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- IMPORTANT: MathJax configuration MUST come BEFORE the MathJax script itself -->
     <script type="text/javascript">
         // MathJax readiness flag/promise
         let mathJaxIsReady = false;
@@ -33,7 +32,6 @@
             }
         };
     </script>
-    <!-- MathJax for LaTeX rendering -->
     <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
@@ -222,7 +220,6 @@
     <canvas id="collatzCanvas"></canvas>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- PointerLockControls for FPS-style camera -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/PointerLockControls.js"></script>
 
     <script>
@@ -441,8 +438,8 @@
             // Camera
             camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
             // Position camera slightly back and up to see the grid from an angle
-            // Adjust camera position based on N_BASE to ensure full grid visibility
-            const cameraDistance = N_BASE * TOTAL_CUBE_SIZE * 1.0; // Increased factor for better initial view
+            // Adjusted camera position based on N_BASE to ensure full grid visibility
+            const cameraDistance = N_BASE * TOTAL_CUBE_SIZE * 2.0; // INCREASED FACTOR FOR BETTER INITIAL VIEW
             camera.position.set(cameraDistance, cameraDistance, cameraDistance);
             camera.lookAt(scene.position);
             if (DEBUG_MODE) console.log("Camera initialized.");
@@ -465,7 +462,7 @@
 
             // Grid and Axes Helpers (for orientation)
             // Adjust grid and axes to be slightly larger than the max possible grid size for better visibility
-            const helperSize = N_BASE * TOTAL_CUBE_SIZE * 1.5; // Make helpers larger than the grid
+            const helperSize = N_BASE * TOTAL_CUBE_SIZE * 2.0; // Make helpers larger than the grid
             const gridHelper = new THREE.GridHelper(helperSize, N_BASE * 2); // N_BASE * 2 divisions for more detail
             scene.add(gridHelper);
             if (DEBUG_MODE) console.log("Grid helper added.");
@@ -737,6 +734,18 @@
             animate(); // Start animation loop after init
             if (DEBUG_MODE) console.log("DOMContentLoaded: Three.js initialized and animation started.");
 
+            // Explicitly typeset MathJax after everything is loaded and initialized.
+            // This is a safety net for GitHub Pages specific rendering issues.
+            mathJaxReadyPromise.then(() => {
+                if (MathJax && MathJax.typesetPromise) {
+                    MathJax.typesetPromise();
+                    if (DEBUG_MODE) console.log("Explicitly called MathJax.typesetPromise() after DOMContentLoaded.");
+                } else {
+                    if (DEBUG_MODE) console.warn("MathJax or MathJax.typesetPromise is not available for explicit typesetting.");
+                }
+            });
+
+
             // Event listeners for rule inputs
             document.getElementById('input-n').addEventListener('change', (event) => {
                 const newN = parseInt(event.target.value);
@@ -804,7 +813,7 @@
                 controls.unlock(); // Release pointer lock
                 // Reset camera to a good default viewing angle
                 // Recalculate camera position based on current N_BASE
-                const cameraDistance = N_BASE * TOTAL_CUBE_SIZE * 1.0;
+                const cameraDistance = N_BASE * TOTAL_CUBE_SIZE * 2.0; // Adjusted for reset as well
                 camera.position.set(cameraDistance, cameraDistance, cameraDistance);
                 camera.lookAt(scene.position);
                 showMessage("View reset! Click canvas to re-lock pointer for movement.");
