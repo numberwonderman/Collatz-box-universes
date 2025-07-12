@@ -957,7 +957,7 @@
         // Initialize MathJax after DOM is loaded and ensure it typesets dynamically added content
         document.addEventListener('DOMContentLoaded', () => {
             if (typeof MathJax !== 'undefined') {
-                MathJax.typeset();
+               MathJax.typesetPromise()
             }
         });
 
