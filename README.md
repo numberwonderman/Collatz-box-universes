@@ -1,4 +1,6 @@
 # **Collatz Box Universes Explorer Suite**
+![My bvox universe ogo](Gemini_Generated_Image_36ro5936ro5936ro.png)
+
 
 ## **Long-Term Mission Statement**
 
