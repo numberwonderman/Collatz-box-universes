@@ -86,21 +86,17 @@
 
        
         /* Styling for buttons */
-        button {
-            /* Explicitly set border-width and other border properties */
-    border-width: 2px; /* Add this line to explicitly set the width */
-    border-style: solid; /* Add this line */
-    border-color: white; /* Add this line, or whatever color you want */
-            padding: 0.75rem 1.5rem; /* px-6 py-3 */
-            border-radius: 0.75rem; /* rounded-xl */
-            font-weight: 700; /* font-bold */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-            transition: all 0.3s ease-in-out; /* transform transition duration-300 ease-in-out */
-            cursor: pointer;
-        }
-        button:hover {
-            transform: scale(1.05); /* hover:scale-105 */
-        }
+button {
+    /* Force your border to override Tailwind's default */
+    border: 2px solid white !important; /* <--- ADDED !important HERE */
+
+    padding: 0.75rem 1.5rem; /* px-6 py-3 */
+    border-radius: 0.75rem; /* rounded-xl */
+    font-weight: 700; /* font-bold */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
+    transition: all 0.3s ease-in-out; /* transform transition duration-300 ease-in-out */
+    cursor: pointer;
+}
       
         /* Specific button colors from image references */
         #calculateSingle { background-color: #2563eb; } /* blue-600 */
