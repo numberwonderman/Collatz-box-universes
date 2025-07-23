@@ -7,6 +7,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // You can keep your readiness flag/promise if you're using it for dynamic content
+        let mathJaxIsReady = false;
+        let resolveMathJaxReady;
+        const mathJaxReadyPromise = new Promise(resolve => {
+            resolveMathJaxReady = resolve;
+        });
+
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            },
+            startup: {
+                ready: function() {
+                    console.log('MathJax is ready in index.html!'); // You can change the log
+                    mathJaxIsReady = true; // Set flag
+                    resolveMathJaxReady(); // Resolve the promise
+                    MathJax.startup.defaultReady(); // <--- ADD THIS LINE!
+                }
+            }
+        };
+    </script>
         <script type="text/javascript" id="MathJax-script" async
       src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
     </script>
