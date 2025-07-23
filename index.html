@@ -48,15 +48,17 @@
         border: 1px solid rgba(59, 130, 246, 0.5); /* Tailwind's border border-blue-700 equivalent */
     }
     /* Mission statement specific styling */
-    p.project-mission {
-        max-width: 700px; /* Constrain width for readability */
-        text-align: center;
-        font-size: 0.9em;
-        color: #c0c0c0; /* Lighter color for secondary text */
-        margin-top: 10px; /* Adjust spacing with elements above */
-        margin-bottom: 25px; /* Space before next section */
-        line-height: 1.5;
-    }
+   /* New or updated styling for the main introductory paragraph */
+.project-mission-main {
+    max-width: 48rem; /* Equivalent to max-w-2xl in Tailwind (1rem = 16px, 48 * 16 = 768px, close to 700px) */
+    margin-left: auto; /* mx-auto */
+    margin-right: auto; /* mx-auto */
+    font-size: 1.125rem; /* Equivalent to text-lg in Tailwind */
+    line-height: 1.625; /* Equivalent to leading-relaxed in Tailwind */
+    color: #f8fafc; /* Your main light text color */
+    margin-bottom: 1rem; /* Adjust spacing as needed */
+    text-align: center;
+}
     /* Styling for input fields */
     input[type="number"] {
         background-color: rgba(30, 64, 175, 0.5); /* Blue-900 with opacity */
@@ -253,23 +255,19 @@
             </a>
         </header>
 
-        <p class="project-mission">
-            Explore and visualize generalized Collatz sequences to discover hidden patterns,
-            foster intuition, and gain new perspectives on dynamical systems.
-            A journey of visual discovery beyond traditional analysis.
-        </p>
-
-        <div class="mb-8 text-white text-lg leading-relaxed text-center">
-            <p class="mb-3">
-                Explore your generalized Collatz sequence where the rules are defined by X, Y, and Z coordinates.
-            </p>
-            <p class="font-semibold text-xl mb-4">
-                Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
-            </p>
-            <p class="text-sm text-blue-200">
-                (Standard Collatz uses X=2, Y=3, Z=1)
-            </p>
-        </div>
+       <section class="text-white text-center mb-8 px-4">
+    <p class="project-mission-main mb-4 max-w-2xl mx-auto text-lg leading-relaxed">
+        Explore and visualize generalized Collatz sequences to discover hidden patterns,
+        foster intuition, and gain new perspectives on dynamical systems.
+        It's a journey of visual discovery beyond traditional analysis, where rules are defined by **X, Y, and Z coordinates**.
+    </p>
+    <p class="font-semibold text-2xl mb-2 text-blue-300">
+        Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
+    </p>
+    <p class="text-sm text-blue-200">
+        (Standard Collatz uses X=2, Y=3, Z=1)
+    </p>
+</section>
 
                 <div class="mb-6 text-center">
             <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
