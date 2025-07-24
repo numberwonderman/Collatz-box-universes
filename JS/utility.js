@@ -316,3 +316,225 @@ function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_par
         z_param: z_param
     };
 }
+// Helper function to determine if a color is light or dark
+function isLight(color) {
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return luminance > 0.5;
+}
+
+// Collatz function as per user's definition
+// Rule: If n % X == 0, then n -> n / X. Otherwise, n -> n * Y + Z.
+// Standard Collatz uses X=2, Y=3, Z=1
+function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
+    let sequence = [startN];
+    let current = startN;
+    let steps = 0;
+    let yPlusZ_operations = 0; // Counts (Y*n + Z) operations, equivalent to 'oddCount' for standard Collatz
+    let maxVal = startN;
+    let minVal = startN;
+    let sumVal = startN;
+    let stoppingTime_t = Infinity; // Least j such that T^j(n) < n
+    let coefficientStoppingTime_tau = Infinity; // Least j such that C_j(n) = (Y^q) / (X^j) < 1
+    let paradoxicalOccurrences = []; // Array to store {step, value, coefficient} for paradoxical points
+    const initialN = startN;
+
+    // Parameter validation
+    if (x_param === 0) { // Divisor (X) cannot be zero
+        return {
+            startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN,
+            avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false,
+            stoppingTime_t: 'N/A', coefficientStoppingTime_tau: 'N/A', paradoxicalOccurrences: []
+        };
+    }
+
+    // Handle trivial case where startN is 1 for standard Collatz, might not apply for generalized
+    // But if startN is 1, and the rule eventually leads to 1, steps should be 0.
+    if (startN === 1) {
+        return {
+            startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
+            avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
+            stoppingTime_t: 0, // It's already < initialN if initialN > 1
+            coefficientStoppingTime_tau: 1, // C_0(n) = Y^0 / X^0 = 1
+            paradoxicalOccurrences: []
+        };
+    }
+
+    while (current !== 1 && steps < maxIterations) { // Continue until 1 or max iterations
+        // Add a safety break for extremely long sequences that might not converge or cycle.
+        if (steps > maxIterations * 2 && maxIterations > 0) { // If it goes way over maxIterations
+             return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: sumVal / sequence.length, stdDev: 0, type: "Exceeded Max Iterations (Possible Divergence)",
+                converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+                paradoxicalOccurrences: paradoxicalOccurrences
+            };
+        }
+
+        if (current % x_param === 0) { // If n is divisible by X
+            current = current / x_param;
+        } else { // Otherwise (n % X !== 0)
+            current = (y_param * current + z_param);
+            yPlusZ_operations++; // Count occurrences of the (Y*n + Z) operation
+        }
+        steps++;
+
+        // Check for overflow, non-finite, or non-positive numbers (important for divergence)
+        if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
+            let errorType = "Exceeded Max Safe Integer";
+            if (current <= 0) errorType = "Reached Non-Positive Value";
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: sumVal / sequence.length, stdDev: 0, type: errorType,
+                converges_to_1: false, stoppingTime_t: 'N/A',
+                coefficientStoppingTime_tau: 'N/A',
+                paradoxicalOccurrences: paradoxicalOccurrences
+            };
+        }
+
+        // Cycle detection - check if current number has appeared before
+        if (sequence.includes(current)) {
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected",
+                converges_to_1: false, stoppingTime_t: 'N/A',
+                coefficientStoppingTime_tau: 'N/A',
+                paradoxicalOccurrences: paradoxicalOccurrences
+            };
+        }
+        sequence.push(current);
+
+        // Update statistics
+        if (current > maxVal) maxVal = current;
+        if (current < minVal) minVal = current;
+        sumVal += current;
+
+        // Calculate current coefficient C_j(n) = (Y^q) / (X^j) where q is count of (Y*n+Z) operations, j is total steps
+        // C_0(n) = 1 (when steps is 0, yPlusZ_operations is 0, Y^0/X^0 = 1)
+        const currentCoefficient = (steps === 0) ? 1 : (Math.pow(y_param, yPlusZ_operations) / Math.pow(x_param, steps));
+
+        // Check for stopping time t(n) - first j such that T^j(n) < n
+        if (stoppingTime_t === Infinity && current < initialN) {
+            stoppingTime_t = steps;
+        }
+
+        // Check for coefficient stopping time tau(n) - first j such that C_j(n) < 1
+        if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
+            coefficientStoppingTime_tau = steps;
+        }
+
+        // Check for paradoxical sequence condition (C_j(n) < 1 AND T^j(n) >= n)
+        if (currentCoefficient < 1 && current >= initialN) {
+            paradoxicalOccurrences.push({
+                step: steps,
+                value: current,
+                coefficient: currentCoefficient.toFixed(6)
+            });
+        }
+    }
+
+    let type = "Unknown";
+    let converges_to_1 = false;
+    if (current === 1) {
+        type = "Converges to 1";
+        converges_to_1 = true;
+    } else if (steps >= maxIterations) {
+        type = "Max Iterations Reached";
+    }
+
+    // Calculate Standard Deviation
+    let mean = sumVal / sequence.length;
+    let sumOfSquaredDifferences = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
+    let stdDev = Math.sqrt(sumOfSquaredDifferences / sequence.length);
+
+    return {
+        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+        avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
+        stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
+        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+        paradoxicalOccurrences: paradoxicalOccurrences
+    };
+}
+
+// === Constants for 9-Net Dimensions ===
+const FACE_SIZE = 30; // Size of each small square face
+const PADDING = 10; // Padding around the entire 9-net
+const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
+
+// Total internal drawing dimensions for a complete 9-net
+const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
+const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
+
+
+// Function to render the 9-net
+/**
+ * Draws the 9-net visualization of the sequence on a canvas.
+ * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+ * @param {Array<number>} sequence - The sequence of numbers to visualize.
+ * @param {number} xVal - The X parameter used in the Collatz rule for color determination.
+ * @param {string} divColor - Color for divisible numbers.
+ * @param {string} mulColor - Color for multiply/add numbers.
+ */
+function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Use the global constants for drawing logic
+    const faceSize = FACE_SIZE;
+    const padding = PADDING;
+    const stepSize = STEP_SIZE;
+
+    // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
+    const layout = [
+        { r: 0, c: 1 }, // Top
+        { r: 1, c: 0 }, // Left
+        { r: 1, c: 1 }, // Center-Left (main sequence starts here)
+        { r: 1, c: 2 }, // Center
+        { r: 1, c: 3 }, // Center-Right
+        { r: 2, c: 1 }  // Bottom
+    ];
+
+    let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
+
+    // Iterate through each 'face' in the predefined layout
+    for (const pos of layout) {
+        // Iterate through the 3x3 grid of small squares within each face
+        for (let i = 0; i < stepSize; i++) { // Row within the face
+            for (let j = 0; j < stepSize; j++) { // Column within the face
+                // Calculate the x and y coordinates for the current small square
+                const x = padding + (pos.c * stepSize + j) * faceSize;
+                const y = padding + (pos.r * stepSize + i) * faceSize;
+
+                let color = "#444"; // Default color for squares not representing a sequence number
+                let label = ""; // Optional label for the number
+
+                // Check if there's a corresponding number in the sequence for this square
+                if (sequenceIndex < sequence.length) {
+                    const num = sequence[sequenceIndex];
+                    color = (num % xVal === 0) ? divColor : mulColor; // Color based on divisibility
+                    label = num; // Set the number as label
+                    sequenceIndex++; // Move to the next number in the sequence
+                }
+
+                ctx.fillStyle = color;
+                ctx.fillRect(x, y, faceSize, faceSize);
+                ctx.strokeStyle = "#222"; // Darker border for separation
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, faceSize, faceSize);
+
+                // Optional: Draw the number inside the square
+                if (label !== "") {
+                    ctx.fillStyle = isLight(color) ? "#000" : "#fff"; // Text color contrast
+                    ctx.font = `${faceSize * 0.4}px Inter, sans-serif`; // Adjust font size
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(label, x + faceSize / 2, y + faceSize / 2);
+                }
+            }
+        }
+    }
+}
