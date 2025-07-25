@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Collatz Box Universes - Main Hub & Explorer</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collatz Box Universes - Main Hub & Explorer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script>
         // You can keep your readiness flag/promise if you're using it for dynamic content
         let mathJaxIsReady = false;
@@ -32,10 +32,10 @@
             }
         };
     </script>
-        <script type="text/javascript" id="MathJax-script" async
-      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
-  <style>
+        <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+  <style>
     /* Custom scrollbar for history div */
     .custom-scrollbar::-webkit-scrollbar {
         width: 8px;
@@ -197,15 +197,18 @@
         height: 1.25rem;
         border: 2px solid #a0aec0; /* gray-400 */
         border-radius: 50%;
-        focus:ring-2
         cursor: pointer;
         position: relative;
         flex-shrink: 0; /* Prevent shrinking */
     }
-    .radio-option input[type="radio"]:checked {
-        border-color: #6366f1; /* indigo-500 */
-        background-color: #6366f1; /* indigo-500 */
-    }
+    .radio-option input[type="radio"]:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+   .radio-option input[type="radio"]:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
     .radio-option input[type="radio"]:checked::before {
         content: '';
         display: block;
@@ -268,19 +271,19 @@
 </head>
 <body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
 
-    <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
-                <header class="flex justify-between items-center mb-6">
-            <div class="flex-grow text-center">
-                <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">
-                    Collatz Box Universes
-                </h1>
-            </div>
-            <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
-                View on GitHub
-            </a>
-        </header>
+    <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
+                <header class="flex justify-between items-center mb-6">
+            <div class="flex-grow text-center">
+                <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">
+                    Collatz Box Universes
+                </h1>
+            </div>
+            <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
+                View on GitHub
+            </a>
+        </header>
 
-       <section class="text-white text-center mb-8 px-4">
+       <section class="text-white text-center mb-8 px-4">
     <p class="project-mission-main mb-4 max-w-2xl mx-auto text-lg leading-relaxed">
         Explore and visualize generalized Collatz sequences to discover hidden patterns,
         foster intuition, and gain new perspectives on dynamical systems.
@@ -294,153 +297,151 @@
     </p>
 </section>
 
-                <div class="mb-6 text-center">
-            <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
-            <label for="modeSingle" class="text-white text-lg mr-6">Single Calculation</label>
+                <div class="mb-6 text-center">
+            <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
+            <label for="modeSingle" class="text-white text-lg mr-6">Single Calculation</label>
 
-            <input type="radio" id="modeBulk" name="calculatorMode" value="bulk" class="mr-2">
-            <label for="modeBulk" class="text-white text-lg">Bulk Universe</label>
-        </div>
+            <input type="radio" id="modeBulk" name="calculatorMode" value="bulk" class="mr-2">
+            <label for="modeBulk" class="text-white text-lg">Bulk Universe</label>
+        </div>
 
-                <div id="singleCalculatorSection">
-            <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)" />
-                <div class="flex items-center">
-                    <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)" />
-                    <span id="x-star" class="gold-star">⭐</span>
-                </div>
-                <div class="flex items-center">
-                    <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)" />
-                    <span id="y-star" class="gold-star">⭐</span>
-                </div>
-                <div class="flex items-center">
-                    <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)" />
-                    <span id="z-star" class="gold-star">⭐</span>
-                </div>
-            </div>
+                <div id="singleCalculatorSection">
+            <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)" />
+                <div class="flex items-center">
+                    <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)" />
+                    <span id="x-star" class="gold-star">⭐</span>
+                </div>
+                <div class="flex items-center">
+                    <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)" />
+                    <span id="y-star" class="gold-star">⭐</span>
+                </div>
+                <div class="flex items-center">
+                    <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)" />
+                    <span id="z-star" class="gold-star">⭐</span>
+                </div>
+            </div>
 
-            <button id="calculateSingle" class="w-full mb-4">
-                Calculate Single Sequence
-            </button>
+            <button id="calculateSingle" class="w-full mb-4">
+                Calculate Single Sequence
+            </button>
 
-                        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
-                                <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
-            </div>
+                        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
+                                <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
+            </div>
 
-                        <div id="currentSequenceDetails" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
-                <h3 class="text-xl font-bold text-blue-200 mb-3">Current Sequence Results:</h3>
-                <p class="text-blue-300 mb-2">Parameters: <span id="currentParams">N=--, X=--, Y=--, Z=--</span></p>
-                <p class="text-blue-300 mb-2">Steps: <span id="currentSteps">--</span> | Type: <span id="currentType">--</span></p>
-                <p class="text-blue-300 mb-2">Range: [<span id="currentMin">--</span> to <span id="currentMax">--</span>]</p>
-                <p class="text-blue-300 mb-2">Sum: <span id="currentSum">--</span></p>
-                <p class="text-blue-300 mb-2">Average: <span id="currentAvg">--</span></p>
-                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
-                <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
-                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
-                <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
-                <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
-                    <span id="currentSequenceOutput">Sequence will appear here.</span>
-                </div>
-            </div>
-        </div>
+                        <div id="currentSequenceDetails" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
+                <h3 class="text-xl font-bold text-blue-200 mb-3">Current Sequence Results:</h3>
+                <p class="text-blue-300 mb-2">Parameters: <span id="currentParams">N=--, X=--, Y=--, Z=--</span></p>
+                <p class="text-blue-300 mb-2">Steps: <span id="currentSteps">--</span> | Type: <span id="currentType">--</span></p>
+                <p class="text-blue-300 mb-2">Range: [<span id="currentMin">--</span> to <span id="currentMax">--</span>]</p>
+                <p class="text-blue-300 mb-2">Sum: <span id="currentSum">--</span></p>
+                <p class="text-blue-300 mb-2">Average: <span id="currentAvg">--</span></p>
+                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
+                <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
+                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
+                <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
+                <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
+                    <span id="currentSequenceOutput">Sequence will appear here.</span>
+                </div>
+            </div>
+        </div>
 
-                <div id="bulkCalculatorSection" class="hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <input type="number" id="xStart" value="1" placeholder="X Start" />
-                <input type="number" id="xEnd" value="3" placeholder="X End" />
-                <input type="number" id="yStart" value="1" placeholder="Y Start" />
-                <input type="number" id="yEnd" value="3" placeholder="Y End" />
-                <input type="number" id="zStart" value="1" placeholder="Z Start" />
-                <input type="number" id="zEnd" value="1" placeholder="Z End" />
-            </div>
+                <div id="bulkCalculatorSection" class="hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                <input type="number" id="xStart" value="1" placeholder="X Start" />
+                <input type="number" id="xEnd" value="3" placeholder="X End" />
+                <input type="number" id="yStart" value="1" placeholder="Y Start" />
+                <input type="number" id="yEnd" value="3" placeholder="Y End" />
+                <input type="number" id="zStart" value="1" placeholder="Z Start" />
+                <input type="number" id="zEnd" value="1" placeholder="Z End" />
+            </div>
 
-            <button id="generateBulk" class="w-full mb-6">
-                Generate Box Universe (Bulk)
-            </button>
-                        <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
-            </div>
-        </div>
+            <button id="generateBulk" class="w-full mb-6">
+                Generate Box Universe (Bulk)
+            </button>
+                        <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
+            </div>
+        </div>
 
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 color-picker-group">
-            <div class="flex items-center space-x-2 text-white">
-                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
-                <input type="color" id="divColorPicker" value="#34d399"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-            <div class="flex items-center space-x-2 text-white">
-                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
-                <input type="color" id="mulColorPicker" value="#fb923c"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-        </div>
-        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 color-picker-group">
+            <div class="flex items-center space-x-2 text-white">
+                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
+                <input type="color" id="divColorPicker" value="#34d399"
+                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
+            <div class="flex items-center space-x-2 text-white">
+                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
+                <input type="color" id="mulColorPicker" value="#fb923c"
+                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
+            </div>
+        </div>
+        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
 
-        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
-            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
-            </div>
-        </div>
+        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
+            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
+            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
+            </div>
+        </div>
 
-        <div class="text-center mt-10">
-            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Select Visualization Tool:</h2>
-                        <div class="flex flex-col md:flex-row md:space-x-4 justify-center gap-4 mb-6">
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="index.html" checked>
-                    <i class="fas fa-home"></i>
-                    <span>Main Hub (OG 9-Net)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="box-universe-viewer.html">
-                    <i class="fas fa-cubes"></i>
-                    <span>Box Universe Viewer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="slicer.html">
-                    <i class="fas fa-th-large"></i>
-                    <span>2D Pseudo-3D Slicer (Unfolded Box)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="radial-animator.html">
-                    <i class="fas fa-expand-alt"></i>
-                    <span>2D Pseudo-3D Slicer (Radial Animator)</span>
-                </label>
-                                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="radial-viewer.html">
-                    <i class="fas fa-circle-notch"></i>
-                    <span>Radial Viewer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="box-universe-fps.html">
-                    <i class="fas fa-vr-cardboard"></i>
-                    <span>Box Universe FPS (3D Slicer)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="collatz-dragon.html">
-                    <i class="fas fa-dragon"></i>
-                    <span>Collatz Dragon Explorer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="collatz-lines-explorer.html">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Collatz Line Universe Explorer</span>
-                </label>
-            </div>
+        <div class="text-center mt-10">
+            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Select Visualization Tool:</h2>
+                        <div class="flex flex-col md:flex-row md:space-x-4 justify-center gap-4 mb-6">
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="index.html" checked>
+                    <i class="fas fa-home"></i>
+                    <span>Main Hub (OG 9-Net)</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="box-universe-viewer.html">
+                    <i class="fas fa-cubes"></i>
+                    <span>Box Universe Viewer</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="slicer.html">
+                    <i class="fas fa-th-large"></i>
+                    <span>2D Pseudo-3D Slicer (Unfolded Box)</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="radial-animator.html">
+                    <i class="fas fa-expand-alt"></i>
+                    <span>2D Pseudo-3D Slicer (Radial Animator)</span>
+                </label>
+                                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="radial-viewer.html">
+                    <i class="fas fa-circle-notch"></i>
+                    <span>Radial Viewer</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="box-universe-fps.html">
+                    <i class="fas fa-vr-cardboard"></i>
+                    <span>Box Universe FPS (3D Slicer)</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="collatz-dragon.html">
+                    <i class="fas fa-dragon"></i>
+                    <span>Collatz Dragon Explorer</span>
+                </label>
+                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
+                    <input type="radio" name="visualization" value="collatz-lines-explorer.html">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Collatz Line Universe Explorer</span>
+                </label>
+            </div>
 <button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded
     focus:outline-none focus:shadow-outline transition duration-200
     focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 focus:ring-offset-2 focus:ring-offset-blue-900">
     Launch Selected Tool
 </button>
-        </div>
-    </div>         <footer class="text-center mt-10 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
-        <p>&copy; 2025 Frsnklin Loeb. All rights reserved.</p>
-        <p>Explore the code on <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.</p>
-    </footer>
-    
-    <script>
-      
-           
-    </script>
+        </div>
+    </div>         <footer class="text-center mt-10 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
+        <p>&copy; 2025 Frsnklin Loeb. All rights reserved.</p>
+        <p>Explore the code on <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.</p>
+    </footer>
+    
+ <script type="module" src="./js/utility.js"></script>
+<script type="module" src="./js/index.js"></script>
 </body>
 </html>
