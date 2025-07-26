@@ -3,12 +3,12 @@
 // ==========================================================
 
 // Default canvas colors (will be updated by color pickers)
-let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation (matches image's green)
-let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation (matches image's orange)
-const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
-const DEFAULT_NODE_RADIUS = 5;
+export let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation (matches image's green)
+export let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation (matches image's orange)
+export const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
+export const DEFAULT_NODE_RADIUS = 5;
 
-// Variables for canvas and rendering context
+// Variables for canvas and rendering context (if still needed as global, consider passing as args)
 let canvas;
 let ctx;
 let centerX;
@@ -36,14 +36,14 @@ let currentSequenceData = null;
 let calculatedRuns = [];
 
 // NEW: Global padding variable for the unfolded box visualization
-const PADDING_BETWEEN_GROUPS = 10; // Padding between the large 3x3 remainder groups
+export const PADDING_BETWEEN_GROUPS = 10; // Padding between the large 3x3 remainder groups
 
 // ==========================================================
 // End of Global Variable Declarations
 // ==========================================================
 
 // Function to render the Unfolded Box (9-Net) visualization
-// This function is intended for the main index.html page
+// This function is intended for the main index.html page (not exported for general use yet)
 function drawUnfoldedBoxNineNet(data) {
     // Ensure canvas and ctx are initialized. This is crucial if the function is called before DOMContentLoaded.
     if (!canvas) {
@@ -316,8 +316,9 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         z_param: z_param
     };
 }
+
 // Helper function to determine if a color is light or dark
-function isLight(color) {
+export function isLight(color) { // Exporting this function as well, as it's a utility
     const hex = color.replace('#', '');
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
@@ -328,13 +329,13 @@ function isLight(color) {
 
 
 // === Constants for 9-Net Dimensions ===
-const FACE_SIZE = 30; // Size of each small square face
-const PADDING = 10; // Padding around the entire 9-net
-const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
+export const FACE_SIZE = 30; // Size of each small square face
+export const PADDING = 10; // Padding around the entire 9-net
+export const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
 
 // Total internal drawing dimensions for a complete 9-net
-const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
-const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
+export const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
+export const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
 
 
 // Function to render the 9-net
@@ -404,4 +405,16 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
             }
         }
     }
+}
+
+
+// === Helper function to parse URL parameters ===
+export function getUrlParams() {
+    const params = {};
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    for (const [key, value] of urlParams) {
+        params[key] = value;
+    }
+    return params;
 }
