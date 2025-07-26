@@ -10,7 +10,7 @@ with open(output_filename, "w") as outfile:
 
         for file in files:
             # Only include relevant code files
-            if file.endswith(('.html', '.js', '.css', '.py', '.txt', '.md')):
+            if file.endswith(('.html', '.js', '.css', '.py', '.txt', '.md')) or file == 'LICENSE':
                 filepath = os.path.join(root, file)
                 try:
                     with open(filepath, "r", encoding="utf-8") as infile:
