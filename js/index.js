@@ -4,7 +4,7 @@
 // IMPORTS
 // ==========================================================
 // Import functions from utils.js
-import { calculateCollatzSequence, drawNineNetCanvasSecondaru} from './utils.js';
+import { calculateCollatzSequence, drawNineNetCanvasSecondary} from './utils.js';
 
 // ==========================================================
 // GLOBAL VARIABLES (UI-related state)
