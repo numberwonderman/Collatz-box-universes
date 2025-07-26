@@ -173,18 +173,12 @@
         <h1 class="text-3xl font-bold mb-4">2D Pseudo-3D Slicer</h1>
         <p class="param-display" id="paramDisplay">Loading parameters...</p>
         <p class="sequence-info" id="sequenceInfo">Calculating sequence...</p>
-        <!-- New element for min/max range -->
         <p class="sequence-range-info text-gray-400 text-sm mb-2" id="sequenceRangeInfo"></p>
-        <!-- New element for sum -->
         <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
-        <!-- New element for average -->
         <p class="sequence-avg-info text-gray-400 text-sm mb-2" id="sequenceAvgInfo"></p>
-        <!-- New element for standard deviation -->
         <p class="sequence-stddev-info text-gray-400 text-sm mb-2" id="sequenceStdDevInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
-        <!-- Single 9-net canvas (for direct URL viewing) -->
-        <!-- Dimensions updated to correctly fit the 9-net drawing -->
         <canvas id="nineNetCanvas" width="380" height="290"></canvas>
 
         <div class="color-display">
@@ -199,7 +193,6 @@
         </button>
     </div>
 
-    <!-- Slideshow and Bulk Generation Controls (Moved to top for better flow) -->
     <div class="container slideshow-controls">
         <div class="flex flex-col items-center">
             <label for="animationAxis">Animate Axis:</label>
@@ -256,310 +249,38 @@
         <button id="applyFilters" class="px-4 py-2 bg-green-500 hover:bg-green-600">Apply Filters</button>
     </div>
 
-    <!-- Grid for Bulk Generated Universes -->
     <div id="gridContainer" class="grid-container">
-        <!-- 9-nets will be rendered here -->
-    </div>
+        </div>
 
-    <script>
-        // === Constants for 9-Net Dimensions ===
-        // These are calculated based on the drawNineNetCanvas logic.
-        // The 9-net layout is effectively 4 'face' columns wide and 3 'face' rows high.
-        // Each face is 3x3 small squares.
-        const FACE_SIZE = 30; // Size of each small square face
-        const PADDING = 10; // Padding around the entire 9-net
-        const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
-
-        // Total internal drawing dimensions for a complete 9-net
-        const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 4 faces horizontally * 3 squares/face * 30px/square + 2*10px padding
-        const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 faces vertically * 3 squares/face * 30px/square + 2*10px padding
-
-
-        // === Generalized Collatz function ===
-        // This function calculates the generalized Collatz sequence.
-        // It includes error handling for X=0, cycle detection, and max iteration limit.
-        // Now also calculates min, max, sum, and average values in the sequence.
-        const generalizedCollatz = (num, x, y, z, maxiterations) => {
-            if (x === 0) {
-                return { sequence: [], type: "error", message: "X cannot be zero for the division rule." };
-            }
-            const output = [];
-            output.push(num);
-            let iterations = 0;
-            const visitedNumbersMap = new Map();
-            visitedNumbersMap.set(num, 0);
-
-            let minVal = num;
-            let maxVal = num;
-            let sumVal = num; // Initialize sum with the starting number
-
-            while (num !== 1 && iterations < maxiterations) {
-                // --- MAX NUMBER SAFETY BARRIER ---
-                // Check if the current number exceeds JavaScript's safe integer limit or becomes non-finite
-                if (Math.abs(num) > Number.MAX_SAFE_INTEGER || !Number.isFinite(num)) {
-                    const avgVal = sumVal / (iterations + 1);
-                    // Standard Deviation calculation
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) { 
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
-
-                let next_num;
-                if (num % Math.abs(x) === 0) {
-                    next_num = num / x;
-                } else {
-                    next_num = (Math.abs(y) || 3) * num + (z || 1);
-                }
-
-                // --- Additional robust check for next_num after calculation ---
-                if (!Number.isFinite(next_num) || Math.abs(next_num) > Number.MAX_SAFE_INTEGER) {
-                    const avgVal = sumVal / (iterations + 1);
-                       // Standard Deviation calculation
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-                    return { sequence: output, type: "exceeded_max_safe_integer", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
+    <script type="module">
+        // Import functions and constants from utils.js
+        import {
+            calculateCollatzSequence, // Renamed from generalizedCollatz
+            drawNineNetCanvasSecondary,
+            getUrlParams,
+            DEFAULT_LINE_COLOR, // For divColor
+            DEFAULT_NODE_COLOR, // For mulColor
+            FACE_SIZE,
+            PADDING,
+            STEP_SIZE,
+            NINE_NET_DRAW_WIDTH,
+            NINE_NET_DRAW_HEIGHT,
+            isLight // Helper for text color
+        } from './utils.js';
 
 
-                // Update min/max values
-                minVal = Math.min(minVal, next_num);
-                maxVal = Math.max(maxVal, next_num);
-
-                // Update sum, checking for potential overflow with very large numbers
-                if (sumVal > Number.MAX_SAFE_INTEGER - Math.abs(next_num)) {
-                    sumVal = Number.MAX_SAFE_INTEGER; // Indicate it's too large
-                } else {
-                    sumVal += next_num;
-                }
-
-                if (visitedNumbersMap.has(next_num)) {
-                    const avgVal = sumVal / (iterations + 1);
-                    // Standard Deviation calculation
-                    let stdDevVal = 0;
-                    if (output.length > 1) {
-                        const mean = avgVal;
-                        const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                            const diff = val - mean;
-                            const squaredDiff = diff * diff;
-                            if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                                return Number.MAX_SAFE_INTEGER;
-                            }
-                            return acc + squaredDiff;
-                        }, 0);
-
-                        if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                            stdDevVal = "Too Large";
-                        } else {
-                            const variance = sumOfSquaredDifferences / output.length;
-                            const stdDev = Math.sqrt(variance);
-                            if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                                stdDevVal = "Too Large";
-                            } else {
-                                stdDevVal = stdDev;
-                            }
-                        }
-                    }
-
-                    const cycleStartIndex = visitedNumbersMap.get(next_num);
-                    const cycle = output.slice(cycleStartIndex);
-                    return { sequence: output, type: "cycle", steps: iterations + 1, cycle: cycle, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-                }
-                visitedNumbersMap.set(next_num, output.length);
-
-                num = next_num;
-                output.push(num);
-                iterations++;
-            }
-
-            // Calculate average and standard deviation at the end of the sequence
-            const avgVal = sumVal / (iterations + 1); // +1 because output.length includes the starting number
-            let stdDevVal = 0;
-            if (output.length > 1) {
-                const mean = avgVal;
-                const sumOfSquaredDifferences = output.reduce((acc, val) => {
-                    const diff = val - mean;
-                    const squaredDiff = diff * diff;
-                    if (!Number.isFinite(squaredDiff) || acc > Number.MAX_SAFE_INTEGER - squaredDiff) {
-                        return Number.MAX_SAFE_INTEGER;
-                    }
-                    return acc + squaredDiff;
-                }, 0);
-
-                if (sumOfSquaredDifferences === Number.MAX_SAFE_INTEGER) {
-                    stdDevVal = "Too Large";
-                } else {
-                    const variance = sumOfSquaredDifferences / output.length;
-                    const stdDev = Math.sqrt(variance);
-                    if (!Number.isFinite(stdDev) || stdDev > Number.MAX_SAFE_INTEGER) {
-                        stdDevVal = "Too Large";
-                    } else {
-                        stdDevVal = stdDev;
-                    }
-                }
-            }
-
-            if (num === 1) {
-                return { sequence: output, type: "converges_to_1", steps: iterations, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-            } else {
-                return { sequence: output, type: "reached_max_iterations", steps: iterations, finalNum: num, minVal: minVal, maxVal: maxVal, sumVal: sumVal, avgVal: avgVal, stdDev: stdDevVal };
-            }
-        };
-
-        // === drawNineNetCanvas function ===
-        /**
-         * Draws the 9-net visualization of the sequence on a canvas.
-         * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
-         * @param {Array<number>} sequence - The sequence of numbers to visualize.
-         * @param {number} xVal - The X parameter used in the Collatz rule for color determination.
-         * @param {string} divColor - Color for divisible numbers.
-         * @param {string} mulColor - Color for multiply/add numbers.
-         */
-        function drawNineNetCanvas(canvas, sequence, xVal, divColor, mulColor) {
-            const ctx = canvas.getContext("2d");
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Use the global constants for drawing logic
-            const faceSize = FACE_SIZE;
-            const padding = PADDING;
-            const stepSize = STEP_SIZE;
-
-            // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
-            const layout = [
-                { r: 0, c: 1 }, // Top
-                { r: 1, c: 0 }, // Left
-                { r: 1, c: 1 }, // Center-Left (main sequence starts here)
-                { r: 1, c: 2 }, // Center
-                { r: 1, c: 3 }, // Center-Right
-                { r: 2, c: 1 }  // Bottom
-            ];
-
-            let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
-
-            // Iterate through each 'face' in the predefined layout
-            for (const pos of layout) {
-                // Iterate through the 3x3 grid of small squares within each face
-                for (let i = 0; i < stepSize; i++) { // Row within the face
-                    for (let j = 0; j < stepSize; j++) { // Column within the face
-                        // Calculate the x and y coordinates for the current small square
-                        const x = padding + (pos.c * stepSize + j) * faceSize;
-                        const y = padding + (pos.r * stepSize + i) * faceSize;
-
-                        let color = "#444"; // Default color for squares not representing a sequence number
-                        let label = ""; // Optional label for the number
-
-                        // Check if there's a corresponding number in the sequence
-                        if (sequenceIndex < sequence.length) {
-                            const val = sequence[sequenceIndex];
-                            // Determine color based on the Collatz rule (divisible by X or not)
-                            if (val % Math.abs(xVal) === 0) {
-                                color = divColor; // Green if divisible
-                            } else {
-                                color = mulColor; // Orange if not divisible
-                            }
-                            label = val.toString(); // Set label to the number itself
-
-                            // Ellipsis Logic for very large numbers
-                            const maxChars = 5;
-                            if (label.length > maxChars) {
-                                const start = label.substring(0, Math.ceil((maxChars - 3) / 2));
-                                const end = label.substring(label.length - Math.floor((maxChars - 3) / 2));
-                                label = start + "..." + end;
-                            }
-                        }
-
-                        // Draw the square
-                        ctx.fillStyle = color;
-                        ctx.fillRect(x, y, faceSize - 2, faceSize - 2); // -2 for spacing between squares
-
-                        // Draw the number label if available
-                        if (label) {
-                            ctx.fillStyle = "#FFF"; // White text
-                            // Dynamic font sizing
-                            let currentFontSize = 10;
-                            if (label.length > 7) {
-                                currentFontSize = 6;
-                            } else if (label.length > 5) {
-                                currentFontSize = 8;
-                            }
-                            ctx.font = `${currentFontSize}px Arial`;
-                            ctx.textAlign = "center";
-                            ctx.textBaseline = "middle";
-                            ctx.fillText(label, x + faceSize / 2 - 1, y + faceSize / 2 - 1); // Center text
-                        }
-
-                        sequenceIndex++; // Move to the next number in the sequence
-                    }
-                }
-            }
-        }
-
-        // Function to parse URL parameters
-        function getUrlParams() {
-            const params = {};
-            window.location.search.substring(1).split('&').forEach(param => {
-                const parts = param.split('=');
-                if (parts.length === 2) {
-                    params[parts[0]] = decodeURIComponent(parts[1]);
-                }
-            });
-            return params;
-        }
-
-        // Global variables for colors (can be overridden by URL params)
-        let divColor = "#34d399"; // Default Green
-        let mulColor = "#fb923c"; // Default Orange
-
-        // Slideshow Animation Logic
+        // === Slideshow Animation Logic ===
         let slideshowInterval;
         let isSlideshowPlaying = false;
         let currentAnimationValue;
         let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
         let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
         const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
+
+        // Default colors for the 9-net drawing from utils.js
+        const divColor = DEFAULT_LINE_COLOR;
+        const mulColor = DEFAULT_NODE_COLOR;
+
 
         // Get elements for controls
         const animationAxisSelect = document.getElementById('animationAxis');
@@ -586,7 +307,7 @@
         const sequenceStdDevInfo = document.getElementById('sequenceStdDevInfo'); // New element for main slicer display
 
         // Gold star elements for slicer
-        const nStarSlicer = document.getElementById('n-star'); 
+        const nStarSlicer = document.getElementById('n-star');
         const xStarSlicer = document.getElementById('x-star');
         const yStarSlicer = document.getElementById('y-star');
         const zStarSlicer = document.getElementById('z-star');
@@ -619,7 +340,7 @@
 
                     toggleSlideshowButton.textContent = 'Stop Slideshow';
                     isSlideshowPlaying = true;
-                    
+
                     const axis = animationAxisSelect.value;
                     // Initialize currentAnimationValue to the min of the selected axis
                     if (axis === 'N') {
@@ -665,12 +386,12 @@
 
             currentAnimationValue++;
 
-            if (inputElement && currentAnimationValue > maxVal) { 
+            if (inputElement && currentAnimationValue > maxVal) {
                 currentAnimationValue = minVal;
             }
 
-            if (inputElement) inputElement.value = currentAnimationValue; 
-            applyAndDrawFilters(); 
+            if (inputElement) inputElement.value = currentAnimationValue;
+            applyAndDrawFilters();
             updateGoldStarVisibilitySlicer(); // Update stars after input changes via animation
         }
 
@@ -682,21 +403,22 @@
 
             for (let n = nMin; n <= nMax && generatedCount < maxUniversesToGenerate; n++) {
                 for (let x = xMin; x <= xMax && generatedCount < maxUniversesToGenerate; x++) {
-                    if (x === 0) continue; 
+                    if (x === 0) continue;
                     for (let y = yMin; y <= yMax && generatedCount < maxUniversesToGenerate; y++) {
                         for (let z = zMin; z <= zMax && generatedCount < maxUniversesToGenerate; z++) {
-                            const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
-                            if (result.type !== "error") {
+                            const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+                            if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") { // Ensure valid parameters
                                 tempUniverses.push({
                                     N: n, X: x, Y: y, Z: z,
                                     sequence: result.sequence,
                                     steps: result.steps,
                                     type: result.type,
-                                    minVal: result.minVal, 
-                                    maxVal: result.maxVal,  
-                                    sumVal: result.sumVal,   
-                                    avgVal: result.avgVal,    
-                                    stdDev: result.stdDev     
+                                    minVal: result.minVal,
+                                    maxVal: result.maxVal,
+                                    sumVal: result.sumVal,
+                                    avgVal: result.avgVal,
+                                    stdDev: result.stdDev,
+                                    finalNum: result.sequence[result.sequence.length -1] // Add finalNum for display
                                 });
                                 generatedCount++;
                             }
@@ -712,7 +434,7 @@
             // Add null checks for all input elements before accessing their values
             return {
                 nMin: nMinInput ? parseInt(nMinInput.value) || 1 : 1,
-                nMax: nMaxInput ? parseInt(nMaxInput.value) || 50 : 50, 
+                nMax: nMaxInput ? parseInt(nMaxInput.value) || 50 : 50,
                 xMin: xMinInput ? parseInt(xMinInput.value) || 1 : 1,
                 xMax: xMaxInput ? parseInt(xMaxInput.value) || 5 : 5,
                 yMin: yMinInput ? parseInt(yMinInput.value) || 1 : 1,
@@ -731,21 +453,25 @@
 
             paramDisplay.textContent = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}`;
             let typeText = universe.type.replace(/_/g, ' ');
-            if (universe.type === "cycle") {
-                typeText += ` (Cycle: ${universe.cycle.join(' → ')})`;
-            } else if (universe.type === "reached_max_iterations" || universe.type === "exceeded_max_safe_integer") {
+            if (universe.type === "Cycle Detected") { // Updated for exact match
+                typeText += ` (Cycle: ${universe.sequence[universe.sequence.indexOf(universe.finalNum)].toLocaleString()} → ...)`; // Show cycle start
+            } else if (universe.type === "Max Iterations Reached" || universe.type === "Exceeded Max Safe Integer") { // Updated for exact match
                 typeText += ` (Final: ${universe.finalNum !== undefined ? universe.finalNum.toLocaleString() : 'N/A'})`; // Added undefined check
+            } else if (universe.type === "Converges to 1") { // Updated for exact match
+                 typeText += ` (Final: 1)`;
             }
             sequenceInfo.textContent = `Steps: ${universe.steps} | Type: ${typeText}`;
             sequenceNumbersDiv.textContent = universe.sequence.join(' → ');
 
             // Display statistics
             sequenceRangeInfo.textContent = `Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
-            sequenceSumInfo.textContent = `Sum: ${universe.sumVal === "Too Large" ? 'Too Large' : universe.sumVal.toLocaleString()}`;
+            // Check if sumVal is a safe number or if it's "Too Large" (from calculateCollatzSequence)
+            sequenceSumInfo.textContent = `Sum: ${typeof universe.sumVal === 'number' && Number.isFinite(universe.sumVal) ? universe.sumVal.toLocaleString() : 'Too Large'}`;
             sequenceAvgInfo.textContent = `Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
-            sequenceStdDevInfo.textContent = `StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : universe.stdDev}`;
+            sequenceStdDevInfo.textContent = `StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
 
-            drawNineNetCanvas(nineNetCanvas, universe.sequence, universe.X, divColor, mulColor);
+
+            drawNineNetCanvasSecondary(nineNetCanvas, universe.sequence, universe.X, divColor, mulColor);
             nineNetCanvas.style.display = 'block'; // Ensure canvas is visible when displaying a universe
         }
 
@@ -782,28 +508,38 @@
             }
 
             // Display the first universe in the main canvas if it's the initial load or filters changed
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlN = parseInt(urlParams.get('n'));
-            const urlX = parseInt(urlParams.get('x'));
-            const urlY = parseInt(urlParams.get('y'));
-            const urlZ = parseInt(urlParams.get('z'));
+            const urlParams = getUrlParams();
+            const urlN = parseInt(urlParams.n);
+            const urlX = parseInt(urlParams.x);
+            const urlY = parseInt(urlParams.y);
+            const urlZ = parseInt(urlParams.z);
 
             const isUrlLoaded = !isNaN(urlN) && !isNaN(urlX) && !isNaN(urlY) && !isNaN(urlZ);
             let updateMainDisplay = true;
 
             if (isUrlLoaded) {
                 const currentMainUniverse = { N: urlN, X: urlX, Y: urlY, Z: urlZ };
-                const isStillInFilter = filteredBoxUniverses.some(u => 
-                    u.N === currentMainUniverse.N && 
-                    u.X === currentMainUniverse.X && 
-                    u.Y === currentMainUniverse.Y && 
+                const isStillInFilter = filteredBoxUniverses.some(u =>
+                    u.N === currentMainUniverse.N &&
+                    u.X === currentMainUniverse.X &&
+                    u.Y === currentMainUniverse.Y &&
                     u.Z === currentMainUniverse.Z
                 );
                 if (isStillInFilter) {
-                    updateMainDisplay = false; 
+                    // Find the exact universe object that matches the URL params
+                    const exactMatch = filteredBoxUniverses.find(u =>
+                        u.N === currentMainUniverse.N &&
+                        u.X === currentMainUniverse.X &&
+                        u.Y === currentMainUniverse.Y &&
+                        u.Z === currentMainUniverse.Z
+                    );
+                    if (exactMatch) {
+                        displayMainUniverse(exactMatch);
+                        updateMainDisplay = false;
+                    }
                 }
             }
-            
+
             if (updateMainDisplay && filteredBoxUniverses.length > 0) {
                 displayMainUniverse(filteredBoxUniverses[0]);
             }
@@ -816,24 +552,26 @@
                 const canvasElement = document.createElement('canvas');
                 canvasElement.width = NINE_NET_DRAW_WIDTH;
                 canvasElement.height = NINE_NET_DRAW_HEIGHT;
-                canvasElement.className = 'grid-item-canvas'; 
+                canvasElement.className = 'grid-item-canvas';
 
-                drawNineNetCanvas(canvasElement, universe.sequence, universe.X, divColor, mulColor);
+                drawNineNetCanvasSecondary(canvasElement, universe.sequence, universe.X, divColor, mulColor);
 
                 const infoDiv = document.createElement('div');
                 infoDiv.className = 'info';
                 infoDiv.innerHTML = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}<br>`;
                 let typeText = universe.type.replace(/_/g, ' ');
-                if (universe.type === "cycle") {
+
+                if (universe.type === "Cycle Detected") {
                     typeText += ` (Cycle)`;
-                } else if (universe.type === "reached_max_iterations" || universe.type === "exceeded_max_safe_integer") {
+                } else if (universe.type === "Max Iterations Reached" || universe.type === "Exceeded Max Safe Integer") {
                     typeText += ` (Final: ${universe.finalNum !== undefined ? universe.finalNum.toLocaleString() : 'N/A'})`;
                 }
                 infoDiv.innerHTML += `Steps: ${universe.steps} | Type: ${typeText}`;
                 infoDiv.innerHTML += `<br>Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
-                infoDiv.innerHTML += `<br>Sum: ${universe.sumVal === "Too Large" ? 'Too Large' : universe.sumVal.toLocaleString()}`;
+                infoDiv.innerHTML += `<br>Sum: ${typeof universe.sumVal === 'number' && Number.isFinite(universe.sumVal) ? universe.sumVal.toLocaleString() : 'Too Large'}`;
                 infoDiv.innerHTML += `<br>Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
-                infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : universe.stdDev}`;
+                infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+
 
                 const viewButton = document.createElement('button');
                 viewButton.textContent = 'View in Main';
@@ -847,21 +585,21 @@
                 gridContainer.appendChild(gridItem);
             });
 
-            updateGoldStarVisibilitySlicer(); 
+            updateGoldStarVisibilitySlicer();
         }
 
         // Function to update the gold star visibility in Slicer
         function updateGoldStarVisibilitySlicer() {
             // Ensure inputs exist before trying to read their values
-            const xVal = xMinInput ? parseInt(xMinInput.value) : NaN; 
+            const xVal = xMinInput ? parseInt(xMinInput.value) : NaN;
             const yVal = yMinInput ? parseInt(yMinInput.value) : NaN;
             const zVal = zMinInput ? parseInt(zMinInput.value) : NaN;
 
             // The gold star should only appear when X=2, Y=3, and Z=1 (standard Collatz parameters)
             // based on the minimum values of the ranges.
-            if (xStarSlicer) xStarSlicer.style.display = (xVal === 2) ? 'inline-block' : 'none';
-            if (yStarSlicer) yStarSlicer.style.display = (yVal === 3) ? 'inline-block' : 'none';
-            if (zStarSlicer) zStarSlicer.style.display = (zVal === 1) ? 'inline-block' : 'none';
+            if (xStarSlicer) xStarSlicer.style.display = (xVal === 2 && xMaxInput && parseInt(xMaxInput.value) === 2) ? 'inline-block' : 'none';
+            if (yStarSlicer) yStarSlicer.style.display = (yVal === 3 && yMaxInput && parseInt(yMaxInput.value) === 3) ? 'inline-block' : 'none';
+            if (zStarSlicer) zStarSlicer.style.display = (zVal === 1 && zMaxInput && parseInt(zMaxInput.value) === 1) ? 'inline-block' : 'none';
 
             // N-star is always hidden as N doesn't define the rule parameters
             if (nStarSlicer) nStarSlicer.style.display = 'none';
@@ -874,9 +612,13 @@
         // Add event listeners to input fields to update gold star visibility
         // These will update the stars as the user types/changes values
         if (nMinInput) nMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (nMaxInput) nMaxInput.addEventListener('input', updateGoldStarVisibilitySlicer);
         if (xMinInput) xMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (xMaxInput) xMaxInput.addEventListener('input', updateGoldStarVisibilitySlicer);
         if (yMinInput) yMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (yMaxInput) yMaxInput.addEventListener('input', updateGoldStarVisibilitySlicer);
         if (zMinInput) zMinInput.addEventListener('input', updateGoldStarVisibilitySlicer);
+        if (zMaxInput) zMaxInput.addEventListener('input', updateGoldStarVisibilitySlicer);
 
 
         // Initial setup on page load
@@ -904,15 +646,15 @@
                 if (yMaxInput) yMaxInput.value = y;
                 if (zMinInput) zMinInput.value = z;
                 if (zMaxInput) zMaxInput.value = z;
-                
-                const result = generalizedCollatz(n, x, y, z, MAX_ITERATIONS);
-                if (result.type !== "error") {
+
+                const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+                if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
                     displayMainUniverse({ N: n, X: x, Y: y, Z: z, ...result });
                     if (nineNetCanvas) nineNetCanvas.style.display = 'block'; // Ensure main canvas is visible
                 } else {
                     // Handle error for URL-loaded sequence
                     if (paramDisplay) paramDisplay.textContent = `Error for N=${n}, X=${x}, Y=${y}, Z=${z}`;
-                    if (sequenceInfo) sequenceInfo.textContent = result.message;
+                    if (sequenceInfo) sequenceInfo.textContent = result.type; // Display the error type
                     if (sequenceNumbersDiv) sequenceNumbersDiv.textContent = '';
                     if (nineNetCanvas) nineNetCanvas.getContext('2d').clearRect(0, 0, nineNetCanvas.width, nineNetCanvas.height);
                     if (sequenceRangeInfo) sequenceRangeInfo.textContent = '';
@@ -923,7 +665,7 @@
                 }
             } else {
                 // If no parameters, hide the main canvas initially, then `applyAndDrawFilters` will handle it.
-                if (nineNetCanvas) nineNetCanvas.style.display = 'none'; 
+                if (nineNetCanvas) nineNetCanvas.style.display = 'none';
                 if (paramDisplay) paramDisplay.textContent = 'No specific sequence loaded. Use controls below.';
                 if (sequenceInfo) sequenceInfo.textContent = '';
                 if (sequenceNumbersDiv) sequenceNumbersDiv.textContent = '';
@@ -938,41 +680,36 @@
 
             // Adjust canvas size if needed for responsiveness (for the single canvas at the top)
             function resizeMainCanvas() {
-                if (!nineNetCanvas || !paramDisplay) { 
-                    return; 
+                if (!nineNetCanvas || !paramDisplay) {
+                    return;
                 }
                 const containerWidth = nineNetCanvas.parentElement ? nineNetCanvas.parentElement.clientWidth : NINE_NET_DRAW_WIDTH;
                 const desiredDisplayWidth = Math.min(containerWidth * 0.9, NINE_NET_DRAW_WIDTH);
                 nineNetCanvas.style.width = `${desiredDisplayWidth}px`;
-                nineNetCanvas.style.height = 'auto'; 
+                nineNetCanvas.style.height = 'auto';
 
                 // Redraw if there's currently a sequence displayed and canvas is visible
-                const currentNtext = paramDisplay.textContent.split(',')[0];
-                const currentNMatch = currentNtext ? currentNtext.match(/N=(\d+)/) : null;
-                const currentN = currentNMatch ? parseInt(currentNMatch[1]) : NaN;
+                const currentParamsText = paramDisplay.textContent;
+                const nMatch = currentParamsText.match(/N=(\d+)/);
+                const xMatch = currentParamsText.match(/X=(\d+)/);
+                const yMatch = currentParamsText.match(/Y=(\d+)/);
+                const zMatch = currentParamsText.match(/Z=(\d+)/);
 
-                const currentXtext = paramDisplay.textContent.split(',')[1];
-                const currentXMatch = currentXtext ? currentXtext.match(/X=(\d+)/) : null;
-                const currentX = currentXMatch ? parseInt(currentXMatch[1]) : NaN;
-                
-                const currentYtext = paramDisplay.textContent.split(',')[2]; 
-                const currentYMatch = currentYtext ? currentYtext.match(/Y=(\d+)/) : null;
-                const currentY = currentYMatch ? parseInt(currentYMatch[1]) : NaN;
-
-                const currentZtext = paramDisplay.textContent.split(',')[3];
-                const currentZMatch = currentZtext ? currentZtext.match(/Z=(\d+)/) : null;
-                const currentZ = currentZMatch ? parseInt(currentZMatch[1]) : NaN;
+                const currentN = nMatch ? parseInt(nMatch[1]) : NaN;
+                const currentX = xMatch ? parseInt(xMatch[1]) : NaN;
+                const currentY = yMatch ? parseInt(yMatch[1]) : NaN;
+                const currentZ = zMatch ? parseInt(zMatch[1]) : NaN;
 
                 if (!isNaN(currentN) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && nineNetCanvas.style.display !== 'none') {
-                    const result = generalizedCollatz(currentN, currentX, currentY, currentZ, MAX_ITERATIONS);
-                    if (result.type !== "error") {
-                        drawNineNetCanvas(nineNetCanvas, result.sequence, currentX, divColor, mulColor);
+                    const result = calculateCollatzSequence(currentN, MAX_ITERATIONS, currentX, currentY, currentZ);
+                    if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
+                        drawNineNetCanvasSecondary(nineNetCanvas, result.sequence, currentX, divColor, mulColor);
                     }
                 }
             }
             window.addEventListener('resize', resizeMainCanvas);
-            resizeMainCanvas(); 
-            updateGoldStarVisibilitySlicer(); 
+            resizeMainCanvas();
+            updateGoldStarVisibilitySlicer();
         });
     </script>
 </body>
