@@ -193,7 +193,7 @@ function drawUnfoldedBoxNineNet(data) {
 
 
 // Collatz function as per user's definition (kept consistent)
-function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
+export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
     let sequence = [startN];
     let current = startN;
     let steps = 0;
@@ -346,7 +346,7 @@ const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 3 f
  * @param {string} divColor - Color for divisible numbers.
  * @param {string} mulColor - Color for multiply/add numbers.
  */
-function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mulColor) {
+export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mulColor) {
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
