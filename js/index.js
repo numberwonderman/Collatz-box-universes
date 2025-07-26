@@ -4,7 +4,7 @@
 // IMPORTS
 // ==========================================================
 // Import functions from utils.js
-import { calculateCollatzSequence, drawNineNetCanvas } from './utils.js';
+import { calculateCollatzSequence, drawNineNetCanvasSecondaru} from './utils.js';
 
 // ==========================================================
 // GLOBAL VARIABLES (UI-related state)
@@ -151,7 +151,7 @@ document.getElementById('calculateSingle').addEventListener('click', () => {
 
     // Draw the 9-net visualization on the canvas
     const singleCanvas = document.getElementById('singleNineNetCanvas');
-    drawNineNetCanvas(singleCanvas, result.sequence, xVal, divColor, mulColor);
+    drawNineNetCanvasSecondary(singleCanvas, result.sequence, xVal, divColor, mulColor);
 
     // Save the current calculation to the history
     saveToHistory({
