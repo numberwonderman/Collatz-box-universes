@@ -3,9 +3,14 @@
 // ==========================================================
 // IMPORTS
 // ==========================================================
-// Import functions from utils.js
-import { calculateCollatzSequence, drawNineNetCanvasSecondary} from './utils.js';
-
+import {
+    calculateCollatzSequence,
+    drawNineNetCanvasSecondary,
+    formatSequenceOutput,
+    saveToHistory,
+    showMessage
+    // clearMessage, // This was correctly commented out
+} from './utils.js';
 // ==========================================================
 // GLOBAL VARIABLES (UI-related state)
 // ==========================================================
@@ -17,66 +22,43 @@ let currentSequenceData = null;
 // ==========================================================
 
 /**
- * Formats a numerical sequence into a string with line breaks for display.
- * @param {Array<number>} sequence - The array of numbers in the sequence.
- * @param {number} [maxItemsPerRow=10] - Maximum number of items to display per row.
- * @returns {string} The formatted HTML string.
+ * Sets up the canvas for high-DPI screens by adjusting its drawing buffer size
+ * and scaling the context.
+ * @param {HTMLCanvasElement} canvasElement - The canvas DOM element.
  */
-function formatSequenceOutput(sequence, maxItemsPerRow = 10) {
-    let output = '';
-    for (let i = 0; i < sequence.length; i++) {
-        output += sequence[i];
-        if (i < sequence.length - 1) {
-            output += ', ';
-        }
-        if ((i + 1) % maxItemsPerRow === 0 && i < sequence.length - 1) {
-            output += '<br>';
-        }
+function setupNineNetCanvas(canvasElement) {
+    if (!canvasElement) {
+        console.error("Canvas element not found for setup.");
+        return;
     }
-    return output;
+    const ctx = canvasElement.getContext('2d');
+    if (!ctx) {
+        console.error("2D rendering context not available.");
+        return;
+    }
+
+    // Get the computed CSS width and height of the canvas
+    // It's crucial that your #singleNineNetCanvas has CSS width/height defined.
+    // E.g., in your CSS: #singleNineNetCanvas { width: 100%; max-width: 400px; height: 400px; }
+    const style = getComputedStyle(canvasElement);
+    const cssWidth = parseFloat(style.width);
+    const cssHeight = parseFloat(style.height);
+
+    // Define dpi locally within the function, no need to import it
+    const dpi = window.devicePixelRatio || 1;
+
+    // Set the canvas's actual drawing buffer size, accounting for screen DPI
+    canvasElement.width = cssWidth * dpi;
+    canvasElement.height = cssHeight * dpi;
+
+    // Scale the drawing context. All subsequent drawing operations will
+    // implicitly be scaled by this factor, making them appear sharp
+    // and correctly sized regardless of screen DPI.
+    ctx.scale(dpi, dpi);
 }
 
-/**
- * Saves a calculation result to the history display.
- * @param {object} data - The result data object from a Collatz calculation.
- */
-function saveToHistory(data) {
-    const historyContainer = document.getElementById('historyContainer');
-    const runsHistory = document.getElementById('runsHistory');
-    historyContainer.classList.remove('hidden'); // Ensure history container is visible
 
-    const historyEntry = document.createElement('div');
-    historyEntry.classList.add('bg-blue-800', 'bg-opacity-40', 'rounded-lg', 'p-4', 'mb-3', 'border', 'border-blue-600', 'shadow-md');
-    historyEntry.innerHTML = `
-        <p class="text-blue-200 font-bold mb-1">Run: N=${data.startN}, X=${data.x}, Y=${data.y}, Z=${data.z}</p>
-        <p class="text-blue-300 text-sm">Steps: ${data.steps} | Type: ${data.type}</p>
-        <p class="text-blue-300 text-sm">Range: [${data.minVal} to ${data.maxVal}] | Avg: ${data.avgVal.toFixed(2)}</p>
-        <p class="text-blue-300 text-sm">Stopping Time (t): ${data.stoppingTime_t} | Coeff. Stopping Time (&tau;): ${data.coefficientStoppingTime_tau}</p>
-        <div class="bg-blue-700 bg-opacity-50 rounded-md p-2 mt-2 max-h-24 overflow-y-auto custom-scrollbar text-blue-100 text-xs">
-            ${formatSequenceOutput(data.sequence)}
-        </div>
-    `;
-    runsHistory.prepend(historyEntry); // Add new entry to the top
-}
 
-/**
- * Displays an error message in the dedicated error message element.
- * @param {string} message - The error message to display.
- */
-function displayErrorMessage(message) {
-    const errorMessageElement = document.getElementById('errorMessage');
-    errorMessageElement.textContent = message;
-    errorMessageElement.classList.remove('hidden'); // Ensure it's visible
-}
-
-/**
- * Clears and hides the error message element.
- */
-function clearErrorMessage() {
-    const errorMessageElement = document.getElementById('errorMessage');
-    errorMessageElement.textContent = '';
-    errorMessageElement.classList.add('hidden'); // Hide it
-}
 
 // ==========================================================
 // EVENT LISTENERS
@@ -84,7 +66,7 @@ function clearErrorMessage() {
 
 // Event Listener for Single Sequence Calculation
 document.getElementById('calculateSingle').addEventListener('click', () => {
-    clearErrorMessage(); // Clear any previous error messages
+    //clearMessage(); // Clear any previous error messages (still commented out)
 
     const startN = parseInt(document.getElementById('startNumber').value);
     const xVal = parseInt(document.getElementById('xValue').value);
@@ -94,15 +76,15 @@ document.getElementById('calculateSingle').addEventListener('click', () => {
 
     // Input validation
     if (isNaN(startN) || isNaN(xVal) || isNaN(yVal) || isNaN(zVal)) {
-        displayErrorMessage('Please enter valid numbers for all fields.');
+        showMessage('Please enter valid numbers for all fields.');
         return;
     }
     if (startN <= 0) {
-        displayErrorMessage('Starting number (n) must be positive.');
+        showMessage('Starting number (n) must be positive.');
         return;
     }
     if (xVal === 0) { // X (divisor) cannot be zero
-        displayErrorMessage('X (divisor) cannot be zero.');
+        showMessage('X (divisor) cannot be zero.');
         return;
     }
 
@@ -169,7 +151,7 @@ document.getElementById('calculateSingle').addEventListener('click', () => {
 
 // Event Listener for Bulk Universe Generation
 document.getElementById('generateBulk').addEventListener('click', () => {
-    clearErrorMessage(); // Clear any previous error messages
+    //clearMessage(); // Clear any previous error messages (still commented out)
 
     const xStart = parseInt(document.getElementById('xStart').value);
     const xEnd = parseInt(document.getElementById('xEnd').value);
@@ -181,17 +163,17 @@ document.getElementById('generateBulk').addEventListener('click', () => {
 
     // Input validation for bulk parameters
     if (isNaN(xStart) || isNaN(xEnd) || isNaN(yStart) || isNaN(yEnd) || isNaN(zStart) || isNaN(zEnd)) {
-        displayErrorMessage('Please enter valid numbers for all bulk generation fields.');
+        showMessage('Please enter valid numbers for all bulk generation fields.');
         return;
     }
 
     if (xStart < 1 || yStart < 1 || zStart < 1) {
-        displayErrorMessage('X, Y, and Z start values must be at least 1.');
+        showMessage('X, Y, and Z start values must be at least 1.');
         return;
     }
 
     if (xEnd < xStart || yEnd < yStart || zEnd < zStart) {
-        displayErrorMessage('End values must be greater than or equal to start values.');
+        showMessage('End values must be greater than or equal to start values.');
         return;
     }
 
@@ -274,7 +256,7 @@ document.querySelectorAll('input[name="calculatorMode"]').forEach(radio => {
             singleNineNetContainer.classList.add('hidden'); // Hide single canvas
             colorPickerGroup.classList.add('hidden'); // Hide color pickers
         }
-        clearErrorMessage(); // Clear any error messages when switching modes
+       // clearMessage(); // Clear any error messages when switching modes (still commented out)
     });
 });
 
@@ -300,7 +282,7 @@ document.getElementById('launchVisualization').addEventListener('click', () => {
             targetUrl += `?${params.toString()}`; // Append parameters to the URL
         } else {
             // Display an error if no single sequence is available for the visualization tool
-            displayErrorMessage('Please calculate a single sequence first to pass parameters to the visualization tool.');
+            showMessage('Please calculate a single sequence first to pass parameters to the visualization tool.');
             return; // Stop execution
         }
     }
@@ -314,6 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial canvas setup: Clear and draw a placeholder message
     const singleCanvas = document.getElementById('singleNineNetCanvas');
     if (singleCanvas) { // Ensure the canvas element exists
+        setupNineNetCanvas(singleCanvas);
         const ctx = singleCanvas.getContext('2d');
         ctx.clearRect(0, 0, singleCanvas.width, singleCanvas.height); // Clear previous drawings
         // Draw a semi-transparent background as a placeholder
@@ -344,6 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
 // Initialize MathJax after DOM is loaded and ensure it typesets dynamically added content
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof MathJax !== 'undefined') {
-       MathJax.typesetPromise(); // Use typesetPromise for async rendering of math
+        MathJax.typesetPromise(); // Use typesetPromise for async rendering of math
     }
 });
