@@ -52,6 +52,50 @@ export const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
 // ==========================================================
 
 
+/**
+ * Calculates a generalized Collatz sequence.
+ * @param {number} num - The starting number.
+ * @param {number} x - The divisor.
+ * @param {number} y - The multiplier.
+ * @param {number} z - The adder.
+ * @param {number} maxIterations - Maximum number of iterations to prevent infinite loops.
+ * @returns {{sequence: Array<number>, type: string, message?: string}} Object containing sequence and its type/message.
+ */
+export function generalizedCollatz(num, x, y, z, maxIterations = MAX_ITERATIONS) {
+    if (x === 0) {
+        return { sequence: [], type: "error", message: "Error: X (divisor) cannot be zero." };
+    }
+    const output = [num];
+    let iterations = 0;
+    let currentNum = num;
+
+    while (currentNum !== 1 && iterations < maxIterations) {
+        let nextNum;
+        if (currentNum % Math.abs(x) === 0) {
+            nextNum = currentNum / x;
+        } else {
+            nextNum = (Math.abs(y) || 3) * currentNum + (z || 1);
+        }
+
+        // Check for cycles
+        if (output.includes(nextNum)) {
+            output.push(nextNum); // Add the repeating number to show the cycle
+            return { sequence: output, type: "cycle", message: `Sequence entered a cycle at ${nextNum}.` };
+        }
+
+        currentNum = nextNum;
+        output.push(currentNum);
+        iterations++;
+    }
+
+    if (currentNum === 1) {
+        return { sequence: output, type: "converges_to_1", message: `Sequence converged to 1 in ${iterations} iterations.` };
+    } else {
+        return { sequence: output, type: "reached_max_iterations", message: `Sequence reached max iterations (${maxIterations}) at ${currentNum}.` };
+    }
+}
+
+
 // Function to render the Unfolded Box (9-Net) visualization (keeping this function as is)
 function drawUnfoldedBoxNineNet(data) {
     // Ensure canvas and ctx are initialized.
