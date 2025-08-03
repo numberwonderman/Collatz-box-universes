@@ -4,8 +4,9 @@
 
 // Debug mode flag (set to true to enable console.error messages)
 const DEBUG_MODE = true; // Set to false for production if you want to silence these errors
-
-// Default canvas colors (will be updated by color pickers)
+const MAX_ITERATIONS = 1000;
+// Default canvas colors (wi
+// ll be updated by color pickers)
 export let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation (matches image's green)
 export let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation (matches image's orange)
 export const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)

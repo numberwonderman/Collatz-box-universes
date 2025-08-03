@@ -1,0 +1,13 @@
+{
+  "name": "collatz-box-universes",
+  "version": "1.0.0",
+  "description": "![My bvox universe ogo](assets/Gemini_Generated_Image_36ro5936ro5936ro.png)",
+  "main": "index.js",
+  "type":"module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
