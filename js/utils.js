@@ -390,34 +390,14 @@ export function isLight(color) { // Exporting this function as well, as it's a u
  */
 export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mulColor) {
     const ctx = canvas.getContext("2d");
-    
-    // Add debug log for 2D context availability
-    if (!ctx) {
-        if (DEBUG_MODE) console.error("2D context not available for 9-net drawing.");
-        return;
-    }
-
-    // Adjust canvas resolution for sharper drawing on high-DPI screens
-    const dpi = window.devicePixelRatio || 1;
-    const currentCssWidth = canvas.offsetWidth; // Get current CSS width
-    const currentCssHeight = canvas.offsetHeight; // Get current CSS height
-
-    canvas.width = currentCssWidth * dpi; // Set canvas drawing surface width
-    canvas.height = currentCssHeight * dpi; // Set canvas drawing surface height
-    ctx.scale(dpi, dpi); // Scale the context
-
-    // --- CRUCIAL FIX: Clear the canvas and then fill with a solid background color ---
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear all pixels to transparent
-    ctx.fillStyle = '#222'; // Choose a solid dark grey (or any color that contrasts well)
-    ctx.fillRect(0, 0, currentCssWidth, currentCssHeight); // Fill the entire canvas with the chosen color (using CSS dimensions for filling)
-    // --- END CRUCIAL FIX ---
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Use the global constants for drawing logic
-    const faceSize = FACE_SIZE; 
-    const padding = PADDING; 
-    const stepSize = STEP_SIZE; 
+    const faceSize = FACE_SIZE;
+    const padding = PADDING;
+    const stepSize = STEP_SIZE;
 
-    // Define the layout of the 9-net (a 3x3 grid of 3x3 faces) - REVERTED TO ORIGINAL LAYOUT
+    // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
     const layout = [
         { r: 0, c: 1 }, // Top
         { r: 1, c: 0 }, // Left
@@ -430,11 +410,11 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
     let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
 
     // Iterate through each 'face' in the predefined layout
-    for (const pos of layout) { // Using 'layout' from your original code
+    for (const pos of layout) {
         // Iterate through the 3x3 grid of small squares within each face
         for (let i = 0; i < stepSize; i++) { // Row within the face
             for (let j = 0; j < stepSize; j++) { // Column within the face
-                // Calculate the x and y coordinates for the current small square - REVERTED TO ORIGINAL CALCULATION
+                // Calculate the x and y coordinates for the current small square
                 const x = padding + (pos.c * stepSize + j) * faceSize;
                 const y = padding + (pos.r * stepSize + i) * faceSize;
 
