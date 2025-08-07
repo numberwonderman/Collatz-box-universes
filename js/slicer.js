@@ -12,7 +12,7 @@
             NINE_NET_DRAW_WIDTH,
             NINE_NET_DRAW_HEIGHT,
             isLight // Helper for text color
-        } from './js/utils.js';
+        } from './utils.js';
 
 
         // === Slideshow Animation Logic ===
