@@ -147,15 +147,7 @@
             color: #cbd5e0;
             margin-bottom: 0.5rem;
         }
-        .grid-item button {
-            background-color: #61dafb; /* Light blue for "View in Main" */
-            color: #1a202c;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: bold;
-            transition: background-color 0.3s ease;
-            margin-top: 0.5rem;
-        }
+       
         .grid-item button:hover {
             background-color: #21a1f1;
         }
@@ -262,6 +254,7 @@
             calculateCollatzSequence, // Renamed from generalizedCollatz
             drawNineNetCanvasSecondary,
             getUrlParams,
+            generateLinkURL,
             DEFAULT_LINE_COLOR, // For divColor
             DEFAULT_NODE_COLOR, // For mulColor
             FACE_SIZE,
@@ -549,45 +542,39 @@
             }
 
 
-            filteredBoxUniverses.forEach(universe => {
-                const gridItem = document.createElement('div');
-                gridItem.className = 'grid-item';
+           filteredBoxUniverses.forEach(universe => {
+    const gridItem = document.createElement('div');
+    gridItem.className = 'grid-item';
 
-                const canvasElement = document.createElement('canvas');
-                canvasElement.width = NINE_NET_DRAW_WIDTH;
-                canvasElement.height = NINE_NET_DRAW_HEIGHT;
-                canvasElement.className = 'grid-item-canvas';
+    const canvasElement = document.createElement('canvas');
+    canvasElement.width = NINE_NET_DRAW_WIDTH;
+    canvasElement.height = NINE_NET_DRAW_HEIGHT;
+    canvasElement.className = 'grid-item-canvas';
 
-                drawNineNetCanvasSecondary(canvasElement, universe.sequence, universe.X, divColor, mulColor);
+    // Draw the universe on the mini-canvas
+    drawNineNetCanvasSecondary(canvasElement, universe.sequence, universe.X, divColor, mulColor);
 
-                const infoDiv = document.createElement('div');
-                infoDiv.className = 'info';
-                infoDiv.innerHTML = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}<br>`;
-                let typeText = universe.type.replace(/_/g, ' ');
+    const infoDiv = document.createElement('div');
+    infoDiv.className = 'info';
+    infoDiv.innerHTML = `N=${universe.N}, X=${universe.X}, Y=${universe.Y}, Z=${universe.Z}<br>`;
+    let typeText = universe.type.replace(/_/g, ' ');
 
-                if (universe.type === "Cycle Detected") {
-                    typeText += ` (Cycle)`;
-                } else if (universe.type === "Max Iterations Reached" || universe.type === "Exceeded Max Safe Integer") {
-                    typeText += ` (Final: ${universe.finalNum !== undefined ? universe.finalNum.toLocaleString() : 'N/A'})`;
-                }
-                infoDiv.innerHTML += `Steps: ${universe.steps} | Type: ${typeText}`;
-                infoDiv.innerHTML += `<br>Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
-                infoDiv.innerHTML += `<br>Sum: ${typeof universe.sumVal === 'number' && Number.isFinite(universe.sumVal) ? universe.sumVal.toLocaleString() : 'Too Large'}`;
-                infoDiv.innerHTML += `<br>Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
-                infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
-
-
-                const viewButton = document.createElement('button');
-                viewButton.textContent = 'View in Main';
-                viewButton.addEventListener('click', () => {
-                    displayMainUniverse(universe);
-                });
-
-                gridItem.appendChild(canvasElement);
-                gridItem.appendChild(infoDiv);
-                gridItem.appendChild(viewButton);
-                gridContainer.appendChild(gridItem);
-            });
+    if (universe.type === "Cycle Detected") {
+        typeText += ` (Cycle)`;
+    } else if (universe.type === "Max Iterations Reached" || universe.type === "Exceeded Max Safe Integer") {
+        typeText += ` (Final: ${universe.finalNum !== undefined ? universe.finalNum.toLocaleString() : 'N/A'})`;
+    }
+    infoDiv.innerHTML += `Steps: ${universe.steps} | Type: ${typeText}`;
+    infoDiv.innerHTML += `<br>Range: [${universe.minVal.toLocaleString()}, ${universe.maxVal.toLocaleString()}]`;
+    infoDiv.innerHTML += `<br>Sum: ${typeof universe.sumVal === 'number' && Number.isFinite(universe.sumVal) ? universe.sumVal.toLocaleString() : 'Too Large'}`;
+    infoDiv.innerHTML += `<br>Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+    infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+    
+    // Append the canvas and info to the grid item
+    gridItem.appendChild(canvasElement);
+    gridItem.appendChild(infoDiv);
+    gridContainer.appendChild(gridItem);
+});
 
             updateGoldStarVisibilitySlicer();
         }
@@ -627,6 +614,14 @@
 
         // Initial setup on page load
         window.addEventListener('DOMContentLoaded', () => {
+            const returnToMainButton = document.getElementById('returnToMainButton');
+if (returnToMainButton) {
+    returnToMainButton.addEventListener('click', () => {
+        // You'll need to define a 'generateLinkURL' function or use a hardcoded path here
+        const mainPageUrl = generateLinkURL('index');
+        window.location.href = mainPageUrl;
+    });
+}
             const params = getUrlParams();
             const n = parseInt(params.n);
             const x = parseInt(params.x);
