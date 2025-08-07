@@ -1,321 +1,105 @@
 // ==========================================================
-// Consolidate ALL Global Variable Declarations and Constants at the Top
+// Consolidate ALL Global Variable Declarations at the Top
 // ==========================================================
 
-// Debug mode flag (set to true to enable console.error messages)
-const DEBUG_MODE = true; // Set to false for production if you want to silence these errors
-const MAX_ITERATIONS = 1000;
-// Default canvas colors (wi
-// ll be updated by color pickers)
-export let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation (matches image's green)
-export let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation (matches image's orange)
-export const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red (kept fixed, or add picker if needed)
+export const FACE_SIZE = 30;
+export const STEP_SIZE = 3;
+export const PADDING = 10;
+export const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
+export const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);
+
+// Default canvas colors (will be updated by color pickers)
+export let DEFAULT_LINE_COLOR = '#34d399'; // Green - for divisible operation
+export let DEFAULT_NODE_COLOR = '#fb923c'; // Orange - for multiply/add operation
+export const DEFAULT_NODE_BORDER_COLOR = '#f00'; // Red
 export const DEFAULT_NODE_RADIUS = 5;
 
-// Variables for canvas and rendering context (if still needed as global, consider passing as args)
-let centerX;
-let centerY;
-let nodeRadius;
-let maxNodeRadius = 10;
-let minNodeRadius = 2;
-let maxLineThickness = 3;
-let minLineThickness = 0.5;
-
 // Variables for drag and zoom
-let isDragging = false;
-let lastX, lastY;
-let translateX = 0;
-let translateY = 0;
-let scale = 1;
+export let translateX = 0;
+export let translateY = 0;
+export let scale = 1;
 
-// Stores the current sequence data for rendering
-let currentSequenceData = null;
+// Define dpi globally and once
+export const dpi = window.devicePixelRatio || 1;
+
+// Global padding variable for the unfolded box visualization
+export const PADDING_BETWEEN_GROUPS = 10;
+
+// Constants for Collatz parameters and limits
+export const MAX_ITERATIONS = 1000;
+export const DEBUG_MODE = true;
+export const DEFAULT_X_DIVISOR = 2;
+export const DEFAULT_Y_MULTIPLIER = 3;
+export const DEFAULT_Z_ADDER = 1;
 
 // Global array to store runs for history (resets on page refresh unless persistence is added)
 let calculatedRuns = [];
 
-// NEW: Global padding variable for the unfolded box visualization (kept for other potential uses)
-export const PADDING_BETWEEN_GROUPS = 10; // Padding between the large 3x3 remainder groups
-
-// === Constants for 9-Net Dimensions (used by the original layout logic) ===
-export const FACE_SIZE = 30; // Size of each small square face
-export const PADDING = 10; // Padding around the entire 9-net
-export const STEP_SIZE = 3; // Number of small squares per 'face' side (3x3 grid)
-
-// Total internal drawing dimensions for a complete 9-net (based on original layout)
-// These are illustrative and might not be strictly used if layout is dynamic.
-export const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // Based on the widest part of the cross
-export const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // Based on the tallest part of the cross
-
-
 // ==========================================================
-// End of Global Variable Declarations and Constants
+// Core Collatz Calculation & Utilities
 // ==========================================================
-
 
 /**
- * Calculates a generalized Collatz sequence.
- * @param {number} num - The starting number.
- * @param {number} x - The divisor.
- * @param {number} y - The multiplier.
- * @param {number} z - The adder.
- * @param {number} maxIterations - Maximum number of iterations to prevent infinite loops.
- * @returns {{sequence: Array<number>, type: string, message?: string}} Object containing sequence and its type/message.
+ * /**
+ /**
+ * Calculates the full Collatz sequence and returns a detailed analysis object.
+ * @param {number} startN - The starting number.
+ * @param {number} maxIterations - The maximum number of steps to take.
+ * @param {number} x_param - The divisor (for n/x).
+ * @param {number} y_param - The multiplier (for yn + z).
+ * @param {number} z_param - The adder (for yn + z).
+ * @returns {object} An object containing the sequence and all its statistical properties.
  */
-export function generalizedCollatz(num, x, y, z, maxIterations = MAX_ITERATIONS) {
-    if (x === 0) {
-        return { sequence: [], type: "error", message: "Error: X (divisor) cannot be zero." };
-    }
-    const output = [num];
-    let iterations = 0;
-    let currentNum = num;
-
-    while (currentNum !== 1 && iterations < maxIterations) {
-        let nextNum;
-        if (currentNum % Math.abs(x) === 0) {
-            nextNum = currentNum / x;
-        } else {
-            nextNum = (Math.abs(y) || 3) * currentNum + (z || 1);
-        }
-
-        // Check for cycles
-        if (output.includes(nextNum)) {
-            output.push(nextNum); // Add the repeating number to show the cycle
-            return { sequence: output, type: "cycle", message: `Sequence entered a cycle at ${nextNum}.` };
-        }
-
-        currentNum = nextNum;
-        output.push(currentNum);
-        iterations++;
-    }
-
-    if (currentNum === 1) {
-        return { sequence: output, type: "converges_to_1", message: `Sequence converged to 1 in ${iterations} iterations.` };
-    } else {
-        return { sequence: output, type: "reached_max_iterations", message: `Sequence reached max iterations (${maxIterations}) at ${currentNum}.` };
-    }
-}
-
-
-// Function to render the Unfolded Box (9-Net) visualization (keeping this function as is)
-function drawUnfoldedBoxNineNet(data) {
-    // Ensure canvas and ctx are initialized.
-    let canvas = document.getElementById('singleNineNetCanvas'); // Assuming this function gets its own canvas
-    if (!canvas) {
-        if (DEBUG_MODE) console.error("Canvas element 'singleNineNetCanvas' not found for drawUnfoldedBoxNineNet.");
-        return;
-    }
-    let ctx = canvas.getContext('2d');
-    if (!ctx) {
-        if (DEBUG_MODE) console.error("2D context not available for 'singleNineNetCanvas' in drawUnfoldedBoxNineNet.");
-        return;
-    }
-
-    // Adjust canvas resolution for sharper drawing on high-DPI screens
-    const dpi = window.devicePixelRatio || 1;
-    canvas.width = canvas.offsetWidth * dpi;
-    canvas.height = canvas.offsetHeight * dpi;
-    ctx.scale(dpi, dpi);
-
-    // Clear the entire canvas AND set a solid background color
-    ctx.clearRect(0, 0, canvas.offsetWidth, canvas.offsetHeight);
-    ctx.fillStyle = '#222'; // A solid dark grey background for the canvas to ensure visibility
-    ctx.fillRect(0, 0, canvas.offsetWidth, canvas.offsetHeight); // Fill using CSS dimensions after scaling
-
-    ctx.save(); // Save the current canvas state (transforms)
-    // Apply translation and scale AFTER calculating layout, so it works on the "unscaled" canvas dimensions
-    ctx.translate(canvas.offsetWidth / 2 / dpi + translateX, canvas.offsetHeight / 2 / dpi + translateY);
-    ctx.scale(scale, scale);
-
-    const sequence = data.sequence; // Access sequence from data object
-    const xValue = data.x_param; // Get xValue from data object (needed for divisibility check)
-
-    // Define the positions of the 9 "remainder groups" (each is a 3x3 grid of cells)
-    // This layout creates the "unfolded box" or "cross" shape
-    const layout = [
-        {r: 0, c: 1}, // Remainder 0: Top-middle group
-        {r: 1, c: 0}, // Remainder 1: Middle-left group
-        {r: 1, c: 1}, // Remainder 2: Center group
-        {r: 1, c: 2}, // Remainder 3: Middle-right group
-        {r: 1, c: 3}, // Remainder 4: Far-right group
-        {r: 2, c: 1}, // Remainder 5: Bottom-middle group
-        {r: 0, c: 2}, // Remainder 6: Top-right corner (of the cross shape)
-        {r: 2, c: 0}, // Remainder 7: Bottom-left corner (of the cross shape)
-        {r: 2, c: 2}  // Remainder 8: Bottom-right corner (of the cross shape)
-    ];
-
-    // Determine the effective grid dimensions for calculating group size
-    const maxLayoutColIndex = Math.max(...layout.map(p => p.c));
-    const maxLayoutRowIndex = Math.max(...layout.map(p => p.r));
-
-    const effectiveLayoutCols = maxLayoutColIndex + 1; // e.g., 0,1,2,3 -> 4 columns
-    const effectiveLayoutRows = maxLayoutRowIndex + 1; // e.g., 0,1,2 -> 3 rows
-
-    // Calculate the size of each individual *cell* (smallest square)
-    const availableWidth = canvas.offsetWidth / dpi - (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-    const availableHeight = canvas.offsetHeight / dpi - (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
-
-    const potentialCellSizeByWidth = availableWidth / (effectiveLayoutCols * 3);
-    const potentialCellSizeByHeight = availableHeight / (effectiveLayoutRows * 3);
-
-    const cellSize = Math.min(potentialCellSizeByWidth, potentialCellSizeByHeight) * 0.9; // Use 90% to add some margin around the entire structure
-    const groupSize = cellSize * 3; // Each remainder group is a 3x3 grid of cells
-
-    // Calculate total drawing dimensions for centering
-    const totalDrawingWidth = effectiveLayoutCols * groupSize + (effectiveLayoutCols - 1) * PADDING_BETWEEN_GROUPS;
-    const totalDrawingHeight = effectiveLayoutRows * groupSize + (effectiveLayoutRows - 1) * PADDING_BETWEEN_GROUPS;
-
-    // Calculate initial offset to center the entire 9-net drawing
-    const initialOffsetX = -totalDrawingWidth / 2;
-    const initialOffsetY = -totalDrawingHeight / 2;
-
-    // Store the final number for each cell (remainder, cellX, cellY)
-    const cellContents = {}; // Structure: {remainder: {cellY: {cellX: num}}}
-
-    // Process the sequence to determine the final content of each cell
-    for (let i = 0; i < sequence.length; i++) {
-        const num = sequence[i];
-        const remainder = num % 9;
-        const cellInGroupX = (num % 3);
-        const cellInGroupY = 2 - Math.floor((num / 3) % 3); // Invert Y-axis (0=bottom, 2=top)
-
-        if (!cellContents[remainder]) {
-            cellContents[remainder] = {};
-        }
-        if (!cellContents[remainder][cellInGroupY]) {
-            cellContents[remainder][cellInGroupY] = {};
-        }
-        cellContents[remainder][cellInGroupY][cellInGroupX] = num;
-    }
-
-    // Now, draw the cells based on the final `cellContents`
-    for (let remainder = 0; remainder < layout.length; remainder++) {
-        const pos = layout[remainder];
-        if (pos) {
-            const groupX = initialOffsetX + (pos.c * groupSize) + (pos.c * PADDING_BETWEEN_GROUPS);
-            const groupY = initialOffsetY + (pos.r * groupSize) + (pos.r * PADDING_BETWEEN_GROUPS);
-
-            // Draw outline for the 3x3 remainder group
-            ctx.beginPath();
-            ctx.rect(groupX, groupY, groupSize, groupSize);
-            ctx.strokeStyle = '#555'; // Gray outline for the 3x3 groups
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            // Draw content of each cell within this remainder group
-            if (cellContents[remainder]) {
-                for (let cellInGroupY = 0; cellInGroupY < 3; cellInGroupY++) {
-                    if (cellContents[remainder][cellInGroupY]) {
-                        for (let cellInGroupX = 0; cellInGroupX < 3; cellInGroupX++) {
-                            const num = cellContents[remainder][cellInGroupY][cellInGroupX];
-                            if (num !== undefined) {
-                                const cellAbsX = groupX + (cellInGroupX * cellSize);
-                                const cellAbsY = groupY + (cellInGroupY * cellSize);
-
-                                ctx.beginPath();
-                                ctx.rect(cellAbsX, cellAbsY, cellSize, cellSize);
-
-                                // Set fill color based on divisibility by xValue
-                                if (num % xValue === 0) { // If divisible by X
-                                    ctx.fillStyle = DEFAULT_LINE_COLOR; // Green
-                                } else { // If not divisible by X
-                                    ctx.fillStyle = DEFAULT_NODE_COLOR; // Orange
-                                }
-                                ctx.fill();
-                                ctx.strokeStyle = DEFAULT_NODE_BORDER_COLOR; // Red border
-                                ctx.lineWidth = 1;
-                                ctx.stroke();
-
-                                // Draw the number text
-                                ctx.fillStyle = '#000'; // Black text color
-                                ctx.font = `${Math.max(8, cellSize * 0.4)}px Arial`; // Dynamic font size based on cellSize
-                                ctx.textAlign = 'center';
-                                ctx.textBaseline = 'middle';
-                                ctx.fillText(num.toString(), cellAbsX + cellSize / 2, cellAbsY + cellSize / 2);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    ctx.restore();
-}
-
-
-// Collatz function as per user's definition (kept consistent)
 export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
     let sequence = [startN];
     let current = startN;
     let steps = 0;
-    let yPlusZ_operations = 0;
+    let odd_operations = 0; // Tracks the number of times the (yn+z) rule is applied
     let maxVal = startN;
     let minVal = startN;
     let sumVal = startN;
 
-    let stoppingTime_t = Infinity;
-    let coefficientStoppingTime_tau = Infinity;
+    let stoppingTime_t = 'N/A';
+    let firstDescentStep = 'N/A'; // NEW: Variable to track the first descent step
     let paradoxicalOccurrences = [];
 
-    const initialN = startN;
-
     if (x_param === 0) {
-        return {
-            startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN,
-            avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false,
-            stoppingTime_t: 'N/A', coefficientStoppingTime_tau: 'N/A', paradoxicalOccurrences: []
-        };
+        return { startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN, avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: 0, paradoxicalOccurrences, firstDescentStep };
     }
     if (startN === 1) {
-        return {
-            startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1,
-            avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true,
-            stoppingTime_t: 0,
-            coefficientStoppingTime_tau: 1,
-            paradoxicalOccurrences: []
-        };
+        return { startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1, avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true, stoppingTime_t: 0, coefficientStoppingTime_tau: 0, paradoxicalOccurrences, firstDescentStep: 0 };
     }
 
     while (current !== 1 && steps < maxIterations) {
-        if (steps > maxIterations * 2 && maxIterations > 0) {
-             return {
-                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
-                avgVal: sumVal / sequence.length, stdDev: 0, type: "Exceeded Max Iterations (Possible Divergence)",
-                converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
-                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
-                paradoxicalOccurrences: paradoxicalOccurrences
-            };
-        }
-
         if (current % x_param === 0) {
             current = current / x_param;
         } else {
             current = (y_param * current + z_param);
-            yPlusZ_operations++;
+            odd_operations++;
         }
 
         steps++;
 
+        // NEW: Check for first descent
+        if (firstDescentStep === 'N/A' && current < startN) {
+            firstDescentStep = steps;
+        }
+
         if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
             let errorType = "Exceeded Max Safe Integer";
             if (current <= 0) errorType = "Reached Non-Positive Value";
-            return {
-                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
-                avgVal: sumVal / sequence.length, stdDev: 0, type: errorType,
-                converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
-                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
-                paradoxicalOccurrences: paradoxicalOccurrences
-            };
+            return { startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal, avgVal: sumVal / sequence.length, stdDev: 0, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep };
         }
 
         if (sequence.includes(current)) {
-            return {
-                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
-                avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected",
-                converges_to_1: false, stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
-                coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
-                paradoxicalOccurrences: paradoxicalOccurrences
-            };
+            paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle detected" });
+            const q_cycle = odd_operations;
+            const j_cycle = steps;
+            const coefficient = (y_param ** q_cycle) / (x_param ** j_cycle);
+            if (coefficient < 1 && current >= startN) {
+                paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle meets paradoxical definition" });
+            }
+            return { startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal, avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep };
         }
 
         sequence.push(current);
@@ -323,24 +107,6 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         if (current > maxVal) maxVal = current;
         if (current < minVal) minVal = current;
         sumVal += current;
-
-        const currentCoefficient = (steps === 0) ? 1 : (Math.pow(y_param, yPlusZ_operations) / Math.pow(x_param, steps));
-
-        if (stoppingTime_t === Infinity && current < initialN) {
-            stoppingTime_t = steps;
-        }
-
-        if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
-            coefficientStoppingTime_tau = steps;
-        }
-
-        if (currentCoefficient < 1 && current >= initialN) {
-            paradoxicalOccurrences.push({
-                step: steps,
-                value: current,
-                coefficient: currentCoefficient.toFixed(6)
-            });
-        }
     }
 
     let type = "Unknown";
@@ -348,8 +114,14 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
     if (current === 1) {
         type = "Converges to 1";
         converges_to_1 = true;
+        stoppingTime_t = steps;
     } else if (steps >= maxIterations) {
         type = "Max Iterations Reached";
+    }
+
+    const finalCoefficient = (y_param ** odd_operations) / (x_param ** steps);
+    if (finalCoefficient < 1 && current >= startN) {
+        paradoxicalOccurrences.push({ value: current, step: steps, reason: "Paradoxical behavior detected" });
     }
 
     let mean = sumVal / sequence.length;
@@ -359,25 +131,188 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
     return {
         startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
         avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
-        stoppingTime_t: stoppingTime_t === Infinity ? 'N/A' : stoppingTime_t,
-        coefficientStoppingTime_tau: coefficientStoppingTime_tau === Infinity ? 'N/A' : coefficientStoppingTime_tau,
+        x_param: x_param, y_param: y_param, z_param: z_param,
+        stoppingTime_t: stoppingTime_t,
+        coefficientStoppingTime_tau: odd_operations,
         paradoxicalOccurrences: paradoxicalOccurrences,
-        x_param: x_param, // Ensure x_param is included in the returned data object
-        y_param: y_param,
-        z_param: z_param
+        firstDescentStep: firstDescentStep // Return the new property
     };
 }
 
-// Helper function to determine if a color is light or dark
-export function isLight(color) { // Exporting this function as well, as it's a utility
-    const hex = color.replace('#', '');
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
-    const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-    return luminance > 0.5;
+/**
+ * Calculates the standard deviation of a numerical sequence.
+ * @param {Array<number>} sequence - The array of numbers.
+ * @param {number} mean - The pre-calculated mean of the sequence.
+ * @returns {number} The standard deviation.
+ */
+export function calculateStandardDeviation(sequence, mean) {
+    if (sequence.length < 2) return 0; // Standard deviation is 0 for less than 2 elements
+    const variance = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / sequence.length;
+    return Math.sqrt(variance);
 }
 
+/**
+ * Calculates the sum of a numerical sequence.
+ * @param {Array<number>} sequence - The array of numbers.
+ * @returns {number} The sum of the sequence.
+ */
+export function calculateSum(sequence) {
+    return sequence.reduce((acc, val) => acc + val, 0);
+}
+
+// ==========================================================
+// UI & Canvas Utilities
+// ==========================================================
+
+// === Helper function to save to history (example, customize as needed) ===
+export function saveToHistory(data) {
+    // In a real application, you might save this to localStorage or a database
+    // For now, we'll just log it or add to a simple in-memory array if `calculatedRuns` is global.
+    // Assuming `calculatedRuns` is defined at the top of utils.js as a global.
+    calculatedRuns.push(data);
+    // You might also want to update a history display in the UI here.
+    // Example: appendToHistoryDisplay(data);
+    console.log("Sequence saved to history:", data); // For debugging
+
+}
+
+/**
+ * Displays a custom message in a designated message area.
+ * @param {string} message - The message to display.
+ * @param {string} type - 'info', 'success', or 'error' to determine styling.
+ * @param {string} messageBoxId - The ID of the message box element.
+ * @param {number} duration - How long the message should be visible in ms.
+ * @param {string} initialClasses - Base classes for the message box.
+ */
+let messageTimer = null; // Declare globally for displayMessage
+export function showMessage(message, type = 'info', messageBoxId = 'message-box', duration = 3000, initialClasses = 'mb-4 p-3 rounded-md text-center text-white') {
+    const messageArea = document.getElementById(messageBoxId);
+    if (!messageArea) {
+        if (DEBUG_MODE) console.error(`Message box with ID '${messageBoxId}' not found.`);
+        return;
+    }
+
+    if (messageTimer) {
+        clearTimeout(messageTimer);
+    }
+
+    messageArea.textContent = message;
+    let typeClass = '';
+    if (type === 'success') typeClass = 'bg-green-500';
+    else if (type === 'error') typeClass = 'bg-red-500';
+    else typeClass = 'bg-blue-500'; // Default info
+
+    messageArea.className = `${initialClasses} ${typeClass}`;
+    messageArea.classList.remove('hidden');
+
+    messageTimer = setTimeout(() => {
+        messageArea.classList.add('hidden');
+    }, duration);
+}
+
+// Keeping displayMessage as an alias for compatibility where used
+export const displayMessage = showMessage;
+// === Helper function to format sequence output ===
+export function formatSequenceOutput(sequence) {
+    // Limits the number of elements shown to prevent performance issues and clutter
+    const displayLimit = 100;
+    let formattedHtml = '';
+
+
+    if (sequence.length > displayLimit) {
+        formattedHtml = sequence.slice(0, displayLimit).join(', ') + '... (truncated, total: ' + sequence.length + ' numbers)';
+    } else {
+        formattedHtml = sequence.join(', ');
+    }
+    return formattedHtml;
+}
+
+
+/**
+ * Generates a link URL with parameters for different visualizations.
+ * @param {string} visualizationKey - Key indicating the visualization type (e.g., 'collatz-dragon', 'boxviewer').
+ * @param {Object} [params={}] - Optional parameters to append to the URL.
+ * @returns {string} The generated URL.
+ */
+export function generateLinkURL(visualizationKey, params = {}) {
+    const baseUrl = window.location.origin + window.location.pathname;
+    const urlMap = {
+        'collatz-dragon': 'collatz-dragon.html',
+        'boxviewer': 'box-universe-viewer.html',
+        'slicer3d_fps': 'box-universe-fps.html', // Corresponds to Box Universe Slicer 3D
+        'collatz-lines-explorer': 'collatz-lines-explorer.html',
+        'slicer2d': 'slicer.html', // 2D pseudo-3D slicer
+        'radial-animator': 'radial-animator.html', // 2D pseudo-3D slicer (Radial)
+        'radial-viewer': 'radial-viewer.html', // Collatz Radial Viewer
+        'index': 'index.html' // Main hub
+    };
+
+    const targetFile = urlMap[visualizationKey];
+    if (!targetFile) {
+        console.warn(`Unknown visualization key: ${visualizationKey}`);
+        return '#';
+    }
+
+    let queryString = new URLSearchParams(params).toString();
+    if (queryString) {
+        queryString = `?${queryString}`;
+    }
+    return `${baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1)}${targetFile}${queryString}`;
+}
+
+/**
+ * Updates the visibility of the gold star icon based on specific Collatz parameters (N=27, X=2, Y=3, Z=1).
+ * @param {number} n - The current N value.
+ * @param {number} x - The current X value.
+ * @param {number} y - The current Y value.
+ * @param {number} z - The current Z value.
+ * @param {string} starId - The ID of the gold star icon element.
+ */
+export function updateGoldStarVisibility(n, x, y, z, starId = 'goldStar') {
+    const goldStar = document.getElementById(starId);
+    if (goldStar) {
+        if (n === 27 && x === 2 && y === 3 && z === 1) {
+            goldStar.classList.remove('hidden');
+        } else {
+            goldStar.classList.add('hidden');
+        }
+    }
+}
+
+// Keeping updateGoldStar and updateGoldStarVisibilitySlicer as aliases for compatibility where used
+export const updateGoldStar = updateGoldStarVisibility;
+export const updateGoldStarVisibilitySlicer = updateGoldStarVisibility;
+
+
+/**
+ * Converts a hex color string to an RGB object.
+ * @param {string} hex - The hex color string (e.g., "#RRGGBB").
+ * @returns {{r: number, g: number, b: number}} RGB object.
+ */
+export function hexToRgb(hex) {
+    const r = parseInt(hex.substring(1, 3), 16);
+    const g = parseInt(hex.substring(3, 5), 16);
+    const b = parseInt(hex.substring(5, 7), 16);
+    return { r, g, b };
+}
+
+/**
+ * Checks if a color is light or dark based on its RGB components.
+ * Useful for determining text color contrast.
+ * @param {string} hexColor - The hex color string.
+ * @returns {boolean} True if the color is light, false otherwise.
+ */
+export function isLight(hexColor) {
+    const rgb = hexToRgb(hexColor);
+    // HSP (Highly Sensitive Pooled) equation for perceived brightness
+    const hsp = Math.sqrt(
+        0.299 * (rgb.r * rgb.r) +
+        0.587 * (rgb.g * rgb.g) +
+        0.114 * (rgb.b * rgb.b)
+    );
+    // Use a threshold (e.g., 127.5 for 0-255 range)
+    return hsp > 180; // Adjusted threshold for better contrast
+}
 
 // Function to render the 9-net (Original layout logic)
 /**
@@ -392,10 +327,12 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+
     // Use the global constants for drawing logic
     const faceSize = FACE_SIZE;
     const padding = PADDING;
     const stepSize = STEP_SIZE;
+
 
     // Define the layout of the 9-net (a 3x3 grid of 3x3 faces)
     const layout = [
@@ -407,7 +344,9 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
         { r: 2, c: 1 }  // Bottom
     ];
 
+
     let sequenceIndex = 0; // Tracks the current position in the Collatz sequence
+
 
     // Iterate through each 'face' in the predefined layout
     for (const pos of layout) {
@@ -418,8 +357,10 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
                 const x = padding + (pos.c * stepSize + j) * faceSize;
                 const y = padding + (pos.r * stepSize + i) * faceSize;
 
+
                 let color = "#444"; // Default color for squares not representing a sequence number
                 let label = ""; // Optional label for the number
+
 
                 // Check if there's a corresponding number in the sequence for this square
                 if (sequenceIndex < sequence.length) {
@@ -429,11 +370,13 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
                     sequenceIndex++; // Move to the next number in the sequence
                 }
 
+
                 ctx.fillStyle = color;
                 ctx.fillRect(x, y, faceSize, faceSize);
                 ctx.strokeStyle = "#222"; // Darker border for separation
                 ctx.lineWidth = 1;
                 ctx.strokeRect(x, y, faceSize, faceSize);
+
 
                 // Optional: Draw the number inside the square
                 if (label !== "") {
@@ -449,6 +392,12 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
 }
 
 
+
+
+
+
+
+
 // === Helper function to parse URL parameters ===
 export function getUrlParams() {
     const params = {};
@@ -460,53 +409,4 @@ export function getUrlParams() {
     return params;
 }
 
-// === Helper function to format sequence output ===
-export function formatSequenceOutput(sequence) {
-    // Limits the number of elements shown to prevent performance issues and clutter
-    const displayLimit = 100;
-    let formattedHtml = '';
 
-    if (sequence.length > displayLimit) {
-        formattedHtml = sequence.slice(0, displayLimit).join(', ') + '... (truncated, total: ' + sequence.length + ' numbers)';
-    } else {
-        formattedHtml = sequence.join(', ');
-    }
-    return formattedHtml;
-}
-
-// === Helper function to save to history (example, customize as needed) ===
-export function saveToHistory(data) {
-    // In a real application, you might save this to localStorage or a database
-    // For now, we'll just log it or add to a simple in-memory array if `calculatedRuns` is global.
-    // Assuming `calculatedRuns` is defined at the top of utils.js as a global.
-    calculatedRuns.push(data);
-    // You might also want to update a history display in the UI here.
-    // Example: appendToHistoryDisplay(data);
-    console.log("Sequence saved to history:", data); // For debugging
-}
-
-// === Helper function to show messages ===
-export function showMessage(message, isError = true) {
-    const messageDiv = document.getElementById('errorMessage'); // Assuming 'errorMessage' is the div for messages
-    if (messageDiv) {
-        messageDiv.textContent = message;
-        // You might want to add/remove classes for styling (e.g., 'text-red-400' for errors)
-        messageDiv.classList.remove('hidden'); // Make sure it's visible
-
-        // Optional: Hide message after a few seconds
-        setTimeout(() => {
-            messageDiv.classList.add('hidden');
-        }, 5000);
-    } else {
-        console.warn("Message display div not found (expected 'errorMessage'), logging message:", message);
-    }
-}
-
-// === Helper function to clear messages ===
-export function clearMessage() {
-    const messageDiv = document.getElementById('errorMessage'); // Assuming 'errorMessage' is the div for messages
-    if (messageDiv) {
-        messageDiv.textContent = '';
-        messageDiv.classList.add('hidden');
-    }
-}

@@ -191,7 +191,11 @@
         <button onclick="window.close()" class="mt-6 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400">
             Close Slicer
         </button>
+         <button id="returnToMainButton" class="mt-6 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg transform transition duration-300 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400">
+    Return to Main
+</button>
     </div>
+   
 
     <div class="container slideshow-controls">
         <div class="flex flex-col items-center">
@@ -710,6 +714,7 @@
             window.addEventListener('resize', resizeMainCanvas);
             resizeMainCanvas();
             updateGoldStarVisibilitySlicer();
+            
         });
     </script>
 </body>
