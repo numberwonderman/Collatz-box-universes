@@ -20,7 +20,8 @@ export let translateY = 0;
 export let scale = 1;
 
 // Define dpi globally and once
-export const dpi = window.devicePixelRatio || 1;
+// Check if `window` is defined before accessing it
+export const dpi = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 
 // Global padding variable for the unfolded box visualization
 export const PADDING_BETWEEN_GROUPS = 10;
@@ -50,17 +51,17 @@ let calculatedRuns = [];
  * @param {number} z_param - The adder (for yn + z).
  * @returns {object} An object containing the sequence and all its statistical properties.
  */
-export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
+export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param, exploreNegativeNumbers = false) {
     let sequence = [startN];
     let current = startN;
     let steps = 0;
-    let odd_operations = 0; // Tracks the number of times the (yn+z) rule is applied
+    let odd_operations = 0;
     let maxVal = startN;
     let minVal = startN;
     let sumVal = startN;
 
     let stoppingTime_t = 'N/A';
-    let firstDescentStep = 'N/A'; // NEW: Variable to track the first descent step
+    let firstDescentStep = 'N/A';
     let paradoxicalOccurrences = [];
 
     if (x_param === 0) {
@@ -80,12 +81,13 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
 
         steps++;
 
-        // NEW: Check for first descent
         if (firstDescentStep === 'N/A' && current < startN) {
             firstDescentStep = steps;
         }
 
-        if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || current <= 0) {
+        // The key change is here: We only check for non-positive values
+        // if we are NOT in explorer mode.
+        if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || (!exploreNegativeNumbers && current <= 0)) {
             let errorType = "Exceeded Max Safe Integer";
             if (current <= 0) errorType = "Reached Non-Positive Value";
             return { startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal, avgVal: sumVal / sequence.length, stdDev: 0, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep };
@@ -108,9 +110,12 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         if (current < minVal) minVal = current;
         sumVal += current;
     }
-    if (current === 1) {
-    sequence.push(1);}
-
+    
+    // This is the fix to ensure the final 1 is added correctly
+    if (current === 1 && sequence[sequence.length - 1] !== 1) {
+        sequence.push(1);
+    }
+    
     let type = "Unknown";
     let converges_to_1 = false;
     if (current === 1) {
@@ -137,7 +142,7 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         stoppingTime_t: stoppingTime_t,
         coefficientStoppingTime_tau: odd_operations,
         paradoxicalOccurrences: paradoxicalOccurrences,
-        firstDescentStep: firstDescentStep // Return the new property
+        firstDescentStep: firstDescentStep
     };
 }
 
