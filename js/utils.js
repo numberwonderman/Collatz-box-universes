@@ -108,6 +108,8 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         if (current < minVal) minVal = current;
         sumVal += current;
     }
+    if (current === 1) {
+    sequence.push(1);}
 
     let type = "Unknown";
     let converges_to_1 = false;
