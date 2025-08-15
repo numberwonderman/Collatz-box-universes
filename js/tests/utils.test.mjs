@@ -301,6 +301,8 @@ export const updateGoldStarVisibilitySlicer = updateGoldStarVisibility;
  * @param {string} hex - The hex color string (e.g., "#RRGGBB").
  * @returns {{r: number, g: number, b: number}} RGB object.
  */
+
+/*
 export function hexToRgb(hex) {
     const r = parseInt(hex.substring(1, 3), 16);
     const g = parseInt(hex.substring(3, 5), 16);
@@ -313,7 +315,7 @@ export function hexToRgb(hex) {
  * Useful for determining text color contrast.
  * @param {string} hexColor - The hex color string.
  * @returns {boolean} True if the color is light, false otherwise.
- */
+ 
 export function isLight(hexColor) {
     const rgb = hexToRgb(hexColor);
     // HSP (Highly Sensitive Pooled) equation for perceived brightness
@@ -324,11 +326,45 @@ export function isLight(hexColor) {
     );
     // Use a threshold (e.g., 127.5 for 0-255 range)
     return hsp > 180; // Adjusted threshold for better contrast
+}*/
+
+
+
+// Test for hexToRgb
+function testHexToRgb() {
+  const result = hexToRgb('#34d399');
+  const expected = { r: 52, g: 211, b: 153 };
+  if (JSON.stringify(result) === JSON.stringify(expected)) {
+    console.log("Test Passed: hexToRgb is correct.");
+  } else {
+    console.error("Test Failed: hexToRgb is incorrect.");
+    console.error("Expected:", expected);
+    console.error("Received:", result);
+  }
 }
 
+// Test for isLight
+function testIsLight() {
+  // Test a known light color (e.g., a light yellow)
+  const lightResult = isLight('#FFFF99');
+  if (lightResult === true) {
+    console.log("Test Passed: isLight correctly identifies a light color.");
+  } else {
+    console.error("Test Failed: isLight incorrectly identifies a light color.");
+  }
 
+  // Test a known dark color (e.g., a dark blue)
+  const darkResult = isLight('#000066');
+  if (darkResult === false) {
+    console.log("Test Passed: isLight correctly identifies a dark color.");
+  } else {
+    console.error("Test Failed: isLight incorrectly identifies a dark color.");
+  }
+}
 
-
+// Call the new test functions
+testHexToRgb();
+testIsLight();
 
 
 
@@ -342,5 +378,6 @@ export function getUrlParams() {
     }
     return params;
 }
+
 
 
