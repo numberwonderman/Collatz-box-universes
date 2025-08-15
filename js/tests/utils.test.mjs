@@ -44,7 +44,7 @@ describe('calculateCollatzSequence', () => {
   });
 });
 
----
+
 
 // ==========================================================
 // Test Suite for UI & Color Utilities
