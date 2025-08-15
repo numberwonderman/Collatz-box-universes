@@ -83,6 +83,52 @@ describe('Color Utilities', () => {
   });
 });
 
+
+// Add this block to your existing test file
+
+describe('Statistical Utilities', () => {
+  it('should correctly calculate the sum of a sequence', () => {
+    const sequence = [6, 3, 10, 5, 16, 8, 4, 2, 1];
+    const expectedSum = 55;
+    const result = calculateSum(sequence);
+
+    if (result === expectedSum) {
+      console.log("Test Passed: calculateSum is correct.");
+    } else {
+      console.error("Test Failed: calculateSum is incorrect.");
+      console.error("Expected:", expectedSum);
+      console.error("Received:", result);
+    }
+  });
+
+  it('should correctly calculate the standard deviation of a sequence', () => {
+    const sequence = [6, 3, 10, 5, 16, 8, 4, 2, 1];
+    const mean = 55 / 9; // Pre-calculated mean
+    const expectedStdDev = 5.08; // Rounded for comparison
+    const result = calculateStandardDeviation(sequence, mean);
+
+    // We use a small tolerance for floating-point comparisons
+    if (Math.abs(result - expectedStdDev) < 0.01) {
+      console.log("Test Passed: calculateStandardDeviation is correct.");
+    } else {
+      console.error("Test Failed: calculateStandardDeviation is incorrect.");
+      console.error("Expected:", expectedStdDev);
+      console.error("Received:", result);
+    }
+  });
+});
 // Note: The `getUrlParams` function is highly dependent on the browser's
 // window object, making it difficult to test in a standard test runner
 // like Node.js. It's generally considered low priority for unit testing.
+
+// ==========================================================
+// Test Strategy:
+// This test suite is focused on validating the core "pure" utility functions
+// that perform mathematical calculations and data transformations.
+//
+// We intentionally do not test functions that directly manipulate the DOM
+// (e.g., showMessage, drawNineNetCanvasSecondary) or rely heavily on the
+// browser's global state (e.g., window.location). This ensures our test
+// suite is robust, fast, and not susceptible to breaking with minor
+// UI or browser environment changes.
+// ==========================================================
