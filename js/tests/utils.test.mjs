@@ -1,383 +1,88 @@
 // generalizedCollatz.test.js
-import { calculateCollatzSequence } from '../utils.js';
-
-
-
-// ==========================================================
-
-/**
- * /**
- /**
-  *
-  *  
- * Calculates the full Collatz sequence and returns a detailed analysis object.
- /*
- * @param {number} startN - The starting number.
- * @param {number} maxIterations - The maximum number of steps to take.
- * @param {number} x_param - The divisor (for n/x).
- * @param {number} y_param - The multiplier (for yn + z).
- * @param {number} z_param - The adder (for yn + z).
- * @returns {object} An object containing the sequence and all its statistical properties.
- */
-/**
- * Calculates the full Collatz sequence and returns a detailed analysis object.
- * @param {number} startN - The starting number.
- * @param {number} maxIterations - The maximum number of steps to take.
- * @param {number} x_param - The divisor (for n/x).
- * @param {number} y_param - The multiplier (for yn + z).
- * @param {number} z_param - The adder (for yn + z).
- * @returns {object} An object containing the sequence and all its statistical properties.
- 
-export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
-    let sequence = [startN];
-    let current = startN;
-    let steps = 0;
-    let odd_operations = 0;
-    let maxVal = startN;
-    let minVal = startN;
-
-    let stoppingTime_t = 'N/A';
-    let firstDescentStep = 'N/A';
-    let paradoxicalOccurrences = [];
-
-    // Directly read from localStorage inside the function
-    const exploreNegativeNumbers = localStorage.getItem('exploreNegativeNumbers') === 'true';
-
-    if (x_param === 0) {
-        return { startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN, avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: 0, paradoxicalOccurrences, firstDescentStep };
-    }
-    if (startN === 1) {
-        return { startN, sequence: [1], steps: 0, maxVal: 1, minVal: 1, sumVal: 1, avgVal: 1, stdDev: 0, type: "Converges to 1", converges_to_1: true, stoppingTime_t: 0, coefficientStoppingTime_tau: 0, paradoxicalOccurrences, firstDescentStep: 0 };
-    }
-
-    while (current !== 1 && steps < maxIterations) {
-        if (current % x_param === 0) {
-            current = current / x_param;
-        } else {
-            current = (y_param * current + z_param);
-            odd_operations++;
-        }
-
-        steps++;
-
-        if (firstDescentStep === 'N/A' && current < startN) {
-            firstDescentStep = steps;
-        }
-
-        if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || (!exploreNegativeNumbers && current <= 0)) {
-            let errorType = "Exceeded Max Safe Integer";
-            if (current <= 0) errorType = "Reached Non-Positive Value";
-            return {
-                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
-                avgVal: sumVal / sequence.length, stdDev: 0, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
-            };
-        }
-
-        if (sequence.includes(current)) {
-            paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle detected" });
-            const q_cycle = odd_operations;
-            const j_cycle = steps;
-            const coefficient = (y_param ** q_cycle) / (x_param ** j_cycle);
-            if (coefficient < 1 && current >= startN) {
-                paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle meets paradoxical definition" });
-            }
-            // Use the helper functions for final calculations before returning
-            const finalSum = calculateSum(sequence);
-            const finalMean = finalSum / sequence.length;
-            const finalStdDev = calculateStandardDeviation(sequence, finalMean);
-
-            return {
-                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
-                avgVal: finalMean, stdDev: finalStdDev, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
-            };
-        }
-
-        sequence.push(current);
-
-        if (current > maxVal) maxVal = current;
-        if (current < minVal) minVal = current;
-    }
-
-    if (current === 1 && sequence[sequence.length - 1] !== 1) {
-        sequence.push(1);
-    }
-
-    let type = "Unknown";
-    let converges_to_1 = false;
-    if (current === 1) {
-        type = "Converges to 1";
-        converges_to_1 = true;
-        stoppingTime_t = steps;
-    } else if (steps >= maxIterations) {
-        type = "Max Iterations Reached";
-    }
-
-    const finalCoefficient = (y_param ** odd_operations) / (x_param ** steps);
-    if (finalCoefficient < 1 && current >= startN) {
-        paradoxicalOccurrences.push({ value: current, step: steps, reason: "Paradoxical behavior detected" });
-    }
-
-    // Use the helper functions for final calculations
-    const finalSum = calculateSum(sequence);
-    const finalMean = finalSum / sequence.length;
-    const finalStdDev = calculateStandardDeviation(sequence, finalMean);
-
-    return {
-        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
-        avgVal: finalMean, stdDev: finalStdDev, type: type, converges_to_1: converges_to_1,
-        x_param: x_param, y_param: y_param, z_param: z_param,
-        stoppingTime_t: stoppingTime_t,
-        coefficientStoppingTime_tau: odd_operations,
-        paradoxicalOccurrences: paradoxicalOccurrences,
-        firstDescentStep: firstDescentStep
-    };
-}
-    */
-function testStandardCollatz() {
-  const result = calculateCollatzSequence(6, 1000, 2, 3, 1);
-  const expectedSequence = [6, 3, 10, 5, 16, 8, 4, 2, 1];
-
-  // Check if the sequence matches
-  if (JSON.stringify(result.sequence) === JSON.stringify(expectedSequence)) {
-    console.log("Test Passed: Standard Collatz sequence is correct.");
-  } else {
-    console.error("Test Failed: Standard Collatz sequence is incorrect.");
-    console.error("Expected:", expectedSequence);
-    console.error("Received:", result.sequence);
-  }
-}
-
-// Call the test function to run it
-testStandardCollatz();
-
-
-/**
- * Calculates the standard deviation of a numerical sequence.
- * @param {Array<number>} sequence - The array of numbers.
- * @param {number} mean - The pre-calculated mean of the sequence.
- * @returns {number} The standard deviation.
- */
-export function calculateStandardDeviation(sequence, mean) {
-    if (sequence.length < 2) return 0; // Standard deviation is 0 for less than 2 elements
-    const variance = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / sequence.length;
-    return Math.sqrt(variance);
-}
-
-/**
- * Calculates the sum of a numerical sequence.
- * @param {Array<number>} sequence - The array of numbers.
- * @returns {number} The sum of the sequence.
- */
-export function calculateSum(sequence) {
-    return sequence.reduce((acc, val) => acc + val, 0);
-}
+import {
+  calculateCollatzSequence,
+  hexToRgb,
+  isLight
+} from '../utils.js';
 
 // ==========================================================
-// UI & Canvas Utilities
+// Test Suite for Core Collatz Calculation & Utilities
 // ==========================================================
 
-// === Helper function to save to history (example, customize as needed) ===
-export function saveToHistory(data) {
-    // In a real application, you might save this to localStorage or a database
-    // For now, we'll just log it or add to a simple in-memory array if `calculatedRuns` is global.
-    // Assuming `calculatedRuns` is defined at the top of utils.js as a global.
-    calculatedRuns.push(data);
-    // You might also want to update a history display in the UI here.
-    // Example: appendToHistoryDisplay(data);
-    console.log("Sequence saved to history:", data); // For debugging
+// A describe block to group all tests related to the core Collatz function
+describe('calculateCollatzSequence', () => {
 
-}
+  // Test case for the standard Collatz sequence
+  it('should correctly calculate the standard Collatz sequence for n=6', () => {
+    // This part of the code is commented out because it requires the
+    // calculateStandardDeviation and calculateSum functions which aren't
+    // provided here. You would need to add them to your utils.js file
+    // to test these properties.
+    const result = calculateCollatzSequence(6, 1000, 2, 3, 1);
+    const expectedSequence = [6, 3, 10, 5, 16, 8, 4, 2, 1];
 
-/**
- * Displays a custom message in a designated message area.
- * @param {string} message - The message to display.
- * @param {string} type - 'info', 'success', or 'error' to determine styling.
- * @param {string} messageBoxId - The ID of the message box element.
- * @param {number} duration - How long the message should be visible in ms.
- * @param {string} initialClasses - Base classes for the message box.
- */
-let messageTimer = null; // Declare globally for displayMessage
-export function showMessage(message, type = 'info', messageBoxId = 'message-box', duration = 3000, initialClasses = 'mb-4 p-3 rounded-md text-center text-white') {
-    const messageArea = document.getElementById(messageBoxId);
-    if (!messageArea) {
-        if (DEBUG_MODE) console.error(`Message box with ID '${messageBoxId}' not found.`);
-        return;
-    }
-
-    if (messageTimer) {
-        clearTimeout(messageTimer);
-    }
-
-    messageArea.textContent = message;
-    let typeClass = '';
-    if (type === 'success') typeClass = 'bg-green-500';
-    else if (type === 'error') typeClass = 'bg-red-500';
-    else typeClass = 'bg-blue-500'; // Default info
-
-    messageArea.className = `${initialClasses} ${typeClass}`;
-    messageArea.classList.remove('hidden');
-
-    messageTimer = setTimeout(() => {
-        messageArea.classList.add('hidden');
-    }, duration);
-}
-
-// Keeping displayMessage as an alias for compatibility where used
-export const displayMessage = showMessage;
-// === Helper function to format sequence output ===
-export function formatSequenceOutput(sequence) {
-    // Limits the number of elements shown to prevent performance issues and clutter
-    const displayLimit = 100;
-    let formattedHtml = '';
-
-
-    if (sequence.length > displayLimit) {
-        formattedHtml = sequence.slice(0, displayLimit).join(', ') + '... (truncated, total: ' + sequence.length + ' numbers)';
+    // Check if the sequence matches
+    if (JSON.stringify(result.sequence) === JSON.stringify(expectedSequence)) {
+      console.log("Test Passed: Standard Collatz sequence is correct.");
     } else {
-        formattedHtml = sequence.join(', ');
+      console.error("Test Failed: Standard Collatz sequence is incorrect.");
+      console.error("Expected:", expectedSequence);
+      console.error("Received:", result.sequence);
     }
-    return formattedHtml;
-}
+  });
 
-
-/**
- * Generates a link URL with parameters for different visualizations.
- * @param {string} visualizationKey - Key indicating the visualization type (e.g., 'collatz-dragon', 'boxviewer').
- * @param {Object} [params={}] - Optional parameters to append to the URL.
- * @returns {string} The generated URL.
- */
-export function generateLinkURL(visualizationKey, params = {}) {
-    const baseUrl = window.location.origin + window.location.pathname;
-    const urlMap = {
-        'collatz-dragon': 'collatz-dragon.html',
-        'boxviewer': 'box-universe-viewer.html',
-        'slicer3d_fps': 'box-universe-fps.html', // Corresponds to Box Universe Slicer 3D
-        'collatz-lines-explorer': 'collatz-lines-explorer.html',
-        'slicer2d': 'slicer.html', // 2D pseudo-3D slicer
-        'radial-animator': 'radial-animator.html', // 2D pseudo-3D slicer (Radial)
-        'radial-viewer': 'radial-viewer.html', // Collatz Radial Viewer
-        'index': 'index.html' // Main hub
-    };
-
-    const targetFile = urlMap[visualizationKey];
-    if (!targetFile) {
-        console.warn(`Unknown visualization key: ${visualizationKey}`);
-        return '#';
+  // You can add more test cases here for different scenarios
+  it('should handle invalid parameters (x_param === 0)', () => {
+    const result = calculateCollatzSequence(6, 1000, 0, 3, 1);
+    if (result.type === "Invalid Parameters (X is 0)") {
+      console.log("Test Passed: Handles invalid parameters correctly.");
+    } else {
+      console.error("Test Failed: Did not handle invalid parameters correctly.");
+      console.error("Expected type: 'Invalid Parameters (X is 0)'");
+      console.error("Received type:", result.type);
     }
+  });
+});
 
-    let queryString = new URLSearchParams(params).toString();
-    if (queryString) {
-        queryString = `?${queryString}`;
+---
+
+// ==========================================================
+// Test Suite for UI & Color Utilities
+// ==========================================================
+
+describe('Color Utilities', () => {
+
+  it('should correctly convert a hex color to an RGB object', () => {
+    const result = hexToRgb('#34d399');
+    const expected = { r: 52, g: 211, b: 153 };
+    if (JSON.stringify(result) === JSON.stringify(expected)) {
+      console.log("Test Passed: hexToRgb is correct.");
+    } else {
+      console.error("Test Failed: hexToRgb is incorrect.");
+      console.error("Expected:", expected);
+      console.error("Received:", result);
     }
-    return `${baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1)}${targetFile}${queryString}`;
-}
+  });
 
-/**
- * Updates the visibility of the gold star icon based on specific Collatz parameters (N=27, X=2, Y=3, Z=1).
- * @param {number} n - The current N value.
- * @param {number} x - The current X value.
- * @param {number} y - The current Y value.
- * @param {number} z - The current Z value.
- * @param {string} starId - The ID of the gold star icon element.
- */
-export function updateGoldStarVisibility(n, x, y, z, starId = 'goldStar') {
-    const goldStar = document.getElementById(starId);
-    if (goldStar) {
-        if (n === 27 && x === 2 && y === 3 && z === 1) {
-            goldStar.classList.remove('hidden');
-        } else {
-            goldStar.classList.add('hidden');
-        }
+  it('should correctly identify a light color', () => {
+    const lightResult = isLight('#FFFF99');
+    if (lightResult === true) {
+      console.log("Test Passed: isLight correctly identifies a light color.");
+    } else {
+      console.error("Test Failed: isLight incorrectly identifies a light color.");
     }
-}
+  });
 
-// Keeping updateGoldStar and updateGoldStarVisibilitySlicer as aliases for compatibility where used
-export const updateGoldStar = updateGoldStarVisibility;
-export const updateGoldStarVisibilitySlicer = updateGoldStarVisibility;
-
-
-/**
- * Converts a hex color string to an RGB object.
- * @param {string} hex - The hex color string (e.g., "#RRGGBB").
- * @returns {{r: number, g: number, b: number}} RGB object.
- */
-
-/*
-export function hexToRgb(hex) {
-    const r = parseInt(hex.substring(1, 3), 16);
-    const g = parseInt(hex.substring(3, 5), 16);
-    const b = parseInt(hex.substring(5, 7), 16);
-    return { r, g, b };
-}
-
-/**
- * Checks if a color is light or dark based on its RGB components.
- * Useful for determining text color contrast.
- * @param {string} hexColor - The hex color string.
- * @returns {boolean} True if the color is light, false otherwise.
- 
-export function isLight(hexColor) {
-    const rgb = hexToRgb(hexColor);
-    // HSP (Highly Sensitive Pooled) equation for perceived brightness
-    const hsp = Math.sqrt(
-        0.299 * (rgb.r * rgb.r) +
-        0.587 * (rgb.g * rgb.g) +
-        0.114 * (rgb.b * rgb.b)
-    );
-    // Use a threshold (e.g., 127.5 for 0-255 range)
-    return hsp > 180; // Adjusted threshold for better contrast
-}*/
-
-
-
-// Test for hexToRgb
-function testHexToRgb() {
-  const result = hexToRgb('#34d399');
-  const expected = { r: 52, g: 211, b: 153 };
-  if (JSON.stringify(result) === JSON.stringify(expected)) {
-    console.log("Test Passed: hexToRgb is correct.");
-  } else {
-    console.error("Test Failed: hexToRgb is incorrect.");
-    console.error("Expected:", expected);
-    console.error("Received:", result);
-  }
-}
-
-// Test for isLight
-function testIsLight() {
-  // Test a known light color (e.g., a light yellow)
-  const lightResult = isLight('#FFFF99');
-  if (lightResult === true) {
-    console.log("Test Passed: isLight correctly identifies a light color.");
-  } else {
-    console.error("Test Failed: isLight incorrectly identifies a light color.");
-  }
-
-  // Test a known dark color (e.g., a dark blue)
-  const darkResult = isLight('#000066');
-  if (darkResult === false) {
-    console.log("Test Passed: isLight correctly identifies a dark color.");
-  } else {
-    console.error("Test Failed: isLight incorrectly identifies a dark color.");
-  }
-}
-
-// Call the new test functions
-testHexToRgb();
-testIsLight();
-
-
-
-// === Helper function to parse URL parameters ===
-export function getUrlParams() {
-    const params = {};
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    for (const [key, value] of urlParams) {
-        params[key] = value;
+  it('should correctly identify a dark color', () => {
+    const darkResult = isLight('#000066');
+    if (darkResult === false) {
+      console.log("Test Passed: isLight correctly identifies a dark color.");
+    } else {
+      console.error("Test Failed: isLight incorrectly identifies a dark color.");
     }
-    return params;
-}
+  });
+});
 
-
-
+// Note: The `getUrlParams` function is highly dependent on the browser's
+// window object, making it difficult to test in a standard test runner
+// like Node.js. It's generally considered low priority for unit testing.
