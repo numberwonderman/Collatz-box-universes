@@ -259,6 +259,8 @@ if (window.MathJax) {
             <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
                 View on GitHub
             </a>
+            <button id="toggleNegativeNumbers">Toggle Negative Number Exploration</button>
+<span id="negativeStatus" class="ml-2">Status: Disabled</span>
         </header>
 
        <section class="text-white text-center mb-8 px-4">
@@ -319,6 +321,7 @@ if (window.MathJax) {
                 <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
                 <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
                 <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
+                <p class="text-blue-300 mb-2">First Descent Step: <span id="currentFirstDescentStep">--</span></p>
                 <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
                 <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
                     <span id="currentSequenceOutput">Sequence will appear here.</span>

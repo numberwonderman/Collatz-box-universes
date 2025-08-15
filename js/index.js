@@ -17,6 +17,40 @@ import {
 // Global variable to store current sequence data (for visualization tools)
 let currentSequenceData = null;
 
+// Function to update the UI based on localStorage
+function updateUI() {
+    const isNegativeEnabled = localStorage.getItem('exploreNegativeNumbers') === 'true';
+    const button = document.getElementById('toggleNegativeNumbers');
+    const status = document.getElementById('negativeStatus');
+    
+    if (isNegativeEnabled) {
+        status.textContent = 'Status: Enabled';
+        status.classList.remove('text-red-500'); // Assuming a red class for disabled
+        status.classList.add('text-green-500'); // Assuming a green class for enabled
+    } else {
+        status.textContent = 'Status: Disabled';
+        status.classList.remove('text-green-500');
+        status.classList.add('text-red-500');
+    }
+}
+
+// Function to handle the button click
+function handleToggle() {
+    let isNegativeEnabled = localStorage.getItem('exploreNegativeNumbers') === 'true';
+    isNegativeEnabled = !isNegativeEnabled; // Toggle the value
+    localStorage.setItem('exploreNegativeNumbers', isNegativeEnabled);
+    updateUI(); // Update the display
+}
+
+// Attach the event listener and set initial UI state when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Ensure a default value exists if none is set
+    if (localStorage.getItem('exploreNegativeNumbers') === null) {
+        localStorage.setItem('exploreNegativeNumbers', 'false');
+    }
+    updateUI();
+    document.getElementById('toggleNegativeNumbers').addEventListener('click', handleToggle);
+});
 // ==========================================================
 // HELPER FUNCTIONS (for UI management)
 // ==========================================================
@@ -125,6 +159,7 @@ document.getElementById('calculateSingle').addEventListener('click', () => {
     document.getElementById('currentStdDev').textContent = result.stdDev.toFixed(2);
     document.getElementById('currentStoppingTime').textContent = result.stoppingTime_t;
     document.getElementById('currentCoeffStoppingTime').textContent = result.coefficientStoppingTime_tau;
+    document.getElementById('currentFirstDescentStep').textContent = result.firstDescentStep;
     document.getElementById('currentIsParadoxical').textContent = result.paradoxicalOccurrences.length > 0 ? `Yes (${result.paradoxicalOccurrences.length} points)` : 'No';
     document.getElementById('currentSequenceOutput').innerHTML = formatSequenceOutput(result.sequence);
 

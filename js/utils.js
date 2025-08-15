@@ -51,18 +51,29 @@ let calculatedRuns = [];
  * @param {number} z_param - The adder (for yn + z).
  * @returns {object} An object containing the sequence and all its statistical properties.
  */
-export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param, exploreNegativeNumbers = false) {
+/**
+ * Calculates the full Collatz sequence and returns a detailed analysis object.
+ * @param {number} startN - The starting number.
+ * @param {number} maxIterations - The maximum number of steps to take.
+ * @param {number} x_param - The divisor (for n/x).
+ * @param {number} y_param - The multiplier (for yn + z).
+ * @param {number} z_param - The adder (for yn + z).
+ * @returns {object} An object containing the sequence and all its statistical properties.
+ */
+export function calculateCollatzSequence(startN, maxIterations, x_param, y_param, z_param) {
     let sequence = [startN];
     let current = startN;
     let steps = 0;
     let odd_operations = 0;
     let maxVal = startN;
     let minVal = startN;
-    let sumVal = startN;
 
     let stoppingTime_t = 'N/A';
     let firstDescentStep = 'N/A';
     let paradoxicalOccurrences = [];
+
+    // Directly read from localStorage inside the function
+    const exploreNegativeNumbers = localStorage.getItem('exploreNegativeNumbers') === 'true';
 
     if (x_param === 0) {
         return { startN, sequence: [startN], steps: 0, maxVal: startN, minVal: startN, sumVal: startN, avgVal: startN, stdDev: 0, type: "Invalid Parameters (X is 0)", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: 0, paradoxicalOccurrences, firstDescentStep };
@@ -85,12 +96,13 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
             firstDescentStep = steps;
         }
 
-        // The key change is here: We only check for non-positive values
-        // if we are NOT in explorer mode.
         if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || (!exploreNegativeNumbers && current <= 0)) {
             let errorType = "Exceeded Max Safe Integer";
             if (current <= 0) errorType = "Reached Non-Positive Value";
-            return { startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal, avgVal: sumVal / sequence.length, stdDev: 0, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep };
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
+                avgVal: sumVal / sequence.length, stdDev: 0, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
+            };
         }
 
         if (sequence.includes(current)) {
@@ -101,21 +113,27 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
             if (coefficient < 1 && current >= startN) {
                 paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle meets paradoxical definition" });
             }
-            return { startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal, avgVal: sumVal / sequence.length, stdDev: 0, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep };
+            // Use the helper functions for final calculations before returning
+            const finalSum = calculateSum(sequence);
+            const finalMean = finalSum / sequence.length;
+            const finalStdDev = calculateStandardDeviation(sequence, finalMean);
+
+            return {
+                startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
+                avgVal: finalMean, stdDev: finalStdDev, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
+            };
         }
 
         sequence.push(current);
 
         if (current > maxVal) maxVal = current;
         if (current < minVal) minVal = current;
-        sumVal += current;
     }
-    
-    // This is the fix to ensure the final 1 is added correctly
+
     if (current === 1 && sequence[sequence.length - 1] !== 1) {
         sequence.push(1);
     }
-    
+
     let type = "Unknown";
     let converges_to_1 = false;
     if (current === 1) {
@@ -131,13 +149,14 @@ export function calculateCollatzSequence(startN, maxIterations, x_param, y_param
         paradoxicalOccurrences.push({ value: current, step: steps, reason: "Paradoxical behavior detected" });
     }
 
-    let mean = sumVal / sequence.length;
-    let sumOfSquaredDifferences = sequence.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
-    let stdDev = Math.sqrt(sumOfSquaredDifferences / sequence.length);
+    // Use the helper functions for final calculations
+    const finalSum = calculateSum(sequence);
+    const finalMean = finalSum / sequence.length;
+    const finalStdDev = calculateStandardDeviation(sequence, finalMean);
 
     return {
-        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: sumVal,
-        avgVal: mean, stdDev: stdDev, type: type, converges_to_1: converges_to_1,
+        startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
+        avgVal: finalMean, stdDev: finalStdDev, type: type, converges_to_1: converges_to_1,
         x_param: x_param, y_param: y_param, z_param: z_param,
         stoppingTime_t: stoppingTime_t,
         coefficientStoppingTime_tau: odd_operations,
