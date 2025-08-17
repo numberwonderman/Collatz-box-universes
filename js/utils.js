@@ -1,3 +1,5 @@
+import { getLastBinaryPath, setLastBinaryPath } from './state.js';
+
 // ==========================================================
 // Consolidate ALL Global Variable Declarations at the Top
 // ==========================================================
