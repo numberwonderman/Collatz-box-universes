@@ -5,15 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo 'No tests configured."
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@babel/core": "^7.28.0",
-    "@babel/preset-env": "^7.28.0",
-    "babel-jest": "^30.0.5",
-    "jest": "^30.0.5"
+    
+    "vitest": "^3.2.4"
   }
 }
