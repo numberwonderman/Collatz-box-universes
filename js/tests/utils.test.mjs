@@ -9,7 +9,7 @@ import {
     hexToRgb,
     isLight
 } from '../utils.js';
-
+import{calculateCollatzSequence} from "../collatzLogic.js";
 // Mocking localStorage for a Node.js environment
 import { vi } from 'vitest';
 global.localStorage = {

@@ -8,3 +8,8 @@ export function setLastBinaryPath(path) {
 export function getLastBinaryPath() {
     return lastBinaryPath;
 }
+
+// Inside state.js
+export function getExplorationSetting() {
+  return localStorage.getItem('exploreNegativeNumbers') === 'true';
+}
