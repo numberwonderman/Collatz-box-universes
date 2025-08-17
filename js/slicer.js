@@ -1,7 +1,7 @@
 
         // Import functions and constants from utils.js
         import {
-            calculateCollatzSequence, // Renamed from generalizedCollatz
+            
             drawNineNetCanvasSecondary,
             getUrlParams,
             DEFAULT_LINE_COLOR, // For divColor
@@ -13,7 +13,7 @@
             NINE_NET_DRAW_HEIGHT,
             isLight // Helper for text color
         } from './utils.js';
-
+import { calculateCollatzSequence } from './collatzLogic.js';
 
         // === Slideshow Animation Logic ===
         let slideshowInterval;
