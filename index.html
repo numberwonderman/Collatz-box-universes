@@ -276,7 +276,25 @@ if (window.MathJax) {
         (Standard Collatz uses X=2, Y=3, Z=1)
     </p>
 </section>
-
+<!-- in index.html -->
+<section class="my-4 p-3 border rounded">
+  <h3>Cycle Catalog over Starts</h3>
+  <button id="scanBtn">Scan 1..5000</button>
+  <pre id="catalogOut" style="max-height:300px;overflow:auto"></pre>
+</section>
+<script type="module">
+  import { catalogCycles } from './js/cycleCatalog.js';
+  // Adapt this wrapper to your sequence function signature:
+  async function runSequence(start, params, maxSteps) {
+    // TODO: call your real sequence/engine; must return { sequence: BigInt[], type: 'cycle'|... }
+    return window.MyCollatz.run(start, params, maxSteps); // placeholder
+  }
+  document.getElementById('scanBtn').onclick = async () => {
+    const starts = Array.from({length: 5000}, (_,i) => BigInt(i+1));
+    const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
+    document.getElementById('catalogOut').textContent = JSON.stringify(rows, null, 2);
+  };
+</script>
                 <div class="mb-6 text-center">
             <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
             <label for="modeSingle" class="text-white text-lg mr-6">Single Calculation</label>
