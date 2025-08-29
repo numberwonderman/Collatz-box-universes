@@ -69,6 +69,77 @@ var visualizer_computer = function (universe) {
 
 // You DO NOT need to change the 'sequence' function from its last version.
 
+// === Pick ONE nine_net version. Example: simple one ===
+function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
+    let gridSize = 15;
+    let grid = [];
+
+    // Initialize with spaces
+    for (let i = 0; i < gridSize; i++) {
+        grid[i] = [];
+        for (let j = 0; j < gridSize; j++) {
+            grid[i][j] = ' ';
+        }
+    }
+
+    // Outer border
+    for (let i = 0; i < gridSize; i++) {
+        grid[0][i] = '+';
+        grid[gridSize - 1][i] = '+';
+        grid[i][0] = '+';
+        grid[i][gridSize - 1] = '+';
+    }
+
+    // Labels
+    const numLabel = `S:${startNum}`;
+    const ruleLabel = `R:${xVal}${yVal}${zVal}`;
+    const labelRow = 1;
+    const labelColStartNum = 2;
+    const labelColStartRule = gridSize - ruleLabel.length - 2;
+
+    for (let k = 0; k < numLabel.length; k++) {
+        grid[labelRow][labelColStartNum + k] = numLabel[k];
+    }
+    for (let k = 0; k < ruleLabel.length; k++) {
+        grid[labelRow][labelColStartRule + k] = ruleLabel[k];
+    }
+
+    return grid.map(row => row.join("")).join("\n");
+}    }
+};
+
+var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zStart, zEnd, maxIterations) {
+    var universeData = [];
+    const xOffset = xStart;
+    const yOffset = yStart;
+    const zOffset = zStart;
+
+    for (let x = xStart; x <= xEnd; x++) {
+        universeData[x - xOffset] = [];
+        for (let y = yStart; y <= yEnd; y++) {
+            universeData[x - xOffset][y - yOffset] = [];
+            for (let z = zStart; z <= zEnd; z++) {
+                var result = sequence(startNum, x, y, z, maxIterations);
+                universeData[x - xOffset][y - yOffset][z - zOffset] = {
+                    coordinates: [x, y, z],
+                    result: result
+                };
+            }
+        }
+    }
+    return { data: universeData, xStart, yStart, zStart, xEnd, yEnd, zEnd };
+};
+
+/*
+var visualizer_computer = function (universe) {
+    var carpenter = function (coordinates) { /*makes boxes*/ };
+    var Genesis = function (sequences) { /*graphs sequences*/ };
+    var postmaster = function (coordinates, sequences) { /*puts the graphs in the boxes*/ };
+};
+*/
+
+// You DO NOT need to change the 'sequence' function from its last version.
+
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     let gridSize = 15;
     let grid = [];
