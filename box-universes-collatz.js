@@ -46,32 +46,34 @@ var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zS
     for (let x = xStart; x <= xEnd; x++) {
         universeData[x - xOffset] = [];
         for (let y = yStart; y <= yEnd; y++) {
-            universeData[x - xOffset][y - yOffset] = [];    return grid.map(row => row.join("")).join("\n");
-}    const zOffset = zStart;
-
-    for (let x = xStart; x <= xEnd; x++) {
-        universeData[x - xOffset] = [];
-        for (let y = yStart; y <= yEnd; y++) {
             universeData[x - xOffset][y - yOffset] = [];
             for (let z = zStart; z <= zEnd; z++) {
                 var result = sequence(startNum, x, y, z, maxIterations);
-                universeData[x - xOffset][y - yOffset][z - zOffset] = { coordinates: [x, y, z], result: result };
+                universeData[x - xOffset][y - yOffset][z - zOffset] = {
+                    coordinates: [x, y, z],
+                    result: result
+                };
             }
         }
     }
     return { data: universeData, xStart, yStart, zStart, xEnd, yEnd, zEnd };
 };
+
 /*
 var visualizer_computer = function (universe) {
-    var carpenter = function (coordinates) { /*makes boxes};
-    var Genesis = function (sequences) {/*graphs sequences };
-    var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes};
+    var carpenter = function (coordinates) { /* makes boxes */ };
+    var Genesis = function (sequences) { /* graphs sequences */ };
+    var postmaster = function (coordinates, sequences) { /* puts the graphs in the boxes */ };
 };
 */
 
-
 // You DO NOT need to change the 'sequence' function from its last version.
 
+/**
+ * Detailed cube net with face/tabs visualization.
+ * Fills 3x3 face blocks with 'D' (divide step) or 'M' (multiply/add step)
+ * from the Collatz-like sequence defined by (x,y,z).
+ */
 function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     let gridSize = 15;
     let grid = [];
@@ -92,7 +94,7 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         grid[i][gridSize - 1] = '+';
     }
 
-    // --- Label Placement ---
+    // --- Labels ---
     const numLabel = `S:${startNum}`;
     const ruleLabel = `R:${xVal}${yVal}${zVal}`;
     const labelRow = 1;
@@ -116,25 +118,22 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         bottom: { r: 9, c: 6 }
     };
 
-    // --- Array to hold ALL coordinates belonging to any face ---
+    // Collect all designated face cells
     const allFaceCells = [];
     for (const key in faceDefinitions) {
         const face = faceDefinitions[key];
         for (let r = face.r; r < face.r + 3; r++) {
             for (let c = face.c; c < face.c + 3; c++) {
-                allFaceCells.push({ r: r, c: c });
+                allFaceCells.push({ r, c });
             }
         }
     }
 
-    // Helper to check if a given (checkR, checkC) is one of the designated face cells
     const isDesignatedFaceCell = (checkR, checkC) => {
         return allFaceCells.some(cell => cell.r === checkR && cell.c === checkC);
     };
 
-
     // --- Phase 1: Fill Face Regions with sequence data (D/M) and '+' if sequence runs out ---
-    // 'sequence' function still returns array of numbers: [num1, num2, ...]
     let seq = sequence(startNum, xVal, yVal, zVal, 100).sequence;
     let seqIndex = 0;
 
@@ -143,22 +142,22 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
         for (let r = face.r; r < face.r + 3; r++) {
             for (let c = face.c; c < face.c + 3; c++) {
                 if (seqIndex < seq.length) {
-                    const currentNumInSequence = seq[seqIndex];
-                    // Here's the key change: checking divisibility by rule.x
-                    if (currentNumInSequence % Math.abs(xVal) === 0) {
-                        grid[r][c] = 'D'; // 'D' for Divisible by rule.x
+                    const currentNum = seq[seqIndex];
+                    // 'D' if divisible by rule.x, otherwise 'M'
+                    if (currentNum % Math.abs(xVal) === 0) {
+                        grid[r][c] = 'D';
                     } else {
-                        grid[r][c] = 'M'; // 'M' for Multiply/Add rule
+                        grid[r][c] = 'M';
                     }
                     seqIndex++;
                 } else {
-                    grid[r][c] = '+'; // Fill with '+' if sequence runs out
+                    grid[r][c] = '+';
                 }
             }
         }
     }
 
-    // --- Phase 2: Place 'T's in designated tab areas, ensuring no overlap with faces ---
+    // --- Phase 2: Place 'T' tabs around faces without overlapping them ---
     const placeTab = (r, c) => {
         if (r > 0 && r < gridSize - 1 && c > 0 && c < gridSize - 1 && grid[r][c] === ' ' && !isDesignatedFaceCell(r, c)) {
             grid[r][c] = 'T';
@@ -166,46 +165,42 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     };
 
     // Tabs for Top Face (origin: r:3, c:6)
-    for (let c = faceDefinitions.top.c; c < faceDefinitions.top.c + 3; c++) placeTab(faceDefinitions.top.r - 1, c); // Top edge (horizontal strip)
-    placeTab(faceDefinitions.top.r, faceDefinitions.top.c - 1); // Left vertical
+    for (let c = faceDefinitions.top.c; c < faceDefinitions.top.c + 3; c++) placeTab(faceDefinitions.top.r - 1, c);
+    placeTab(faceDefinitions.top.r, faceDefinitions.top.c - 1);
     placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c - 1);
     placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c - 1);
-    placeTab(faceDefinitions.top.r, faceDefinitions.top.c + 3); // Right vertical
+    placeTab(faceDefinitions.top.r, faceDefinitions.top.c + 3);
     placeTab(faceDefinitions.top.r + 1, faceDefinitions.top.c + 3);
     placeTab(faceDefinitions.top.r + 2, faceDefinitions.top.c + 3);
 
-
     // Tabs for Left Face (origin: r:6, c:3)
-    for (let r = faceDefinitions.left.r; r < faceDefinitions.left.r + 3; r++) placeTab(r, faceDefinitions.left.c - 1); // Left edge (vertical strip)
-    for (let c = faceDefinitions.left.c; c < faceDefinitions.left.c + 3; c++) placeTab(faceDefinitions.left.r - 1, c); // Top edge (horizontal strip)
+    for (let r = faceDefinitions.left.r; r < faceDefinitions.left.r + 3; r++) placeTab(r, faceDefinitions.left.c - 1);
+    for (let c = faceDefinitions.left.c; c < faceDefinitions.left.c + 3; c++) placeTab(faceDefinitions.left.r - 1, c);
 
+    // Tabs for Center-Left Face (origin: r:6, c:6)
+    for (let c = faceDefinitions.centerLeft.c; c < faceDefinitions.centerLeft.c + 3; c++) placeTab(faceDefinitions.centerLeft.r + 3, c);
+    for (let r = faceDefinitions.centerLeft.r; r < faceDefinitions.centerLeft.r + 3; r++) placeTab(r, faceDefinitions.centerLeft.c + 3);
 
-    // Tabs for Center-Left Face (origin: r:6, c:6) - external tabs only on bottom and right
-    for (let c = faceDefinitions.centerLeft.c; c < faceDefinitions.centerLeft.c + 3; c++) placeTab(faceDefinitions.centerLeft.r + 3, c); // Bottom edge
-    for (let r = faceDefinitions.centerLeft.r; r < faceDefinitions.centerLeft.r + 3; r++) placeTab(r, faceDefinitions.centerLeft.c + 3); // Right edge
+    // Tabs for Center Face (origin: r:6, c:9)
+    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r - 1, c);
+    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r + 3, c);
+    for (let r = faceDefinitions.center.r; r < faceDefinitions.center.r + 3; r++) placeTab(r, faceDefinitions.center.c + 3);
 
-
-    // Tabs for Center Face (origin: r:6, c:9) - external tabs on top, bottom, and right
-    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r - 1, c); // Top edge
-    for (let c = faceDefinitions.center.c; c < faceDefinitions.center.c + 3; c++) placeTab(faceDefinitions.center.r + 3, c); // Bottom edge
-    for (let r = faceDefinitions.center.r; r < faceDefinitions.center.r + 3; r++) placeTab(r, faceDefinitions.center.c + 3); // Right edge
-
-    // Tabs for Center-Right Face (origin: r:6, c:12) - far right of horizontal strip
-    for (let r = faceDefinitions.centerRight.r; r < faceDefinitions.centerRight.r + 3; r++) placeTab(r, faceDefinitions.centerRight.c + 3); // Right edge
-    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r - 1, c); // Top edge
-    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r + 3, c); // Bottom edge
+    // Tabs for Center-Right Face (origin: r:6, c:12)
+    for (let r = faceDefinitions.centerRight.r; r < faceDefinitions.centerRight.r + 3; r++) placeTab(r, faceDefinitions.centerRight.c + 3);
+    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r - 1, c);
+    for (let c = faceDefinitions.centerRight.c; c < faceDefinitions.centerRight.c + 3; c++) placeTab(faceDefinitions.centerRight.r + 3, c);
 
     // Tabs for Bottom Face (origin: r:9, c:6)
-    for (let c = faceDefinitions.bottom.c; c < faceDefinitions.bottom.c + 3; c++) placeTab(faceDefinitions.bottom.r + 3, c); // Bottom edge
-    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c - 1); // Left vertical
+    for (let c = faceDefinitions.bottom.c; c < faceDefinitions.bottom.c + 3; c++) placeTab(faceDefinitions.bottom.r + 3, c);
+    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c - 1);
     placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c - 1);
     placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c - 1);
-    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c + 3); // Right vertical
+    placeTab(faceDefinitions.bottom.r, faceDefinitions.bottom.c + 3);
     placeTab(faceDefinitions.bottom.r + 1, faceDefinitions.bottom.c + 3);
     placeTab(faceDefinitions.bottom.r + 2, faceDefinitions.bottom.c + 3);
 
-
-    // Final grid string assembly
+    // Final grid string
     let netString = "";
     for (let i = 0; i < gridSize; i++) {
         for (let j = 0; j < gridSize; j++) {
@@ -215,6 +210,8 @@ function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
     }
     return netString;
 }
+
+// Example quick run
 console.log(nine_net());
 // This code was developed with iterative assistance from Google's Gemini AI.
 // Specifically, for debugging spatial layout and refining character representation.
