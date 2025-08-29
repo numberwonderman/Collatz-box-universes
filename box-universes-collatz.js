@@ -2,31 +2,38 @@ var sequence = function (num, x, y, z, maxiterations) {
     if (x === 0) {
         return { sequence: [], type: "error" };
     }
-    var output = [];
-    output.push(num);
-    var iterations = 0;
+
+    const seq = [num];
+    const seen = new Set([num]);
+    let iterations = 0;
+
+    const ax = Math.abs(x);
+    const ay = Math.abs(y) || 3;
+    const zz = z || 1;
+
     while (num > 1 && iterations < maxiterations) {
-        var next_num;
-        if (num % Math.abs(x) === 0) {
+        let next_num;
+        if (num % ax === 0) {
             next_num = num / x;
         } else {
-            next_num = (Math.abs(y) || 3) * num + (z || 1);
+            next_num = ay * num + zz;
         }
 
-        if (output.includes(next_num)) {
-            output.push(next_num);
-            return { sequence: output, type: "cycle" };
+        if (seen.has(next_num)) {
+            seq.push(next_num);
+            return { sequence: seq, type: "cycle" };
         }
 
         num = next_num;
-        output.push(num);
+        seen.add(num);
+        seq.push(num);
         iterations++;
     }
 
     if (num === 1) {
-        return { sequence: output, type: "converges_to_1" };
+        return { sequence: seq, type: "converges_to_1" };
     } else {
-        return { sequence: output, type: "reached_max_iterations" };
+        return { sequence: seq, type: "reached_max_iterations" };
     }
 };
 
@@ -35,6 +42,69 @@ var generateBoxUniverseData = function (startNum, xStart, xEnd, yStart, yEnd, zS
     const xOffset = xStart;
     const yOffset = yStart;
     const zOffset = zStart;
+
+    for (let x = xStart; x <= xEnd; x++) {
+        universeData[x - xOffset] = [];
+        for (let y = yStart; y <= yEnd; y++) {
+            universeData[x - xOffset][y - yOffset] = [];
+            for (let z = zStart; z <= zEnd; z++) {
+                var result = sequence(startNum, x, y, z, maxIterations);
+                universeData[x - xOffset][y - yOffset][z - zOffset] = {
+                    coordinates: [x, y, z],
+                    result: result
+                };
+            }
+        }
+    }
+    return { data: universeData, xStart, yStart, zStart, xEnd, yEnd, zEnd };
+};
+
+/*
+var visualizer_computer = function (universe) {
+    var carpenter = function (coordinates) { /*makes boxes*/ };
+    var Genesis = function (sequences) { /*graphs sequences*/ };
+    var postmaster = function (coordinates, sequences) { /*puts the graphs in the boxes*/ };
+};
+*/
+
+// You DO NOT need to change the 'sequence' function from its last version.
+
+function nine_net(startNum = 1, xVal = 2, yVal = 3, zVal = 1) {
+    let gridSize = 15;
+    let grid = [];
+
+    // Initialize with spaces
+    for (let i = 0; i < gridSize; i++) {
+        grid[i] = [];
+        for (let j = 0; j < gridSize; j++) {
+            grid[i][j] = ' ';
+        }
+    }
+
+    // Outer border
+    for (let i = 0; i < gridSize; i++) {
+        grid[0][i] = '+';
+        grid[gridSize - 1][i] = '+';
+        grid[i][0] = '+';
+        grid[i][gridSize - 1] = '+';
+    }
+
+    // --- Label Placement ---
+    const numLabel = `S:${startNum}`;
+    const ruleLabel = `R:${xVal}${yVal}${zVal}`;
+    const labelRow = 1;
+    const labelColStartNum = 2;
+    const labelColStartRule = gridSize - ruleLabel.length - 2;
+
+    for (let k = 0; k < numLabel.length; k++) {
+        grid[labelRow][labelColStartNum + k] = numLabel[k];
+    }
+    for (let k = 0; k < ruleLabel.length; k++) {
+        grid[labelRow][labelColStartRule + k] = ruleLabel[k];
+    }
+
+    return grid.map(row => row.join("")).join("\n");
+}    const zOffset = zStart;
 
     for (let x = xStart; x <= xEnd; x++) {
         universeData[x - xOffset] = [];
