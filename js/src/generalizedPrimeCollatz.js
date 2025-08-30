@@ -1,46 +1,58 @@
-// Generalized “p-Collatz”: on odd n do x = p*n + 1, then divide out all primes < p.
-// On even n, halve. BigInt throughout.
+// generalizedPrimeCollatz.js
+// BigInt throughout
 
-import { removePrimesBelow, isPrime } from './primeService.js';
+import { primesBelow } from './PrimeService.js';
 
-const asBI = (x) => (typeof x === 'bigint' ? x : BigInt(x));
-
-export function isValidP(p) {
-  p = asBI(p);
-  // “deceive-aware”: p must be odd, >= 3, and (optionally) prime-like.
-  if (p < 3n || (p & 1n) === 0n) return false;
-  // Optional: require p to be prime; toggle if you want composite p allowed.
-  // return isPrime(Number(p));
-  return true;
+function isValidP(p) {
+  p = BigInt(p);
+  return p >= 3n && (p & 1n) === 1n; // odd and >= 3
 }
 
-export function stepP(n, p) {
-  n = asBI(n); p = asBI(p);
-  if (!isValidP(p)) throw new Error(`stepP: p must be odd >= 3; got ${p}`);
-  if ((n & 1n) === 0n) return n >> 1n;
-  const x = p * n + 1n;
-  return removePrimesBelow(x, p);
+export function simplifyByPrimesLessThanP(n, p) {
+  n = BigInt(n); p = BigInt(p);
+  for (const q of primesBelow(p)) {
+    while (n % q === 0n) n /= q;
+  }
+  return n;
 }
 
 /**
- * Iterate with guards. Returns { sequence, steps, type }
- * type ∈ 'hit_1' | 'cycle' | 'max_steps'
+ * One generalized step for parameter p:
+ * - even n: n/2
+ * - odd  n: x = p*n + 1; then divide out ALL primes < p
+ */
+export function stepP(n, p) {
+  n = BigInt(n); p = BigInt(p);
+  if (!isValidP(p)) throw new Error(`p must be odd >= 3; got ${p}`);
+  if ((n & 1n) === 0n) return n >> 1n;
+  const x = p * n + 1n;
+  return simplifyByPrimesLessThanP(x, p);
+}
+
+/**
+ * Iterate with guards.
+ * Returns { sequence, steps, type } where type ∈ 'hit_1' | 'cycle' | 'max_steps'
  */
 export function iterateP(n, p, maxSteps = 10000) {
-  n = asBI(n); p = asBI(p);
-  if (!isValidP(p)) throw new Error(`iterateP: p must be odd >= 3; got ${p}`);
+  n = BigInt(n); p = BigInt(p);
+  if (!isValidP(p)) throw new Error(`p must be odd >= 3; got ${p}`);
 
   const seq = [n];
-  const seen = new Set([n.toString()]);
+  const seen = new Set([n.toString()]); // string keys for BigInt
+
   for (let i = 0; i < maxSteps; i++) {
     n = stepP(n, p);
     seq.push(n);
 
     if (n === 1n) return { sequence: seq, steps: i + 1, type: 'hit_1' };
-
-    const k = n.toString();
-    if (seen.has(k)) return { sequence: seq, steps: i + 1, type: 'cycle' };
-    seen.add(k);
+    const key = n.toString();
+    if (seen.has(key)) return { sequence: seq, steps: i + 1, type: 'cycle' };
+    seen.add(key);
   }
   return { sequence: seq, steps: maxSteps, type: 'max_steps' };
+}
+
+// Convenience: array-only result (if you need it in UI)
+export function iteratePArray(n, p, maxSteps = 10000) {
+  return iterateP(n, p, maxSteps).sequence;
 }
