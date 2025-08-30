@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaos Comparer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: #1a202c;
+            overflow-x: hidden;
+        }
+        .container {
+            padding: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+        canvas {
+            background-color: #0d1117;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        label {
+            color: #cbd5e0;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #4a5568;
+            background-color: #2d3748;
+            color: #cbd5e0;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            background-color: #4299e1;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #3182ce;
+        }
+        .message-box {
+            background-color: #2d3748;
+            color: #cbd5e0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-inter">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold text-center my-8">Chaos Comparer</h1>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                    <label for="start1">Starting Number 1 (n₁)</label>
+                    <input type="number" id="start1" value="6" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="start2">Starting Number 2 (n₂)</label>
+                    <input type="number" id="start2" value="7" step="1">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="maxSteps">Maximum Steps</label>
+                <input type="number" id="maxSteps" value="1000" step="100">
+            </div>
+            <button id="compareBtn" class="w-full">Compare Chaos</button>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Sequence Visualization</h2>
+            <canvas id="chaosCanvas" class="w-full" height="600"></canvas>
+        </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Metrics</h2>
+            <pre id="metrics" class="message-box text-sm"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Core functions for the classic (3n+1)/2 Collatz sequence
+        function step(n) {
+            if (n % 2 === 0) {
+                return n / 2;
+            } else {
+                return 3 * n + 1;
+            }
+        }
+
+        function generateSequence(start, maxSteps) {
+            let n = start;
+            const sequence = [n];
+            for (let i = 0; i < maxSteps && n !== 1; i++) {
+                n = step(n);
+                sequence.push(n);
+            }
+            return sequence;
+        }
+
+        // Canvas drawing functions
+        const canvas = document.getElementById('chaosCanvas');
+        const ctx = canvas.getContext('2d');
+        const metricsOutput = document.getElementById('metrics');
+
+        function drawSequences(seq1, seq2, maxSteps) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Find max value for y-axis scaling
+            const allValues = [...seq1, ...seq2];
+            const maxValue = Math.max(...allValues);
+
+            // Use a logarithmic scale for the y-axis to handle large numbers
+            function scaleY(val) {
+                if (val <= 1) return canvas.height - 10;
+                const logVal = Math.log(val);
+                const logMax = Math.log(maxValue);
+                return canvas.height - 10 - (logVal / logMax) * (canvas.height - 20);
+            }
+
+            function scaleX(step) {
+                return (step / maxSteps) * (canvas.width - 20) + 10;
+            }
+
+            // Draw sequence 1 (blue)
+            ctx.beginPath();
+            ctx.strokeStyle = '#4299e1';
+            ctx.lineWidth = 2;
+            ctx.moveTo(scaleX(0), scaleY(seq1[0]));
+            for (let i = 1; i < seq1.length; i++) {
+                ctx.lineTo(scaleX(i), scaleY(seq1[i]));
+            }
+            ctx.stroke();
+
+            // Draw sequence 2 (red)
+            ctx.beginPath();
+            ctx.strokeStyle = '#e53e3e';
+            ctx.lineWidth = 2;
+            ctx.moveTo(scaleX(0), scaleY(seq2[0]));
+            for (let i = 1; i < seq2.length; i++) {
+                ctx.lineTo(scaleX(i), scaleY(seq2[i]));
+            }
+            ctx.stroke();
+        }
+        
+        // --- Event Listeners and Main Logic ---
+        document.getElementById('compareBtn').addEventListener('click', () => {
+            const start1 = parseInt(document.getElementById('start1').value);
+            const start2 = parseInt(document.getElementById('start2').value);
+            const maxSteps = parseInt(document.getElementById('maxSteps').value);
+
+            if (isNaN(start1) || isNaN(start2) || isNaN(maxSteps) || start1 <= 0 || start2 <= 0) {
+                metricsOutput.textContent = "Please enter valid positive numbers.";
+                return;
+            }
+
+            const seq1 = generateSequence(start1, maxSteps);
+            const seq2 = generateSequence(start2, maxSteps);
+
+            drawSequences(seq1, seq2, maxSteps);
+
+            // Calculate and display metrics
+            let metricsText = `Comparison for Sequences (n₁=${start1}, n₂=${start2})\n`;
+            metricsText += `\nLength 1: ${seq1.length}\n`;
+            metricsText += `Length 2: ${seq2.length}\n`;
+
+            const minLength = Math.min(seq1.length, seq2.length);
+            let firstDivergenceStep = -1;
+            let lastDistance = 0;
+            
+            for (let i = 0; i < minLength; i++) {
+                if (seq1[i] !== seq2[i]) {
+                    if (firstDivergenceStep === -1) {
+                        firstDivergenceStep = i;
+                    }
+                    lastDistance = Math.abs(seq1[i] - seq2[i]);
+                }
+            }
+            
+            metricsText += `\nFirst Divergence at Step: ${firstDivergenceStep === -1 ? 'Never' : firstDivergenceStep}\n`;
+            metricsText += `Distance at last common step: ${lastDistance}\n`;
+
+            metricsOutput.textContent = metricsText;
+        });
+    </script>
+</body>
+</html>
