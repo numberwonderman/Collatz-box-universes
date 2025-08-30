@@ -55,4 +55,4 @@ export function iterateP(n, p, maxSteps = 10000) {
 // Convenience: array-only result (if you need it in UI)
 export function iteratePArray(n, p, maxSteps = 10000) {
   return iterateP(n, p, maxSteps).sequence;
-}
+      }
