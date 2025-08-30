@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Collatz Box Universes - Main</title>
 
-  <!-- Tailwind + Fonts -->
+  <!-- Tailwind + Fonts + Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-  <!-- MathJax loader -->
+  <!-- MathJax (loader ONLY) -->
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', () => {
@@ -23,28 +23,37 @@
   </script>
 
   <style>
-    /* Keep your existing CSS styles here (scrollbar, body bg, inputs, buttons, etc.) */
+    /* Minimal styling; keep or replace with your existing CSS */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
+      min-height: 100vh;
+      color: #f8fafc;
+    }
+    .github-button {
+      background-color: #24292e;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+    }
+    .github-button:hover { background-color: #40464d; }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-  <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
+  <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
 
     <!-- Header -->
     <header class="flex justify-between items-center mb-6">
       <div class="flex-grow text-center">
         <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">Collatz Box Universes</h1>
       </div>
-      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
-        View on GitHub
-      </a>
-      <button id="toggleNegativeNumbers">Toggle Negative Number Exploration</button>
-      <span id="negativeStatus" class="ml-2">Status: Disabled</span>
+      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">View on GitHub</a>
     </header>
 
     <!-- Mission -->
     <section class="text-white text-center mb-8 px-4">
-      <p class="project-mission-main mb-4 max-w-2xl mx-auto text-lg leading-relaxed">
+      <p class="max-w-2xl mx-auto text-lg leading-relaxed">
         Explore and visualize generalized Collatz sequences to discover hidden patterns,
         foster intuition, and gain new perspectives on dynamical systems.
       </p>
@@ -55,37 +64,128 @@
     </section>
 
     <!-- Cycle Catalog -->
-    <section class="my-4 p-3 border rounded">
-      <h3 class="text-xl font-semibold mb-2">Cycle Catalog over Starts</h3>
-      <button id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Scan 1..5000</button>
-      <pre id="catalogOut" class="mt-3 max-h-72 overflow-auto text-sm bg-black bg-opacity-40 p-2 rounded"></pre>
+    <section class="my-4 p-4 border border-blue-700 rounded bg-black bg-opacity-20">
+      <h3 class="text-xl font-semibold mb-3">Cycle Catalog over Starts</h3>
+
+      <div class="flex gap-2 flex-wrap mb-3">
+        <button id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+          Scan 1..5000
+        </button>
+        <button id="clearBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded">
+          Clear
+        </button>
+      </div>
+
+      <pre id="catalogOut" class="mt-3 max-h-80 overflow-auto text-sm bg-black bg-opacity-40 p-3 rounded"></pre>
+
+      <p id="catalogStatus" class="text-xs text-blue-200 mt-2"></p>
     </section>
-    <script type="module">
-      import { catalogCycles } from './js/cycleCatalog.js';
-      async function runSequence(start, params, maxSteps) {
-        // Hook this to your real sequence engine
-        return window.MyCollatz.run(start, params, maxSteps); // placeholder
-      }
-      document.getElementById('scanBtn').onclick = async () => {
-        const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
-        const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
-        document.getElementById('catalogOut').textContent = JSON.stringify(rows, null, 2);
-      };
-    </script>
 
-    <!-- Single calculator + Bulk generator -->
-    <!-- (keep your existing form inputs, nine-net canvas, results panels, etc. here) -->
-
-    <!-- Visualization tool selector -->
-    <!-- (keep your radio list + launch button here) -->
+    <!-- Launchpad (optional; keep your existing tools/radios if you want) -->
+    <section class="text-center mt-8">
+      <a href="./index.html" class="inline-flex items-center gap-2 px-4 py-2 rounded bg-purple-600 hover:bg-purple-700">
+        <i class="fas fa-home"></i> Main Hub
+      </a>
+    </section>
 
   </div>
 
-  <footer class="text-center mt-10 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
+  <footer class="text-center mt-6 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
     <p>&copy; 2025 Franklin Loeb. All rights reserved.</p>
-    <p>Explore the code on <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.</p>
+    <p>Explore the code on
+      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.
+    </p>
   </footer>
 
+  <!-- Page script: uses cycleCatalog.js if present, else a safe fallback -->
+  <script type="module">
+    // --- helpers: safe log + status ---
+    const outEl = document.getElementById('catalogOut');
+    const statusEl = document.getElementById('catalogStatus');
+    const print = (x) => { outEl.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2); };
+    const setStatus = (s) => { statusEl.textContent = s; };
+
+    // --- fallback sequence runner (classic Collatz X=2,Y=3,Z=1) ---
+    function classicCollatzRun(start, maxSteps = 20000n) {
+      let n = BigInt(start);
+      const seq = [n];
+      const seen = new Set([n.toString()]);
+      for (let i = 0n; i < maxSteps; i++) {
+        if ((n & 1n) === 0n) n = n / 2n;
+        else n = 3n * n + 1n;
+        seq.push(n);
+        if (n === 1n) return { sequence: seq, type: 'converges_to_1' };
+        const k = n.toString();
+        if (seen.has(k)) return { sequence: seq, type: 'cycle' };
+        seen.add(k);
+      }
+      return { sequence: seq, type: 'reached_max_iterations' };
+    }
+
+    // --- catalogCycles (loaded dynamically if available) ---
+    let catalogCycles = null;
+    try {
+      // Adjust path if your repo uses a different casing: e.g. "./js/CycleCataloge.js"
+      const mod = await import('./js/cycleCatalog.js').catch(() => import('./js/CycleCataloge.js'));
+      catalogCycles = mod.catalogCycles;
+      setStatus('cycleCatalog: module loaded.');
+    } catch {
+      setStatus('cycleCatalog: module not found — using built-in fallback.');
+    }
+
+    // --- runner: uses your engine if present, else fallback ---
+    async function runSequence(start, params, maxSteps) {
+      if (window?.MyCollatz?.run) {
+        // Your real engine signature:
+        //   MyCollatz.run(start(BigInt), params, maxSteps) -> { sequence: BigInt[], type: ... }
+        return window.MyCollatz.run(start, params, maxSteps);
+      }
+      // Fallback to classic:
+      return classicCollatzRun(start, BigInt(maxSteps ?? 20000));
+    }
+
+    // --- scan handler ---
+    document.getElementById('scanBtn').addEventListener('click', async () => {
+      setStatus('Scanning 1..5000 (please wait)…');
+      const t0 = performance.now();
+
+      // Build starts as BigInts:
+      const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
+
+      // If we have a proper catalogCycles, use it; otherwise build a simple mini catalog
+      if (catalogCycles) {
+        try {
+          const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
+          const t1 = performance.now();
+          setStatus(`Done in ${(t1 - t0).toFixed(1)} ms • ${rows.length} rows.`);
+          print(rows);
+          return;
+        } catch (e) {
+          console.error(e);
+          setStatus('Error running catalogCycles — falling back to simple scan.');
+        }
+      }
+
+      // Simple fallback: list starts that cycle or diverge (very basic)
+      const rows = [];
+      for (const s of starts) {
+        const res = await runSequence(s, null, 20000);
+        if (res.type !== 'converges_to_1') {
+          rows.push({ start: s.toString(), type: res.type, length: res.sequence.length });
+        }
+      }
+      const t1 = performance.now();
+      setStatus(`Done (fallback) in ${(t1 - t0).toFixed(1)} ms • ${rows.length} flagged.`);
+      print(rows);
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      print('');
+      setStatus('');
+    });
+  </script>
+
+  <!-- Keep this if you have a separate app script; it won’t interfere -->
   <script type="module" src="./js/index.js"></script>
 </body>
-</html>
+        </html>
