@@ -91,6 +91,7 @@
             <button id="generateBtn" class="w-full py-2 px-4 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 mt-4">
                 Generate 3D Chaos Model
             </button>
+            <div id="status" class="text-center text-sm text-gray-400 mt-2">Ready.</div>
         </div>
 
         <div id="three-canvas-container" class="w-full" style="height: 600px;">
@@ -102,199 +103,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script type="module">
-        // === Utility Functions ===
-        function isPrime(n) {
-            if (n <= 1) return false;
-            if (n <= 3) return true;
-            if (n % 2 === 0 || n % 3 === 0) return false;
-            for (let i = 5; i * i <= n; i = i + 6) {
-                if (n % i === 0 || n % (i + 2) === 0) return false;
-            }
-            return true;
-        }
-
-        // === Complex Number Class ===
-        class Complex {
-            constructor(re, im) {
-                this.re = re || 0;
-                this.im = im || 0;
-            }
-            add(other) {
-                return new Complex(this.re + other.re, this.im + other.im);
-            }
-            mult(other) {
-                if (typeof other === 'number') {
-                    return new Complex(this.re * other, this.im * other);
-                }
-                return new Complex(this.re * other.re - this.im * other.im, this.re * other.im + this.im * other.re);
-            }
-            div(other) {
-                if (typeof other === 'number') {
-                    return new Complex(this.re / other, this.im / other);
-                }
-                const denominator = other.re * other.re + other.im * other.im;
-                return new Complex(
-                    (this.re * other.re + this.im * other.im) / denominator,
-                    (this.im * other.re - this.re * other.im) / denominator
-                );
-            }
-            mod() {
-                return Math.sqrt(this.re * this.re + this.im * this.im);
-            }
-        }
-        
-        // === Keçeci Number System Logic ===
-        function nextKececiNumber(n, rule) {
-            let temp;
-            if (rule === 'ruleA') {
-                temp = n + 7;
-                const conditionalResult = (temp % 2 === 0) ? temp / 2 : temp;
-                return isPrime(conditionalResult) ? conditionalResult * 3 : conditionalResult + 1;
-            } else if (rule === 'ruleB') {
-                temp = n + 5;
-                const conditionalResult = (temp % 3 === 0) ? temp / 3 : temp;
-                return isPrime(conditionalResult) ? conditionalResult * 2 + 1 : conditionalResult * 1.5;
-            }
-        }
-
-        function runKececiSequence(start, rule, maxSteps = 1000) {
-            let n = start;
-            const sequence = [n];
-            const seen = new Set();
-            
-            for (let i = 0; i < maxSteps; i++) {
-                if (seen.has(n)) {
-                    return { sequence, type: 'cycle' };
-                }
-                seen.add(n);
-                if (n === 1) {
-                    return { sequence, type: 'converges' };
-                }
-                
-                n = nextKececiNumber(n, rule);
-                sequence.push(n);
-            }
-            return { sequence, type: 'diverges' };
-        }
-
-        function runComplexKececiSequence(start, rule, maxSteps = 1000) {
-            let n = start;
-            const sequence = [n];
-            const seen = new Set();
-            
-            for (let i = 0; i < maxSteps; i++) {
-                const key = n.re + ',' + n.im;
-                if (seen.has(key)) {
-                    return { sequence, type: 'cycle' };
-                }
-                seen.add(key);
-                
-                if (n.re === 1 && n.im === 0) {
-                    return { sequence, type: 'converges' };
-                }
-                
-                if (rule === 'ruleA') {
-                    let temp = n.add(new Complex(7, 0));
-                    const isTempPrime = isPrime(Math.floor(temp.mod()));
-                    const conditionalResult = (Math.floor(temp.mod()) % 2 === 0) ? temp.div(2) : temp;
-                    n = isTempPrime ? conditionalResult.mult(3) : conditionalResult.add(new Complex(1, 0));
-                } else if (rule === 'ruleB') {
-                    let temp = n.add(new Complex(5, 0));
-                    const isTempPrime = isPrime(Math.floor(temp.mod()));
-                    const conditionalResult = (Math.floor(temp.mod()) % 3 === 0) ? temp.div(3) : temp;
-                    n = isTempPrime ? conditionalResult.mult(2).add(new Complex(1, 0)) : conditionalResult.mult(1.5);
-                }
-
-                sequence.push(n);
-            }
-            return { sequence, type: 'diverges' };
-        }
-        
-        // === Generalized Collatz Logic ===
-        function generalizedCollatz(n, a, b, c) {
-            const sequence = [n];
-            const seen = new Set();
-            for (let i = 0; i < 1000; i++) {
-                if (n === 1 || seen.has(n)) {
-                    return { sequence, type: 'cycle' };
-                }
-                seen.add(n);
-                if (n % 2 === 0) {
-                    n = n / 2;
-                } else {
-                    n = (a * n + b) / c;
-                }
-                sequence.push(n);
-            }
-            return { sequence, type: 'diverges' };
-        }
-
-        // === Chaos Metric Function ===
-        function calculateChaosMetrics(system, params, type) {
-            let n1, n2;
-            const start1 = 6;
-            const start2 = 7;
-
-            if (type === 'real') {
-                n1 = 6.0;
-                n2 = 7.0;
-            } else if (type === 'complex') {
-                n1 = new Complex(6, 0);
-                n2 = new Complex(7, 0);
-            } else {
-                n1 = start1;
-                n2 = start2;
-            }
-
-            let seq1, seq2;
-            if (system === 'kececi') {
-                seq1 = (type === 'complex' ? runComplexKececiSequence(n1, params.rule) : runKececiSequence(n1, params.rule)).sequence;
-                seq2 = (type === 'complex' ? runComplexKececiSequence(n2, params.rule) : runKececiSequence(n2, params.rule)).sequence;
-            } else {
-                seq1 = generalizedCollatz(n1, params.a, params.b, params.c).sequence;
-                seq2 = generalizedCollatz(n2, params.a, params.b, params.c).sequence;
-            }
-
-            const maxLength = Math.max(seq1.length, seq2.length);
-
-            let maxDistance = 0;
-            let currentDistance = 0;
-            let finalDistance = 0;
-
-            for (let i = 0; i < maxLength; i++) {
-                let diff;
-                if (type === 'complex') {
-                    const val1 = seq1[i] || seq1[seq1.length - 1];
-                    const val2 = seq2[i] || seq2[seq2.length - 1];
-                    diff = new Complex(val1.re - val2.re, val1.im - val2.im);
-                    currentDistance = diff.mod();
-                } else {
-                    const val1 = seq1[i] || seq1[seq1.length - 1];
-                    const val2 = seq2[i] || seq2[seq2.length - 1];
-                    diff = val1 - val2;
-                    currentDistance = Math.abs(diff);
-                }
-                
-                if (currentDistance > maxDistance) {
-                    maxDistance = currentDistance;
-                }
-                finalDistance = currentDistance;
-            }
-
-            const divergenceRate = finalDistance / maxLength;
-            
-            return {
-                finalDistance,
-                maxDistance,
-                divergenceRate
-            };
-        }
-        
         // === Three.js Setup ===
         let scene, camera, renderer;
         let isMouseDown = false;
         let mouseX = 0, mouseY = 0;
         let container;
+        const cubes = [];
 
         function initThreeJS() {
             container = document.getElementById('three-canvas-container');
@@ -365,69 +179,85 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
 
-        // === Generate Model Logic ===
+        // === Main Logic with Web Worker ===
+        let worker = null;
+
         function generateModel() {
+            const statusDiv = document.getElementById('status');
+            const generateBtn = document.getElementById('generateBtn');
+
+            // Set button to disabled and update status
+            generateBtn.disabled = true;
+            statusDiv.textContent = "Calculating... Please wait...";
+            
             // Clear previous model
-            while (scene.children.length > 0) {
-                const object = scene.children[0];
-                if (object.type !== 'AmbientLight' && object.type !== 'DirectionalLight' && object.type !== 'AxesHelper') {
-                    scene.remove(object);
-                }
-            }
+            cubes.forEach(cube => scene.remove(cube));
+            cubes.length = 0;
+            console.log("Previous model cleared.");
 
             const system = document.getElementById('systemSelect').value;
             const numberType = document.getElementById('numberType').value;
-
             let params = {};
-            let aStart, aEnd, bStart, bEnd, cStart, cEnd;
 
-            if (system === 'kececi') {
+            // Validate inputs and collect parameters
+            if (system === 'generalized') {
+                const aVal = document.getElementById('a-param').value;
+                const bVal = document.getElementById('b-param').value;
+                const cVal = document.getElementById('c-param').value;
+                if (cVal === '0') {
+                    statusDiv.textContent = "Error: Parameter 'c' cannot be zero.";
+                    generateBtn.disabled = false;
+                    return;
+                }
+                params.a = parseInt(aVal);
+                params.b = parseInt(bVal);
+                params.c = parseInt(cVal);
+            } else if (system === 'kececi') {
                 params.rule = document.getElementById('kececiRule').value;
-                aStart = 3; aEnd = 4;
-                bStart = 1; bEnd = 2;
-                cStart = 2; cEnd = 3;
-            } else { // Generalized Collatz
-                aStart = 1; aEnd = 5;
-                bStart = 1; bEnd = 5;
-                cStart = 1; cEnd = 5;
-            }
-            
-            const maxDivergence = 10000;
-            const gridScale = 5;
-
-            function getColor(value, max) {
-                const ratio = Math.min(value / max, 1);
-                const r = Math.floor(255 * ratio);
-                const g = Math.floor(255 * (1 - ratio));
-                return `rgb(${r},${g},0)`;
+            } else {
+                statusDiv.textContent = "Error: Invalid system selected.";
+                generateBtn.disabled = false;
+                return;
             }
 
-            for (let a = aStart; a <= aEnd; a++) {
-                for (let b = bStart; b <= bEnd; b++) {
-                    for (let c = cStart; c <= cEnd; c++) {
-                        if (c === 0) continue;
-                        
-                        let metrics;
-                        if (system === 'kececi') {
-                             metrics = calculateChaosMetrics(system, { rule: params.rule }, numberType);
-                        } else {
-                             metrics = calculateChaosMetrics(system, { a: a, b: b, c: c }, numberType);
-                        }
-                       
-                        const chaosScore = metrics.finalDistance;
-                        const colorHex = getColor(chaosScore, maxDivergence);
-                        const material = new THREE.MeshBasicMaterial({ color: colorHex });
+            // Terminate existing worker if it exists
+            if (worker) {
+                worker.terminate();
+            }
+
+            // Create a new web worker and pass the data
+            worker = new Worker('worker.js');
+            worker.postMessage({
+                system: system,
+                numberType: numberType,
+                params: params
+            });
+
+            // Listen for messages from the worker
+            worker.onmessage = function(e) {
+                if (e.data.cubes) {
+                    const gridScale = 5;
+                    e.data.cubes.forEach(cubeData => {
+                        const material = new THREE.MeshBasicMaterial({ color: cubeData.color });
                         const geometry = new THREE.BoxGeometry(1, 1, 1);
                         const cube = new THREE.Mesh(geometry, material);
                         
-                        cube.position.x = (a - aStart) * gridScale;
-                        cube.position.y = (b - bStart) * gridScale;
-                        cube.position.z = (c - cStart) * gridScale;
+                        cube.position.x = cubeData.x * gridScale;
+                        cube.position.y = cubeData.y * gridScale;
+                        cube.position.z = cubeData.z * gridScale;
                         
                         scene.add(cube);
-                    }
+                        cubes.push(cube);
+                    });
+                    statusDiv.textContent = "Rendering complete. Ready.";
+                    generateBtn.disabled = false;
+                } else if (e.data.status) {
+                    statusDiv.textContent = e.data.status;
+                } else if (e.data.error) {
+                    statusDiv.textContent = e.data.error;
+                    generateBtn.disabled = false;
                 }
-            }
+            };
         }
 
         // === Event Listener ===
@@ -441,7 +271,6 @@
             document.getElementById('generateBtn').addEventListener('click', () => {
                 generateModel();
             });
-            generateModel();
         };
     </script>
 </body>
