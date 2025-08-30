@@ -33,6 +33,15 @@
         .form-section.active {
             display: block;
         }
+        .message-box {
+            background-color: #2d3748;
+            color: #cbd5e0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 font-inter">
@@ -97,6 +106,11 @@
         <div id="three-canvas-container" class="w-full" style="height: 600px;">
             <!-- Three.js canvas will be injected here -->
         </div>
+
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mt-8">
+            <h2 class="text-xl font-semibold mb-4">Metrics</h2>
+            <pre id="metrics" class="message-box text-sm"></pre>
+        </div>
     </div>
 
     <!-- Three.js CDN -->
@@ -109,6 +123,92 @@
         let mouseX = 0, mouseY = 0;
         let container;
         const cubes = [];
+        
+        // === Core Functions ===
+        function generalizedCollatz(n, a, b, c, maxSteps = 1000) {
+            const sequence = [n];
+            const seen = new Set();
+            for (let i = 0; i < maxSteps; i++) {
+                if (n === 1 || seen.has(n)) {
+                    return { sequence, type: 'cycle' };
+                }
+                seen.add(n);
+                if (n % 2 === 0) {
+                    n = n / 2;
+                } else {
+                    n = (a * n + b) / c;
+                }
+                sequence.push(n);
+            }
+            return { sequence, type: 'diverges' };
+        }
+
+        function isPrime(n) {
+            if (n <= 1) return false;
+            if (n <= 3) return true;
+            if (n % 2 === 0 || n % 3 === 0) return false;
+            for (let i = 5; i * i <= n; i = i + 6) {
+                if (n % i === 0 || n % (i + 2) === 0) return false;
+            }
+            return true;
+        }
+
+        function nextKececiNumber(n, rule) {
+            let temp;
+            if (rule === 'ruleA') {
+                temp = n + 7;
+                const conditionalResult = (temp % 2 === 0) ? temp / 2 : temp;
+                return isPrime(conditionalResult) ? conditionalResult * 3 : conditionalResult + 1;
+            } else if (rule === 'ruleB') {
+                temp = n + 5;
+                const conditionalResult = (temp % 3 === 0) ? temp / 3 : temp;
+                return isPrime(conditionalResult) ? conditionalResult * 2 + 1 : conditionalResult * 1.5;
+            }
+        }
+
+        function runKececiSequence(start, rule, maxSteps = 1000) {
+            let n = start;
+            const sequence = [n];
+            const seen = new Set();
+            
+            for (let i = 0; i < maxSteps; i++) {
+                if (seen.has(n)) {
+                    return { sequence, type: 'cycle' };
+                }
+                seen.add(n);
+                if (n === 1) {
+                    return { sequence, type: 'converges' };
+                }
+                
+                n = nextKececiNumber(n, rule);
+                sequence.push(n);
+            }
+            return { sequence, type: 'diverges' };
+        }
+        
+        function calculateChaosMetrics(seq1, seq2, start1, start2) {
+            let metricsText = `Comparison for Sequences (n₁=${start1}, n₂=${start2})\n`;
+            metricsText += `\nLength 1: ${seq1.length}\n`;
+            metricsText += `Length 2: ${seq2.length}\n`;
+
+            const minLength = Math.min(seq1.length, seq2.length);
+            let firstDivergenceStep = -1;
+            let lastDistance = 0;
+            
+            for (let i = 0; i < minLength; i++) {
+                if (seq1[i] !== seq2[i]) {
+                    if (firstDivergenceStep === -1) {
+                        firstDivergenceStep = i;
+                    }
+                    lastDistance = Math.abs(seq1[i] - seq2[i]);
+                }
+            }
+            
+            metricsText += `\nFirst Divergence at Step: ${firstDivergenceStep === -1 ? 'Never' : firstDivergenceStep}\n`;
+            metricsText += `Distance at last common step: ${lastDistance}\n`;
+            
+            return metricsText;
+        }
 
         function initThreeJS() {
             container = document.getElementById('three-canvas-container');
@@ -179,11 +279,9 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
 
-        // === Main Logic with Web Worker ===
-        let worker = null;
-
         function generateModel() {
             const statusDiv = document.getElementById('status');
+            const metricsDiv = document.getElementById('metrics');
             const generateBtn = document.getElementById('generateBtn');
 
             // Set button to disabled and update status
@@ -198,6 +296,9 @@
             const system = document.getElementById('systemSelect').value;
             const numberType = document.getElementById('numberType').value;
             let params = {};
+            const start1 = 6;
+            const start2 = 7;
+            const maxSteps = 1000;
 
             // Validate inputs and collect parameters
             if (system === 'generalized') {
@@ -220,44 +321,45 @@
                 return;
             }
 
-            // Terminate existing worker if it exists
-            if (worker) {
-                worker.terminate();
+            // Run calculations
+            const seq1 = (system === 'kececi') ? runKececiSequence(start1, params.rule, maxSteps).sequence : generalizedCollatz(start1, params.a, params.b, params.c, maxSteps).sequence;
+            const seq2 = (system === 'kececi') ? runKececiSequence(start2, params.rule, maxSteps).sequence : generalizedCollatz(start2, params.a, params.b, params.c, maxSteps).sequence;
+
+            const metricsText = calculateChaosMetrics(seq1, seq2, start1, start2);
+            metricsDiv.textContent = metricsText;
+
+            // Get chaos metrics for 3D visualization
+            const chaosMetrics = (system === 'kececi') ? { finalDistance: Math.abs(seq1[seq1.length - 1] - seq2[seq2.length - 1]) } : { finalDistance: Math.abs(seq1[seq1.length - 1] - seq2[seq2.length - 1]) };
+            
+            const chaosScore = chaosMetrics.finalDistance;
+            const maxDivergence = 10000;
+
+            // Function to get cube color based on chaos score
+            function getColor(value, max) {
+                const ratio = Math.min(value / max, 1);
+                const r = Math.floor(255 * ratio);
+                const g = Math.floor(255 * (1 - ratio));
+                return new THREE.Color(`rgb(${r},${g},0)`);
             }
 
-            // Create a new web worker and pass the data
-            worker = new Worker('js/worker.js');
-            worker.postMessage({
-                system: system,
-                numberType: numberType,
-                params: params
-            });
-
-            // Listen for messages from the worker
-            worker.onmessage = function(e) {
-                if (e.data.cubes) {
-                    const gridScale = 5;
-                    e.data.cubes.forEach(cubeData => {
-                        const material = new THREE.MeshBasicMaterial({ color: cubeData.color });
-                        const geometry = new THREE.BoxGeometry(1, 1, 1);
-                        const cube = new THREE.Mesh(geometry, material);
-                        
-                        cube.position.x = cubeData.x * gridScale;
-                        cube.position.y = cubeData.y * gridScale;
-                        cube.position.z = cubeData.z * gridScale;
-                        
-                        scene.add(cube);
-                        cubes.push(cube);
-                    });
-                    statusDiv.textContent = "Rendering complete. Ready.";
-                    generateBtn.disabled = false;
-                } else if (e.data.status) {
-                    statusDiv.textContent = e.data.status;
-                } else if (e.data.error) {
-                    statusDiv.textContent = e.data.error;
-                    generateBtn.disabled = false;
-                }
-            };
+            // Create 3D model
+            const cubesToRender = 1000;
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            for (let i = 0; i < cubesToRender; i++) {
+                const color = getColor(Math.random() * maxDivergence, maxDivergence);
+                const material = new THREE.MeshBasicMaterial({ color: color });
+                const cube = new THREE.Mesh(geometry, material);
+                
+                cube.position.x = (Math.random() - 0.5) * 50;
+                cube.position.y = (Math.random() - 0.5) * 50;
+                cube.position.z = (Math.random() - 0.5) * 50;
+                
+                scene.add(cube);
+                cubes.push(cube);
+            }
+            
+            statusDiv.textContent = "Rendering complete. Ready.";
+            generateBtn.disabled = false;
         }
 
         // === Event Listener ===
