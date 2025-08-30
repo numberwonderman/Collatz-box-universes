@@ -49,6 +49,14 @@
                     <input type="number" id="paramC" value="2" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
                 </div>
             </div>
+            <div class="form-group">
+                <label for="numberType" class="block text-gray-300">Number System</label>
+                <select id="numberType" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                    <option value="integer">Integers</option>
+                    <option value="real">Real Numbers</option>
+                    <option value="complex">Complex Numbers</option>
+                </select>
+            </div>
             <button id="generateBtn" class="w-full py-2 px-4 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
                 Generate 3D Chaos Model
             </button>
@@ -63,42 +71,128 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
     <script>
+        // === Complex Number Class for Arithmetic ===
+        class Complex {
+            constructor(re, im) {
+                this.re = re || 0;
+                this.im = im || 0;
+            }
+            add(other) {
+                return new Complex(this.re + other.re, this.im + other.im);
+            }
+            mult(other) {
+                if (typeof other === 'number') {
+                    return new Complex(this.re * other, this.im * other);
+                }
+                return new Complex(this.re * other.re - this.im * other.im, this.re * other.im + this.im * other.re);
+            }
+            div(other) {
+                if (typeof other === 'number') {
+                    return new Complex(this.re / other, this.im / other);
+                }
+                const denominator = other.re * other.re + other.im * other.im;
+                return new Complex(
+                    (this.re * other.re + this.im * other.im) / denominator,
+                    (this.im * other.re - this.re * other.im) / denominator
+                );
+            }
+            mod() {
+                return Math.sqrt(this.re * this.re + this.im * this.im);
+            }
+            isOne() {
+                return this.re === 1 && this.im === 0;
+            }
+            toString() {
+                return `${this.re} + ${this.im}i`;
+            }
+        }
+        
         // === Core Generalized Collatz Logic ===
-        function generalizedCollatz(n, a, b, c) {
+        function generalizedCollatz(n, a, b, c, type) {
             let sequence = [n];
             let current = n;
             const maxIterations = 1000;
             let iterations = 0;
 
-            while (current !== 1 && iterations < maxIterations) {
-                if (current % c === 0) {
-                    current = current / c;
-                } else {
-                    current = a * current + b;
+            if (type === 'integer') {
+                while (current !== 1 && iterations < maxIterations) {
+                    if (current % c === 0) {
+                        current = current / c;
+                    } else {
+                        current = a * current + b;
+                    }
+                    sequence.push(current);
+                    iterations++;
                 }
-                sequence.push(current);
-                iterations++;
+            } else if (type === 'real') {
+                const tolerance = 1e-9;
+                while (Math.abs(current - 1) > tolerance && iterations < maxIterations) {
+                    if (Math.abs(current % c) < tolerance) {
+                        current = current / c;
+                    } else {
+                        current = a * current + b;
+                    }
+                    sequence.push(current);
+                    iterations++;
+                }
+            } else if (type === 'complex') {
+                const tolerance = 1e-9;
+                const one = new Complex(1, 0);
+                while (current.re !== 1 || current.im !== 0) {
+                    if (iterations >= maxIterations) break;
+
+                    const remainder = current.mod() % c;
+                    if (remainder < tolerance) {
+                        current = current.div(c);
+                    } else {
+                        current = current.mult(a).add(new Complex(b, 0));
+                    }
+                    sequence.push(current);
+                    iterations++;
+                }
             }
             return sequence;
         }
 
         // === Chaos Metric Function ===
-        // This is a simplified metric for demonstrating divergence.
-        // It calculates the final Euclidean distance between two sequences.
-        function calculateChaosMetric(n1, n2, a, b, c) {
-            const seq1 = generalizedCollatz(n1, a, b, c);
-            const seq2 = generalizedCollatz(n2, a, b, c);
+        // Now calculates a more robust set of metrics for divergence.
+        function calculateChaosMetrics(n1, n2, a, b, c, type) {
+            const seq1 = generalizedCollatz(n1, a, b, c, type);
+            const seq2 = generalizedCollatz(n2, a, b, c, type);
             
-            // Pad the shorter sequence with its last value to match lengths
             const maxLength = Math.max(seq1.length, seq2.length);
-            while (seq1.length < maxLength) seq1.push(seq1[seq1.length - 1]);
-            while (seq2.length < maxLength) seq2.push(seq2[seq2.length - 1]);
 
-            let distance = 0;
+            let maxDistance = 0;
+            let currentDistance = 0;
+            let finalDistance = 0;
+
             for (let i = 0; i < maxLength; i++) {
-                distance += (seq1[i] - seq2[i]) ** 2;
+                let diff;
+                if (type === 'complex') {
+                    const val1 = seq1[i] || seq1[seq1.length - 1];
+                    const val2 = seq2[i] || seq2[seq2.length - 1];
+                    diff = new Complex(val1.re - val2.re, val1.im - val2.im);
+                    currentDistance = diff.mod();
+                } else {
+                    const val1 = seq1[i] || seq1[seq1.length - 1];
+                    const val2 = seq2[i] || seq2[seq2.length - 1];
+                    diff = val1 - val2;
+                    currentDistance = Math.abs(diff);
+                }
+                
+                if (currentDistance > maxDistance) {
+                    maxDistance = currentDistance;
+                }
+                finalDistance = currentDistance;
             }
-            return Math.sqrt(distance);
+
+            const divergenceRate = finalDistance / maxLength;
+            
+            return {
+                finalDistance,
+                maxDistance,
+                divergenceRate
+            };
         }
         
         // === Three.js Setup ===
@@ -192,8 +286,8 @@
             
             const n1 = 6, n2 = 7;
             const maxDivergence = 10000;
-            const maxSteps = 100;
             const gridScale = 5;
+            const numberType = document.getElementById('numberType').value;
 
             // Simple linear color gradient from green to red
             function getColor(value, max) {
@@ -208,8 +302,19 @@
                     for (let c = cStart; c <= cEnd; c++) {
                         // Skip division by zero
                         if (c === 0) continue;
+                        
+                        let metrics;
+                        if (numberType === 'complex') {
+                            const cn1 = new Complex(n1, n2);
+                            const cn2 = new Complex(n1 + 0.001, n2);
+                            metrics = calculateChaosMetrics(cn1, cn2, a, b, c, numberType);
+                        } else {
+                            metrics = calculateChaosMetrics(n1, n2, a, b, c, numberType);
+                        }
 
-                        const chaosScore = calculateChaosMetric(n1, n2, a, b, c);
+                        // We will use the final distance as the primary chaos score for now
+                        // You can easily switch to maxDistance or divergenceRate if you prefer
+                        const chaosScore = metrics.finalDistance;
                         const colorHex = getColor(chaosScore, maxDivergence);
                         const material = new THREE.MeshBasicMaterial({ color: colorHex });
                         const geometry = new THREE.BoxGeometry(1, 1, 1);
