@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chaos Slicer - 3D Divergence Visualizer</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            background-color: #1a202c;
+            overflow-x: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        .container {
+            padding: 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-200 font-inter">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold text-center my-8">Chaos Slicer</h1>
+        
+        <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
+            <p class="text-center text-gray-400 mb-4">Visualize the chaotic nature of generalized Collatz sequences in a 3D space by varying rule parameters.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div class="form-group">
+                    <label for="paramA" class="block text-gray-300">Parameter A</label>
+                    <input type="number" id="paramA" value="3" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                </div>
+                <div class="form-group">
+                    <label for="paramB" class="block text-gray-300">Parameter B</label>
+                    <input type="number" id="paramB" value="1" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                </div>
+                <div class="form-group">
+                    <label for="paramC" class="block text-gray-300">Parameter C</label>
+                    <input type="number" id="paramC" value="2" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                </div>
+            </div>
+            <button id="generateBtn" class="w-full py-2 px-4 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+                Generate 3D Chaos Model
+            </button>
+        </div>
+
+        <div id="three-canvas-container" class="w-full" style="height: 600px;">
+            <!-- Three.js canvas will be injected here -->
+        </div>
+    </div>
+
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // === Core Generalized Collatz Logic ===
+        function generalizedCollatz(n, a, b, c) {
+            let sequence = [n];
+            let current = n;
+            const maxIterations = 1000;
+            let iterations = 0;
+
+            while (current !== 1 && iterations < maxIterations) {
+                if (current % c === 0) {
+                    current = current / c;
+                } else {
+                    current = a * current + b;
+                }
+                sequence.push(current);
+                iterations++;
+            }
+            return sequence;
+        }
+
+        // === Chaos Metric Function ===
+        // This is a simplified metric for demonstrating divergence.
+        // It calculates the final Euclidean distance between two sequences.
+        function calculateChaosMetric(n1, n2, a, b, c) {
+            const seq1 = generalizedCollatz(n1, a, b, c);
+            const seq2 = generalizedCollatz(n2, a, b, c);
+            
+            // Pad the shorter sequence with its last value to match lengths
+            const maxLength = Math.max(seq1.length, seq2.length);
+            while (seq1.length < maxLength) seq1.push(seq1[seq1.length - 1]);
+            while (seq2.length < maxLength) seq2.push(seq2[seq2.length - 1]);
+
+            let distance = 0;
+            for (let i = 0; i < maxLength; i++) {
+                distance += (seq1[i] - seq2[i]) ** 2;
+            }
+            return Math.sqrt(distance);
+        }
+        
+        // === Three.js Setup ===
+        let scene, camera, renderer;
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let container;
+
+        function initThreeJS() {
+            container = document.getElementById('three-canvas-container');
+            const canvas = document.createElement('canvas');
+            container.appendChild(canvas);
+
+            // Scene, Camera, Renderer
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a202c);
+            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            camera.position.set(20, 20, 20);
+            camera.lookAt(0, 0, 0);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // Axis helpers for reference
+            const axesHelper = new THREE.AxesHelper(10);
+            scene.add(axesHelper);
+
+            // Animation loop
+            animate();
+            
+            // Mouse controls for camera rotation
+            canvas.addEventListener('mousedown', onMouseDown, false);
+            canvas.addEventListener('mouseup', onMouseUp, false);
+            canvas.addEventListener('mousemove', onMouseMove, false);
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        function onMouseDown(event) {
+            isMouseDown = true;
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        }
+
+        function onMouseUp(event) {
+            isMouseDown = false;
+        }
+
+        function onMouseMove(event) {
+            if (!isMouseDown) return;
+            const deltaX = event.clientX - mouseX;
+            const deltaY = event.clientY - mouseY;
+
+            // Simple camera rotation
+            camera.rotation.y += deltaX * 0.005;
+            camera.rotation.x += deltaY * 0.005;
+
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        }
+
+        function onWindowResize() {
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // === Generate Model Logic ===
+        function generateModel() {
+            // Clear previous model
+            while (scene.children.length > 0) {
+                const object = scene.children[0];
+                if (object.type !== 'AmbientLight' && object.type !== 'DirectionalLight' && object.type !== 'AxesHelper') {
+                    scene.remove(object);
+                }
+            }
+
+            const aStart = 3, aEnd = 4;
+            const bStart = 1, bEnd = 2;
+            const cStart = 2, cEnd = 3;
+            
+            const n1 = 6, n2 = 7;
+            const maxDivergence = 10000;
+            const maxSteps = 100;
+            const gridScale = 5;
+
+            // Simple linear color gradient from green to red
+            function getColor(value, max) {
+                const ratio = Math.min(value / max, 1);
+                const r = Math.floor(255 * ratio);
+                const g = Math.floor(255 * (1 - ratio));
+                return `rgb(${r},${g},0)`;
+            }
+
+            for (let a = aStart; a <= aEnd; a++) {
+                for (let b = bStart; b <= bEnd; b++) {
+                    for (let c = cStart; c <= cEnd; c++) {
+                        // Skip division by zero
+                        if (c === 0) continue;
+
+                        const chaosScore = calculateChaosMetric(n1, n2, a, b, c);
+                        const colorHex = getColor(chaosScore, maxDivergence);
+                        const material = new THREE.MeshBasicMaterial({ color: colorHex });
+                        const geometry = new THREE.BoxGeometry(1, 1, 1);
+                        const cube = new THREE.Mesh(geometry, material);
+                        
+                        // Position the cube in 3D space based on its parameters
+                        cube.position.x = (a - aStart) * gridScale;
+                        cube.position.y = (b - bStart) * gridScale;
+                        cube.position.z = (c - cStart) * gridScale;
+                        
+                        scene.add(cube);
+                    }
+                }
+            }
+        }
+
+        // === Event Listener ===
+        window.onload = function() {
+            initThreeJS();
+            document.getElementById('generateBtn').addEventListener('click', () => {
+                generateModel();
+            });
+            // Initial generation
+            generateModel();
+        };
+    </script>
+</body>
+</html>
