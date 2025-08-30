@@ -70,5 +70,16 @@ function setupNineNetCanvas(canvasElement) {
     canvasElement.height = cssHeight * dpi;
     ctx.scale(dpi, dpi);
 }
+// index.js (client)
+import { IncrementalTree } from './js/incrementalEncoding.js';
+import { layoutTree } from './js/layoutTree.js';
+import { drawTree } from './js/treeRenderer.js';
 
+const T = new IncrementalTree(1n);
+// ...build with your reverse predecessors...
+// const T = IncrementalTree.buildFromReverse({ root: 1n, predecessors, depthLimit: 12 });
+
+const layout = layoutTree(T);         // -> { nodes:[{id,x,y}], edges:[{u,v}] }
+const canvas = document.getElementById('treeCanvas');
+drawTree(canvas, layout);             // draw only here
 // ... rest of your existing code (Event Listeners and DOMContentLoaded) ...
