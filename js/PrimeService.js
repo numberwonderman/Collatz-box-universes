@@ -1,168 +1,46 @@
-// Lightweight prime service with lazy sieve + caches.
-// Handles Number and BigInt inputs safely.
+// PrimeService.js
+// Fast small-prime table + on-demand sieve + memo cache
 
-// ---------- tiny utils ----------
-const asBigInt = (x) => (typeof x === "bigint" ? x : BigInt(x));
-const isNonNegInt = (x) => {
-  try {
-    const b = asBigInt(x);
-    return b >= 0n;
-  } catch {
-    return false;
-  }
-};
+const SMALL_PRIMES = Object.freeze([
+  2n,3n,5n,7n,11n,13n,17n,19n,23n,29n,31n,37n,41n,43n,47n,53n,59n,61n,67n,71n,73n,79n,83n,89n,97n,
+  101n,103n,107n,109n,113n,127n,131n,137n,139n,149n,151n,157n,163n,167n,173n,179n,181n,191n,193n,197n,199n,
+  211n,223n,227n,229n,233n,239n,241n,251n,257n,263n,269n,271n,277n,281n,283n,293n,307n,311n,313n,317n,331n,
+  337n,347n,349n,353n,359n,367n,373n,379n,383n,389n,397n,401n,409n,419n,421n,431n,433n,439n,443n,449n,457n,
+  461n,463n,467n,479n,487n,491n,499n,503n,509n,521n,523n,541n,547n,557n,563n,569n,571n,577n,587n,593n,599n,
+  601n,607n,613n,617n,619n,631n,641n,643n,647n,653n,659n,661n,673n,677n,683n,691n,701n,709n,719n,727n,733n,
+  739n,743n,751n,757n,761n,769n,773n,787n,797n,809n,811n,821n,823n,827n,829n,839n,853n,857n,859n,863n,877n,
+  881n,883n,887n,907n,911n,919n,929n,937n,941n,947n,953n,967n,971n,977n,983n,991n,997n
+]);
 
-// ---------- LRU-ish Map (size-capped, FIFO eviction) ----------
-function makeCappedCache(limit = 128) {
-  const m = new Map();
-  return {
-    get(k) { return m.get(k); },
-    has(k) { return m.has(k); },
-    set(k, v) {
-      if (m.size >= limit && !m.has(k)) {
-        // evict oldest key
-        const first = m.keys().next().value;
-        m.delete(first);
-      }
-      m.set(k, v);
-    },
-    clear(){ m.clear(); }
-  };
-}
+const PRIMES_LT_P_CACHE = new Map(); // BigInt p -> BigInt[] primes < p
 
-// ---------- “database” of small primes (seed) ----------
-const SEED_PRIMES = Object.freeze([
-  2,3,5,7,11,13,17,19,23,29,
-  31,37,41,43,47,53,59,61,67,71,
-  73,79,83,89,97,101,103,107,109,113,
-  127,131,137,139,149,151,157,163,167,173,
-  179,181,191,193,197,199,211,223,227,229,
-]); // keep modest; we’ll extend by sieve on demand
-
-// ---------- sieve state (lazy, extendable) ----------
-let sieveMax = SEED_PRIMES[SEED_PRIMES.length - 1];
-let sieve = new Uint8Array(sieveMax + 1);
-(function seedInit() {
-  sieve.fill(1);
-  sieve[0] = sieve[1] = 0;
-  for (const p of SEED_PRIMES) {
-    if (p * p > sieveMax) break;
-    if (sieve[p]) {
-      for (let m = p * p; m <= sieveMax; m += p) sieve[m] = 0;
-    }
-  }
-  for (const p of SEED_PRIMES) sieve[p] = 1;
-})();
-
-function extendSieve(upto) {
-  if (upto <= sieveMax) return;
-  // Hard guard to keep phones responsive
-  const HARD_LIMIT = 1_000_000; // 1e6 is still ok-ish in JS
-  if (upto > HARD_LIMIT) upto = HARD_LIMIT;
-
-  const oldMax = sieveMax;
-  sieveMax = upto;
-  const newSieve = new Uint8Array(sieveMax + 1);
-  newSieve.fill(1);
-  newSieve[0] = newSieve[1] = 0;
-
-  // copy old flags
-  newSieve.set(sieve);
-
-  // sieve from 2 to sqrt(upto)
-  const root = Math.floor(Math.sqrt(sieveMax));
-  for (let p = 2; p <= root; p++) {
-    if (newSieve[p]) {
-      let start = Math.max(p * p, Math.ceil((oldMax + 1) / p) * p);
-      for (let m = start; m <= sieveMax; m += p) newSieve[m] = 0;
-    }
-  }
-  sieve = newSieve;
-}
-
-// ---------- caches ----------
-const primesBelowCache = makeCappedCache(128);
-const factorCache = makeCappedCache(512);
-
-// ---------- API ----------
-
-/**
- * Return an array of all primes < limit (Number), cached.
- * If limit is small, comes straight from the seed/sieve; otherwise we extend lazily.
- */
-export function primesBelow(limit) {
-  if (!isNonNegInt(limit)) throw new Error(`primesBelow: limit must be a non-negative integer; got ${limit}`);
-  const L = Number(asBigInt(limit)); // we use Number for sieve indices
-  if (L <= 2) return [];
-
-  // cache hit?
-  if (primesBelowCache.has(L)) return primesBelowCache.get(L).slice();
-
-  // ensure sieve covers [0..L]
-  extendSieve(L);
-
+function sieve(limit) {
+  const lim = Number(limit);
+  const mark = new Uint8Array(lim + 1);
   const out = [];
-  for (let i = 2; i < L; i++) if (sieve[i]) out.push(i);
-  primesBelowCache.set(L, out);
-  return out.slice();
-}
-
-/** Simple isPrime for Number n using the sieve when possible; falls back to trial division. */
-export function isPrime(n) {
-  if (!isNonNegInt(n)) return false;
-  const x = Number(asBigInt(n));
-  if (!Number.isSafeInteger(x)) {
-    // fallback: trial division up to 1e6-ish guard
-    const MAX_TRIAL = 1_000_000;
-    const bound = Math.min(MAX_TRIAL, Math.floor(Math.sqrt(Number.MAX_SAFE_INTEGER)));
-    for (const p of primesBelow(Math.min(bound, x))) {
-      if (x % p === 0) return x === p;
+  for (let i = 2; i <= lim; i++) {
+    if (!mark[i]) {
+      out.push(i);
+      for (let j = i * i; j <= lim; j += i) mark[j] = 1;
     }
-    return true; // best effort
   }
-  if (x <= sieveMax) return !!sieve[x];
-  // trial division by primes we know; extend if needed a bit beyond sqrt(x)
-  const root = Math.floor(Math.sqrt(x));
-  extendSieve(root + 1);
-  for (let p = 2; p <= root; p++) {
-    if (sieve[p] && x % p === 0) return x === p;
-  }
-  return true;
+  return out.map(n => BigInt(n));
 }
 
-/**
- * Divide out all prime factors < p from n (to exhaustion).
- * n, p may be Number or BigInt; returns BigInt.
- * Cached by (n,p) string key.
- */
-export function removePrimesBelow(n, p) {
-  const N = asBigInt(n);
-  const P = asBigInt(p);
-  if (P < 2n) return N;
+export function primesBelow(p) {
+  p = BigInt(p);
+  if (PRIMES_LT_P_CACHE.has(p)) return PRIMES_LT_P_CACHE.get(p);
 
-  const key = `${N}#${P}`;
-  if (factorCache.has(key)) return factorCache.get(key);
-
-  const limit = Number(P); // we only need primes less than p
-  const plist = primesBelow(limit);
-  let cur = N;
-
-  for (const q of plist) {
-    const qb = BigInt(q);
-    while (cur % qb === 0n) cur /= qb;
-    if (cur === 1n) break;
+  // If p is small, slice from the static table
+  const last = SMALL_PRIMES[SMALL_PRIMES.length - 1];
+  if (p <= last + 1n) {
+    const cut = SMALL_PRIMES.filter(q => q < p);
+    PRIMES_LT_P_CACHE.set(p, cut);
+    return cut;
   }
-  factorCache.set(key, cur);
-  return cur;
-}
 
-/** Clear caches if you need to free memory. */
-export function clearPrimeCaches() {
-  primesBelowCache.clear();
-  factorCache.clear();
+  // Otherwise, sieve up to p-1 (bounded for typical use)
+  const list = sieve(p - 1n);
+  PRIMES_LT_P_CACHE.set(p, list);
+  return list;
 }
-
-export const _internal = {
-  extendSieve: (n) => extendSieve(Number(n)),
-  sieveMax: () => sieveMax
-};
