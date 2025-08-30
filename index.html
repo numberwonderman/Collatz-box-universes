@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Collatz Box Universes - Main</title>
 
   <!-- Tailwind + Fonts + Icons -->
@@ -10,9 +10,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-  <!-- MathJax (loader ONLY) -->
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- MathJax (loader only; no inline JS inside the tag) -->
+  <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
   <script>
+    // Optional: log when MathJax is ready
     window.addEventListener('DOMContentLoaded', () => {
       if (window.MathJax?.startup) {
         MathJax.startup.promise.then(() => {
@@ -23,36 +25,77 @@
   </script>
 
   <style>
-    /* Minimal styling; keep or replace with your existing CSS */
-    body {
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
-      min-height: 100vh;
-      color: #f8fafc;
-    }
+    /* --- keep styles lightweight for mobile; matches your previous look --- */
+    :root { color-scheme: dark; }
+    body { font-family: 'Inter', sans-serif; }
+
+    /* Custom scrollbar for history */
+    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,.1); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.2); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.3); }
+
+    /* Button hard border like your previous version */
+    button { border: 2px solid #fff !important; }
+
+    /* GitHub button */
     .github-button {
-      background-color: #24292e;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 6px;
+      background:#24292e; color:#fff; padding:8px 12px; border-radius:6px; text-decoration:none;
+      font-size:14px; display:inline-block; transition:transform .15s ease, background .15s ease;
     }
-    .github-button:hover { background-color: #40464d; }
+    .github-button:hover { background:#40464d; transform:scale(1.05); }
+
+    /* Gold star */
+    .gold-star { color: gold; font-size: 1.25rem; margin-left: .25rem; text-shadow: 0 0 5px rgba(255,215,0,.7); }
+
+    /* Radio option cards */
+    .radio-option {
+      display:flex; align-items:center; gap:.5rem;
+      background-color: rgba(45,55,72,.7); padding:.75rem 1rem; border-radius:.75rem;
+      border:1px solid rgba(74,85,104,.5); cursor:pointer; transition: background-color .15s ease;
+      user-select:none;
+    }
+    .radio-option:hover { background-color: rgba(74,85,104,.7); }
+    .radio-option input[type="radio"] { appearance:none; width:1.15rem; height:1.15rem; border:2px solid #a0aec0; border-radius:50%; position:relative; }
+    .radio-option input[type="radio"]:checked::before {
+      content:''; position:absolute; inset:.2rem; background:#fff; border-radius:50%;
+    }
+
+    /* Print clean */
+    @media print {
+      body { background:#fff !important; color:#000 !important; }
+      .no-print { display:none !important; }
+      .print-card { background:#fff !important; box-shadow:none !important; border:none !important; }
+      canvas { display:none !important; }
+    }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
 
-  <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
+<body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 p-4 flex items-center justify-center">
+
+  <div class="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl shadow-2xl p-6 sm:p-8 w-full max-w-4xl border border-blue-700 print-card">
 
     <!-- Header -->
-    <header class="flex justify-between items-center mb-6">
-      <div class="flex-grow text-center">
-        <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">Collatz Box Universes</h1>
+    <header class="flex items-center justify-between gap-3 mb-6">
+      <div class="flex-1 text-center">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-white drop-shadow-lg">Collatz Box Universes</h1>
       </div>
-      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">View on GitHub</a>
+      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button no-print">
+        View on GitHub
+      </a>
     </header>
 
+    <!-- Quick toggle (keeps your IDs) -->
+    <div class="flex items-center justify-center gap-3 mb-6 no-print">
+      <button id="toggleNegativeNumbers"
+              class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-3 rounded">
+        Toggle Negative Number Exploration
+      </button>
+      <span id="negativeStatus" class="text-blue-100">Status: Disabled</span>
+    </div>
+
     <!-- Mission -->
-    <section class="text-white text-center mb-8 px-4">
+    <section class="text-white text-center mb-8 px-2">
       <p class="max-w-2xl mx-auto text-lg leading-relaxed">
         Explore and visualize generalized Collatz sequences to discover hidden patterns,
         foster intuition, and gain new perspectives on dynamical systems.
@@ -63,129 +106,164 @@
       <p class="text-sm text-blue-200">(Standard Collatz uses X=2, Y=3, Z=1)</p>
     </section>
 
-    <!-- Cycle Catalog -->
-    <section class="my-4 p-4 border border-blue-700 rounded bg-black bg-opacity-20">
-      <h3 class="text-xl font-semibold mb-3">Cycle Catalog over Starts</h3>
-
-      <div class="flex gap-2 flex-wrap mb-3">
+    <!-- ===== Cycle Catalog (1..5000) ===== -->
+    <section class="my-4 p-4 rounded border border-blue-700 bg-black bg-opacity-20 no-print">
+      <h3 class="text-xl font-semibold mb-2 text-white">Cycle Catalog over Starts</h3>
+      <div class="flex items-center gap-3 mb-3">
         <button id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
           Scan 1..5000
         </button>
-        <button id="clearBtn" class="bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded">
-          Clear
-        </button>
+        <span id="scanStatus" class="text-blue-200 text-sm"></span>
+      </div>
+      <pre id="catalogOut" class="mt-2 max-h-72 overflow-auto text-xs sm:text-sm bg-black bg-opacity-40 p-2 rounded custom-scrollbar text-blue-100"></pre>
+    </section>
+
+    <!-- ===== Single Calculator (keeps your IDs for index.js to hook) ===== -->
+    <section id="singleCalculatorSection" class="no-print">
+      <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation</h2>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)"
+               class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <div class="flex items-center gap-2">
+          <input type="number" id="xValue" value="2" placeholder="X (Divisor)"
+                 class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700 flex-1" />
+          <span id="x-star" class="gold-star">⭐</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)"
+                 class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700 flex-1" />
+          <span id="y-star" class="gold-star">⭐</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="number" id="zValue" value="1" placeholder="Z (Adder)"
+                 class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700 flex-1" />
+          <span id="z-star" class="gold-star">⭐</span>
+        </div>
       </div>
 
-      <pre id="catalogOut" class="mt-3 max-h-80 overflow-auto text-sm bg-black bg-opacity-40 p-3 rounded"></pre>
+      <button id="calculateSingle" class="w-full mb-4 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+        Calculate Single Sequence
+      </button>
 
-      <p id="catalogStatus" class="text-xs text-blue-200 mt-2"></p>
+      <div id="singleNineNetContainer" class="flex justify-center items-center mb-6">
+        <canvas id="singleNineNetCanvas" width="380" height="290"
+                class="rounded-md border border-blue-700 bg-black/20"></canvas>
+      </div>
+
+      <div id="currentSequenceDetails"
+           class="hidden bg-blue-900/50 rounded-xl p-4 shadow-inner border border-blue-700 mb-8">
+        <h3 class="text-xl font-bold text-blue-200 mb-2">Current Sequence Results</h3>
+        <p class="text-blue-300">Parameters: <span id="currentParams">N=--, X=--, Y=--, Z=--</span></p>
+        <p class="text-blue-300">Steps: <span id="currentSteps">--</span> | Type: <span id="currentType">--</span></p>
+        <p class="text-blue-300">Range: [<span id="currentMin">--</span> to <span id="currentMax">--</span>]</p>
+        <p class="text-blue-300">Sum: <span id="currentSum">--</span></p>
+        <p class="text-blue-300">Average: <span id="currentAvg">--</span></p>
+        <p class="text-blue-300">Standard Deviation: <span id="currentStdDev">--</span></p>
+        <p class="text-blue-300">Stopping Time: <span id="currentStoppingTime">--</span></p>
+        <p class="text-blue-300">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
+        <p class="text-blue-300">First Descent Step: <span id="currentFirstDescentStep">--</span></p>
+        <p class="text-blue-300 mb-2">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
+        <div class="bg-blue-800/70 rounded p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
+          <span id="currentSequenceOutput">Sequence will appear here.</span>
+        </div>
+      </div>
     </section>
 
-    <!-- Launchpad (optional; keep your existing tools/radios if you want) -->
-    <section class="text-center mt-8">
-      <a href="./index.html" class="inline-flex items-center gap-2 px-4 py-2 rounded bg-purple-600 hover:bg-purple-700">
-        <i class="fas fa-home"></i> Main Hub
-      </a>
+    <!-- ===== Bulk Generator ===== -->
+    <section id="bulkCalculatorSection" class="hidden no-print">
+      <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+        <input type="number" id="xStart" value="1" placeholder="X Start" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <input type="number" id="xEnd" value="3" placeholder="X End" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <input type="number" id="yStart" value="1" placeholder="Y Start" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <input type="number" id="yEnd" value="3" placeholder="Y End" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <input type="number" id="zStart" value="1" placeholder="Z Start" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+        <input type="number" id="zEnd" value="1" placeholder="Z End" class="bg-blue-900/50 text-white rounded-xl p-3 border border-blue-700" />
+      </div>
+      <button id="generateBulk" class="w-full mb-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+        Generate Box Universe (Bulk)
+      </button>
+      <div id="bulkSequenceStats" class="hidden bg-blue-900/60 rounded-xl p-4 text-white text-sm border border-blue-700"></div>
     </section>
+
+    <!-- Color pickers -->
+    <div class="flex flex-wrap gap-4 justify-center items-center mb-6 no-print">
+      <label class="flex items-center gap-2 text-white">
+        <span class="font-semibold">Divisible Color:</span>
+        <input type="color" id="divColorPicker" value="#34d399" class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer" />
+      </label>
+      <label class="flex items-center gap-2 text-white">
+        <span class="font-semibold">Multiply/Add Color:</span>
+        <input type="color" id="mulColorPicker" value="#fb923c" class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer" />
+      </label>
+    </div>
+
+    <!-- History -->
+    <div id="historyContainer" class="hidden bg-blue-900/50 rounded-xl p-4 shadow-inner border border-blue-700 no-print">
+      <h2 class="text-2xl font-semibold text-white mb-4">Exploration History</h2>
+      <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2"></div>
+    </div>
+
+    <!-- Visualization Tool Picker -->
+    <div class="text-center mt-8 no-print">
+      <h2 class="text-3xl font-bold text-blue-300 mb-6">Select Visualization Tool</h2>
+      <div class="flex flex-col md:flex-row md:space-x-3 justify-center gap-3 mb-6">
+        <label class="radio-option"><input type="radio" name="visualization" value="index.html" checked><i class="fas fa-home"></i><span>Main Hub (OG 9-Net)</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="box-universe-viewer.html"><i class="fas fa-cubes"></i><span>Box Universe Viewer</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="slicer.html"><i class="fas fa-th-large"></i><span>2D Pseudo-3D Slicer</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="radial-animator.html"><i class="fas fa-expand-alt"></i><span>Radial Animator</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="radial-viewer.html"><i class="fas fa-circle-notch"></i><span>Radial Viewer</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="box-universe-fps.html"><i class="fas fa-vr-cardboard"></i><span>Box Universe FPS</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="collatz-dragon.html"><i class="fas fa-dragon"></i><span>Collatz Dragon Explorer</span></label>
+        <label class="radio-option"><input type="radio" name="visualization" value="collatz-lines-explorer.html"><i class="fas fa-chart-line"></i><span>Line Universe Explorer</span></label>
+      </div>
+      <button id="launchVisualization"
+              class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-blue-400">
+        Launch Selected Tool
+      </button>
+    </div>
 
   </div>
 
-  <footer class="text-center mt-6 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
+  <footer class="text-center mt-6 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg no-print">
     <p>&copy; 2025 Franklin Loeb. All rights reserved.</p>
     <p>Explore the code on
       <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.
     </p>
   </footer>
 
-  <!-- Page script: uses cycleCatalog.js if present, else a safe fallback -->
-  <script type="module">
-    // --- helpers: safe log + status ---
-    const outEl = document.getElementById('catalogOut');
-    const statusEl = document.getElementById('catalogStatus');
-    const print = (x) => { outEl.textContent = typeof x === 'string' ? x : JSON.stringify(x, null, 2); };
-    const setStatus = (s) => { statusEl.textContent = s; };
-
-    // --- fallback sequence runner (classic Collatz X=2,Y=3,Z=1) ---
-    function classicCollatzRun(start, maxSteps = 20000n) {
-      let n = BigInt(start);
-      const seq = [n];
-      const seen = new Set([n.toString()]);
-      for (let i = 0n; i < maxSteps; i++) {
-        if ((n & 1n) === 0n) n = n / 2n;
-        else n = 3n * n + 1n;
-        seq.push(n);
-        if (n === 1n) return { sequence: seq, type: 'converges_to_1' };
-        const k = n.toString();
-        if (seen.has(k)) return { sequence: seq, type: 'cycle' };
-        seen.add(k);
-      }
-      return { sequence: seq, type: 'reached_max_iterations' };
-    }
-
-    // --- catalogCycles (loaded dynamically if available) ---
-    let catalogCycles = null;
-    try {
-      // Adjust path if your repo uses a different casing: e.g. "./js/CycleCataloge.js"
-      const mod = await import('./js/cycleCatalog.js').catch(() => import('./js/CycleCataloge.js'));
-      catalogCycles = mod.catalogCycles;
-      setStatus('cycleCatalog: module loaded.');
-    } catch {
-      setStatus('cycleCatalog: module not found — using built-in fallback.');
-    }
-
-    // --- runner: uses your engine if present, else fallback ---
-    async function runSequence(start, params, maxSteps) {
-      if (window?.MyCollatz?.run) {
-        // Your real engine signature:
-        //   MyCollatz.run(start(BigInt), params, maxSteps) -> { sequence: BigInt[], type: ... }
-        return window.MyCollatz.run(start, params, maxSteps);
-      }
-      // Fallback to classic:
-      return classicCollatzRun(start, BigInt(maxSteps ?? 20000));
-    }
-
-    // --- scan handler ---
-    document.getElementById('scanBtn').addEventListener('click', async () => {
-      setStatus('Scanning 1..5000 (please wait)…');
-      const t0 = performance.now();
-
-      // Build starts as BigInts:
-      const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
-
-      // If we have a proper catalogCycles, use it; otherwise build a simple mini catalog
-      if (catalogCycles) {
-        try {
-          const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
-          const t1 = performance.now();
-          setStatus(`Done in ${(t1 - t0).toFixed(1)} ms • ${rows.length} rows.`);
-          print(rows);
-          return;
-        } catch (e) {
-          console.error(e);
-          setStatus('Error running catalogCycles — falling back to simple scan.');
-        }
-      }
-
-      // Simple fallback: list starts that cycle or diverge (very basic)
-      const rows = [];
-      for (const s of starts) {
-        const res = await runSequence(s, null, 20000);
-        if (res.type !== 'converges_to_1') {
-          rows.push({ start: s.toString(), type: res.type, length: res.sequence.length });
-        }
-      }
-      const t1 = performance.now();
-      setStatus(`Done (fallback) in ${(t1 - t0).toFixed(1)} ms • ${rows.length} flagged.`);
-      print(rows);
-    });
-
-    document.getElementById('clearBtn').addEventListener('click', () => {
-      print('');
-      setStatus('');
-    });
-  </script>
-
-  <!-- Keep this if you have a separate app script; it won’t interfere -->
+  <!-- Your app logic -->
   <script type="module" src="./js/index.js"></script>
+
+  <!-- Cycle Catalog wiring (safe if modules missing) -->
+  <script type="module">
+    const scanBtn = document.getElementById('scanBtn');
+    const scanStatus = document.getElementById('scanStatus');
+    const out = document.getElementById('catalogOut');
+
+    if (scanBtn) {
+      scanBtn.addEventListener('click', async () => {
+        out.textContent = '';
+        scanStatus.textContent = 'Scanning… this can take a moment.';
+        try {
+          const { catalogCycles } = await import('./js/cycleCatalog.js');
+          // Hook to your actual engine; keep placeholder if not present.
+          const runSequence = async (start, params, maxSteps) => {
+            if (window.MyCollatz?.run) return window.MyCollatz.run(start, params, maxSteps);
+            // Minimal fallback expects your engine elsewhere
+            throw new Error('Sequence engine (window.MyCollatz.run) not found.');
+          };
+          const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
+          const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
+          out.textContent = JSON.stringify(rows, null, 2);
+          scanStatus.textContent = 'Done.';
+        } catch (err) {
+          scanStatus.textContent = 'Error.';
+          out.textContent = (err && err.stack) ? err.stack : String(err);
+        }
+      });
+    }
+  </script>
 </body>
         </html>
