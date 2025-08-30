@@ -1,15 +1,17 @@
-<!DOCTYPE <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Collatz Box Universes - Main</title>
 
+  <!-- Tailwind + Fonts -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-  <!-- MathJax loader (do NOT put JS inside this tag) -->
+  <!-- MathJax loader -->
   <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-  <!-- Optional: log readiness once MathJax finishes -->
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       if (window.MathJax?.startup) {
@@ -21,201 +23,69 @@
   </script>
 
   <style>
-    /* (keep all your existing CSS here exactly as-is) */
+    /* Keep your existing CSS styles here (scrollbar, body bg, inputs, buttons, etc.) */
   </style>
-</head>>
+</head>
 <body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
 
-    <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
-                <header class="flex justify-between items-center mb-6">
-            <div class="flex-grow text-center">
-                <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">
-                    Collatz Box Universes
-                </h1>
-            </div>
-            <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
-                View on GitHub
-            </a>
-            <button id="toggleNegativeNumbers">Toggle Negative Number Exploration</button>
-<span id="negativeStatus" class="ml-2">Status: Disabled</span>
-        </header>
+  <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
 
-       <section class="text-white text-center mb-8 px-4">
-    <p class="project-mission-main mb-4 max-w-2xl mx-auto text-lg leading-relaxed">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-6">
+      <div class="flex-grow text-center">
+        <h1 class="text-4xl font-extrabold text-white drop-shadow-lg">Collatz Box Universes</h1>
+      </div>
+      <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="github-button">
+        View on GitHub
+      </a>
+      <button id="toggleNegativeNumbers">Toggle Negative Number Exploration</button>
+      <span id="negativeStatus" class="ml-2">Status: Disabled</span>
+    </header>
+
+    <!-- Mission -->
+    <section class="text-white text-center mb-8 px-4">
+      <p class="project-mission-main mb-4 max-w-2xl mx-auto text-lg leading-relaxed">
         Explore and visualize generalized Collatz sequences to discover hidden patterns,
         foster intuition, and gain new perspectives on dynamical systems.
-        It's a journey of visual discovery beyond traditional analysis, where rules are defined by **X, Y, and Z coordinates**.
-    </p>
-    <p class="font-semibold text-2xl mb-2 text-blue-300">
+      </p>
+      <p class="font-semibold text-2xl mb-2 text-blue-300">
         Rule: If $n \pmod{X} = 0$, then $n \to n / X$. Otherwise, $n \to n \cdot Y + Z$.
-    </p>
-    <p class="text-sm text-blue-200">
-        (Standard Collatz uses X=2, Y=3, Z=1)
-    </p>
-</section>
-<!-- in index.html -->
-<section class="my-4 p-3 border rounded">
-  <h3>Cycle Catalog over Starts</h3>
-  <button id="scanBtn">Scan 1..5000</button>
-  <pre id="catalogOut" style="max-height:300px;overflow:auto"></pre>
-</section>
-<script type="module">
-  import { catalogCycles } from './js/cycleCatalog.js';
-  // Adapt this wrapper to your sequence function signature:
-  async function runSequence(start, params, maxSteps) {
-    // TODO: call your real sequence/engine; must return { sequence: BigInt[], type: 'cycle'|... }
-    return window.MyCollatz.run(start, params, maxSteps); // placeholder
-  }
-  document.getElementById('scanBtn').onclick = async () => {
-    const starts = Array.from({length: 5000}, (_,i) => BigInt(i+1));
-    const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
-    document.getElementById('catalogOut').textContent = JSON.stringify(rows, null, 2);
-  };
-</script>
-                <div class="mb-6 text-center">
-            <input type="radio" id="modeSingle" name="calculatorMode" value="single" checked class="mr-2">
-            <label for="modeSingle" class="text-white text-lg mr-6">Single Calculation</label>
+      </p>
+      <p class="text-sm text-blue-200">(Standard Collatz uses X=2, Y=3, Z=1)</p>
+    </section>
 
-            <input type="radio" id="modeBulk" name="calculatorMode" value="bulk" class="mr-2">
-            <label for="modeBulk" class="text-white text-lg">Bulk Universe</label>
-        </div>
+    <!-- Cycle Catalog -->
+    <section class="my-4 p-3 border rounded">
+      <h3 class="text-xl font-semibold mb-2">Cycle Catalog over Starts</h3>
+      <button id="scanBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Scan 1..5000</button>
+      <pre id="catalogOut" class="mt-3 max-h-72 overflow-auto text-sm bg-black bg-opacity-40 p-2 rounded"></pre>
+    </section>
+    <script type="module">
+      import { catalogCycles } from './js/cycleCatalog.js';
+      async function runSequence(start, params, maxSteps) {
+        // Hook this to your real sequence engine
+        return window.MyCollatz.run(start, params, maxSteps); // placeholder
+      }
+      document.getElementById('scanBtn').onclick = async () => {
+        const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
+        const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
+        document.getElementById('catalogOut').textContent = JSON.stringify(rows, null, 2);
+      };
+    </script>
 
-                <div id="singleCalculatorSection">
-            <h2 class="text-2xl font-semibold text-white mb-4">Single Sequence Calculation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                <input type="number" id="startNumber" value="10" placeholder="Starting Number (n)" />
-                <div class="flex items-center">
-                    <input type="number" id="xValue" value="2" placeholder="X (Divisor, non-zero)" />
-                    <span id="x-star" class="gold-star">⭐</span>
-                </div>
-                <div class="flex items-center">
-                    <input type="number" id="yValue" value="3" placeholder="Y (Multiplier)" />
-                    <span id="y-star" class="gold-star">⭐</span>
-                </div>
-                <div class="flex items-center">
-                    <input type="number" id="zValue" value="1" placeholder="Z (Additive Constant)" />
-                    <span id="z-star" class="gold-star">⭐</span>
-                </div>
-            </div>
+    <!-- Single calculator + Bulk generator -->
+    <!-- (keep your existing form inputs, nine-net canvas, results panels, etc. here) -->
 
-            <button id="calculateSingle" class="w-full mb-4">
-                Calculate Single Sequence
-            </button>
+    <!-- Visualization tool selector -->
+    <!-- (keep your radio list + launch button here) -->
 
-                        <div id="singleNineNetContainer" class="flex justify-center items-center mb-8">
-                                <canvas id="singleNineNetCanvas" width="380" height="290" class="rounded-md border border-blue-700"></canvas>
-            </div>
+  </div>
 
-                        <div id="currentSequenceDetails" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 mb-8 hidden">
-                <h3 class="text-xl font-bold text-blue-200 mb-3">Current Sequence Results:</h3>
-                <p class="text-blue-300 mb-2">Parameters: <span id="currentParams">N=--, X=--, Y=--, Z=--</span></p>
-                <p class="text-blue-300 mb-2">Steps: <span id="currentSteps">--</span> | Type: <span id="currentType">--</span></p>
-                <p class="text-blue-300 mb-2">Range: [<span id="currentMin">--</span> to <span id="currentMax">--</span>]</p>
-                <p class="text-blue-300 mb-2">Sum: <span id="currentSum">--</span></p>
-                <p class="text-blue-300 mb-2">Average: <span id="currentAvg">--</span></p>
-                <p class="text-blue-300 mb-2">Standard Deviation: <span id="currentStdDev">--</span></p>
-                <p class="text-blue-300 mb-2">Stopping Time: <span id="currentStoppingTime">--</span></p>
-                <p class="text-blue-300 mb-2">Coefficient Stopping Time (&tau;): <span id="currentCoeffStoppingTime">--</span></p>
-                <p class="text-blue-300 mb-2">First Descent Step: <span id="currentFirstDescentStep">--</span></p>
-                <p class="text-blue-300 mb-4">Is Paradoxical: <span id="currentIsParadoxical">--</span></p>
-                <div class="bg-blue-800 bg-opacity-70 rounded-md p-3 max-h-40 overflow-y-auto custom-scrollbar text-blue-100 text-sm break-words">
-                    <span id="currentSequenceOutput">Sequence will appear here.</span>
-                </div>
-            </div>
-        </div>
+  <footer class="text-center mt-10 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
+    <p>&copy; 2025 Franklin Loeb. All rights reserved.</p>
+    <p>Explore the code on <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.</p>
+  </footer>
 
-                <div id="bulkCalculatorSection" class="hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Bulk Box Universe Generation:</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                <input type="number" id="xStart" value="1" placeholder="X Start" />
-                <input type="number" id="xEnd" value="3" placeholder="X End" />
-                <input type="number" id="yStart" value="1" placeholder="Y Start" />
-                <input type="number" id="yEnd" value="3" placeholder="Y End" />
-                <input type="number" id="zStart" value="1" placeholder="Z Start" />
-                <input type="number" id="zEnd" value="1" placeholder="Z End" />
-            </div>
-
-            <button id="generateBulk" class="w-full mb-6">
-                Generate Box Universe (Bulk)
-            </button>
-                        <div id="bulkSequenceStats" class="bg-blue-900 bg-opacity-60 rounded-xl p-4 w-full text-white text-sm border border-blue-700 mb-6 hidden">
-            </div>
-        </div>
-
-        <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-6 color-picker-group">
-            <div class="flex items-center space-x-2 text-white">
-                <label for="divColorPicker" class="font-semibold text-lg">Divisible Color:</label>
-                <input type="color" id="divColorPicker" value="#34d399"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-            <div class="flex items-center space-x-2 text-white">
-                <label for="mulColorPicker" class="font-semibold text-lg">Multiply/Add Color:</label>
-                <input type="color" id="mulColorPicker" value="#fb923c"
-                                        class="w-10 h-10 rounded-md border-2 border-blue-700 cursor-pointer">
-            </div>
-        </div>
-        <p id="errorMessage" class="text-red-400 text-center mb-4 text-lg font-medium"></p>
-
-        <div id="historyContainer" class="bg-blue-900 bg-opacity-50 rounded-xl p-6 shadow-inner border border-blue-700 hidden">
-            <h2 class="text-2xl font-semibold text-white mb-4">Exploration History:</h2>
-            <div id="runsHistory" class="max-h-96 overflow-y-auto custom-scrollbar pr-2">
-            </div>
-        </div>
-
-        <div class="text-center mt-10">
-            <h2 class="text-3xl font-bold text-blue-300 mb-6 text-center">Select Visualization Tool:</h2>
-                        <div class="flex flex-col md:flex-row md:space-x-4 justify-center gap-4 mb-6">
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="index.html" checked>
-                    <i class="fas fa-home"></i>
-                    <span>Main Hub (OG 9-Net)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="box-universe-viewer.html">
-                    <i class="fas fa-cubes"></i>
-                    <span>Box Universe Viewer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="slicer.html">
-                    <i class="fas fa-th-large"></i>
-                    <span>2D Pseudo-3D Slicer (Unfolded Box)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="radial-animator.html">
-                    <i class="fas fa-expand-alt"></i>
-                    <span>2D Pseudo-3D Slicer (Radial Animator)</span>
-                </label>
-                                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="radial-viewer.html">
-                    <i class="fas fa-circle-notch"></i>
-                    <span>Radial Viewer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="box-universe-fps.html">
-                    <i class="fas fa-vr-cardboard"></i>
-                    <span>Box Universe FPS (3D Slicer)</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="collatz-dragon.html">
-                    <i class="fas fa-dragon"></i>
-                    <span>Collatz Dragon Explorer</span>
-                </label>
-                <label class="radio-option w-full mb-2 md:w-auto md:mb-0">
-                    <input type="radio" name="visualization" value="collatz-lines-explorer.html">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Collatz Line Universe Explorer</span>
-                </label>
-            </div>
-<button id="launchVisualization" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded
-    focus:outline-none focus:shadow-outline transition duration-200
-    focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 focus:ring-offset-2 focus:ring-offset-blue-900">
-    Launch Selected Tool
-</button>
-        </div>
-    </div>         <footer class="text-center mt-10 p-4 w-full text-white text-sm bg-black bg-opacity-20 rounded-t-lg">
-        <p>&copy; 2025 Frsnklin Loeb. All rights reserved.</p>
-        <p>Explore the code on <a href="https://github.com/numberwonderman/Collatz-box-universes/" target="_blank" class="text-blue-300 hover:underline">GitHub</a>.</p>
-    
-<script type="module" src="./js/index.js"></script>
+  <script type="module" src="./js/index.js"></script>
 </body>
 </html>
