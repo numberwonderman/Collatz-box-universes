@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chaos Slicer - 3D Divergence Visualizer</title>
+    <title>Chaos Slicer</title>
     <!-- Tailwind CSS CDN for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -27,6 +27,12 @@
             width: 100%;
             max-width: 1200px;
         }
+        .form-section {
+            display: none;
+        }
+        .form-section.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-gray-200 font-inter">
@@ -34,22 +40,46 @@
         <h1 class="text-3xl font-bold text-center my-8">Chaos Slicer</h1>
         
         <div class="bg-gray-800 p-6 rounded-lg shadow-md mb-8">
-            <p class="text-center text-gray-400 mb-4">Visualize the chaotic nature of generalized Collatz sequences in a 3D space by varying rule parameters.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                <div class="form-group">
-                    <label for="paramA" class="block text-gray-300">Parameter A</label>
-                    <input type="number" id="paramA" value="3" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
-                </div>
-                <div class="form-group">
-                    <label for="paramB" class="block text-gray-300">Parameter B</label>
-                    <input type="number" id="paramB" value="1" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
-                </div>
-                <div class="form-group">
-                    <label for="paramC" class="block text-gray-300">Parameter C</label>
-                    <input type="number" id="paramC" value="2" step="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+            <p class="text-center text-gray-400 mb-4">Visualize the chaotic nature of different number systems by selecting a set of rules.</p>
+
+            <div class="form-group mb-4">
+                <label for="systemSelect" class="block text-gray-300">Select System</label>
+                <select id="systemSelect" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                    <option value="generalized">Generalized Collatz</option>
+                    <option value="kececi">Keçeci Number System</option>
+                </select>
+            </div>
+
+            <div id="generalized-section" class="form-section active">
+                <h3 class="text-xl font-bold my-4">Generalized Collatz</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="form-group">
+                        <label for="a-param" class="block text-gray-300">Parameter 'a'</label>
+                        <input type="number" id="a-param" value="3" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                    </div>
+                    <div class="form-group">
+                        <label for="b-param" class="block text-gray-300">Parameter 'b'</label>
+                        <input type="number" id="b-param" value="1" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                    </div>
+                    <div class="form-group">
+                        <label for="c-param" class="block text-gray-300">Parameter 'c'</label>
+                        <input type="number" id="c-param" value="2" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
+
+            <div id="kececi-section" class="form-section">
+                <h3 class="text-xl font-bold my-4">Keçeci Number System</h3>
+                <div class="form-group mb-4">
+                    <label for="kececiRule" class="block text-gray-300">Keçeci Rule</label>
+                    <select id="kececiRule" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
+                        <option value="ruleA">Rule A: Standard Conceptual</option>
+                        <option value="ruleB">Rule B: Alternative Conceptual</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group mb-4">
                 <label for="numberType" class="block text-gray-300">Number System</label>
                 <select id="numberType" class="w-full rounded-md bg-gray-700 text-gray-200 p-2 border border-gray-600">
                     <option value="integer">Integers</option>
@@ -57,7 +87,8 @@
                     <option value="complex">Complex Numbers</option>
                 </select>
             </div>
-            <button id="generateBtn" class="w-full py-2 px-4 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200">
+
+            <button id="generateBtn" class="w-full py-2 px-4 rounded-md font-semibold text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200 mt-4">
                 Generate 3D Chaos Model
             </button>
         </div>
@@ -70,8 +101,19 @@
     <!-- Three.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <script>
-        // === Complex Number Class for Arithmetic ===
+    <script type="module">
+        // === Utility Functions ===
+        function isPrime(n) {
+            if (n <= 1) return false;
+            if (n <= 3) return true;
+            if (n % 2 === 0 || n % 3 === 0) return false;
+            for (let i = 5; i * i <= n; i = i + 6) {
+                if (n % i === 0 || n % (i + 2) === 0) return false;
+            }
+            return true;
+        }
+
+        // === Complex Number Class ===
         class Complex {
             constructor(re, im) {
                 this.re = re || 0;
@@ -99,67 +141,120 @@
             mod() {
                 return Math.sqrt(this.re * this.re + this.im * this.im);
             }
-            isOne() {
-                return this.re === 1 && this.im === 0;
-            }
-            toString() {
-                return `${this.re} + ${this.im}i`;
-            }
         }
         
-        // === Core Generalized Collatz Logic ===
-        function generalizedCollatz(n, a, b, c, type) {
-            let sequence = [n];
-            let current = n;
-            const maxIterations = 1000;
-            let iterations = 0;
-
-            if (type === 'integer') {
-                while (current !== 1 && iterations < maxIterations) {
-                    if (current % c === 0) {
-                        current = current / c;
-                    } else {
-                        current = a * current + b;
-                    }
-                    sequence.push(current);
-                    iterations++;
-                }
-            } else if (type === 'real') {
-                const tolerance = 1e-9;
-                while (Math.abs(current - 1) > tolerance && iterations < maxIterations) {
-                    if (Math.abs(current % c) < tolerance) {
-                        current = current / c;
-                    } else {
-                        current = a * current + b;
-                    }
-                    sequence.push(current);
-                    iterations++;
-                }
-            } else if (type === 'complex') {
-                const tolerance = 1e-9;
-                const one = new Complex(1, 0);
-                while (current.re !== 1 || current.im !== 0) {
-                    if (iterations >= maxIterations) break;
-
-                    const remainder = current.mod() % c;
-                    if (remainder < tolerance) {
-                        current = current.div(c);
-                    } else {
-                        current = current.mult(a).add(new Complex(b, 0));
-                    }
-                    sequence.push(current);
-                    iterations++;
-                }
+        // === Keçeci Number System Logic ===
+        function nextKececiNumber(n, rule) {
+            let temp;
+            if (rule === 'ruleA') {
+                temp = n + 7;
+                const conditionalResult = (temp % 2 === 0) ? temp / 2 : temp;
+                return isPrime(conditionalResult) ? conditionalResult * 3 : conditionalResult + 1;
+            } else if (rule === 'ruleB') {
+                temp = n + 5;
+                const conditionalResult = (temp % 3 === 0) ? temp / 3 : temp;
+                return isPrime(conditionalResult) ? conditionalResult * 2 + 1 : conditionalResult * 1.5;
             }
-            return sequence;
+        }
+
+        function runKececiSequence(start, rule, maxSteps = 1000) {
+            let n = start;
+            const sequence = [n];
+            const seen = new Set();
+            
+            for (let i = 0; i < maxSteps; i++) {
+                if (seen.has(n)) {
+                    return { sequence, type: 'cycle' };
+                }
+                seen.add(n);
+                if (n === 1) {
+                    return { sequence, type: 'converges' };
+                }
+                
+                n = nextKececiNumber(n, rule);
+                sequence.push(n);
+            }
+            return { sequence, type: 'diverges' };
+        }
+
+        function runComplexKececiSequence(start, rule, maxSteps = 1000) {
+            let n = start;
+            const sequence = [n];
+            const seen = new Set();
+            
+            for (let i = 0; i < maxSteps; i++) {
+                const key = n.re + ',' + n.im;
+                if (seen.has(key)) {
+                    return { sequence, type: 'cycle' };
+                }
+                seen.add(key);
+                
+                if (n.re === 1 && n.im === 0) {
+                    return { sequence, type: 'converges' };
+                }
+                
+                if (rule === 'ruleA') {
+                    let temp = n.add(new Complex(7, 0));
+                    const isTempPrime = isPrime(Math.floor(temp.mod()));
+                    const conditionalResult = (Math.floor(temp.mod()) % 2 === 0) ? temp.div(2) : temp;
+                    n = isTempPrime ? conditionalResult.mult(3) : conditionalResult.add(new Complex(1, 0));
+                } else if (rule === 'ruleB') {
+                    let temp = n.add(new Complex(5, 0));
+                    const isTempPrime = isPrime(Math.floor(temp.mod()));
+                    const conditionalResult = (Math.floor(temp.mod()) % 3 === 0) ? temp.div(3) : temp;
+                    n = isTempPrime ? conditionalResult.mult(2).add(new Complex(1, 0)) : conditionalResult.mult(1.5);
+                }
+
+                sequence.push(n);
+            }
+            return { sequence, type: 'diverges' };
+        }
+        
+        // === Generalized Collatz Logic ===
+        function generalizedCollatz(n, a, b, c) {
+            const sequence = [n];
+            const seen = new Set();
+            for (let i = 0; i < 1000; i++) {
+                if (n === 1 || seen.has(n)) {
+                    return { sequence, type: 'cycle' };
+                }
+                seen.add(n);
+                if (n % 2 === 0) {
+                    n = n / 2;
+                } else {
+                    n = (a * n + b) / c;
+                }
+                sequence.push(n);
+            }
+            return { sequence, type: 'diverges' };
         }
 
         // === Chaos Metric Function ===
-        // Now calculates a more robust set of metrics for divergence.
-        function calculateChaosMetrics(n1, n2, a, b, c, type) {
-            const seq1 = generalizedCollatz(n1, a, b, c, type);
-            const seq2 = generalizedCollatz(n2, a, b, c, type);
-            
+        function calculateChaosMetrics(system, params, type) {
+            let n1, n2;
+            const start1 = 6;
+            const start2 = 7;
+
+            if (type === 'real') {
+                n1 = 6.0;
+                n2 = 7.0;
+            } else if (type === 'complex') {
+                n1 = new Complex(6, 0);
+                n2 = new Complex(7, 0);
+            } else {
+                n1 = start1;
+                n2 = start2;
+            }
+
+            let seq1, seq2;
+            if (system === 'kececi') {
+                seq1 = (type === 'complex' ? runComplexKececiSequence(n1, params.rule) : runKececiSequence(n1, params.rule)).sequence;
+                seq2 = (type === 'complex' ? runComplexKececiSequence(n2, params.rule) : runKececiSequence(n2, params.rule)).sequence;
+            } else {
+                seq1 = generalizedCollatz(n1, params.a, params.b, params.c).sequence;
+                seq2 = generalizedCollatz(n2, params.a, params.b, params.c).sequence;
+            }
+
             const maxLength = Math.max(seq1.length, seq2.length);
 
             let maxDistance = 0;
@@ -280,16 +375,26 @@
                 }
             }
 
-            const aStart = 3, aEnd = 4;
-            const bStart = 1, bEnd = 2;
-            const cStart = 2, cEnd = 3;
-            
-            const n1 = 6, n2 = 7;
-            const maxDivergence = 10000;
-            const gridScale = 5;
+            const system = document.getElementById('systemSelect').value;
             const numberType = document.getElementById('numberType').value;
 
-            // Simple linear color gradient from green to red
+            let params = {};
+            let aStart, aEnd, bStart, bEnd, cStart, cEnd;
+
+            if (system === 'kececi') {
+                params.rule = document.getElementById('kececiRule').value;
+                aStart = 3; aEnd = 4;
+                bStart = 1; bEnd = 2;
+                cStart = 2; cEnd = 3;
+            } else { // Generalized Collatz
+                aStart = 1; aEnd = 5;
+                bStart = 1; bEnd = 5;
+                cStart = 1; cEnd = 5;
+            }
+            
+            const maxDivergence = 10000;
+            const gridScale = 5;
+
             function getColor(value, max) {
                 const ratio = Math.min(value / max, 1);
                 const r = Math.floor(255 * ratio);
@@ -300,27 +405,21 @@
             for (let a = aStart; a <= aEnd; a++) {
                 for (let b = bStart; b <= bEnd; b++) {
                     for (let c = cStart; c <= cEnd; c++) {
-                        // Skip division by zero
                         if (c === 0) continue;
                         
                         let metrics;
-                        if (numberType === 'complex') {
-                            const cn1 = new Complex(n1, n2);
-                            const cn2 = new Complex(n1 + 0.001, n2);
-                            metrics = calculateChaosMetrics(cn1, cn2, a, b, c, numberType);
+                        if (system === 'kececi') {
+                             metrics = calculateChaosMetrics(system, { rule: params.rule }, numberType);
                         } else {
-                            metrics = calculateChaosMetrics(n1, n2, a, b, c, numberType);
+                             metrics = calculateChaosMetrics(system, { a: a, b: b, c: c }, numberType);
                         }
-
-                        // We will use the final distance as the primary chaos score for now
-                        // You can easily switch to maxDistance or divergenceRate if you prefer
+                       
                         const chaosScore = metrics.finalDistance;
                         const colorHex = getColor(chaosScore, maxDivergence);
                         const material = new THREE.MeshBasicMaterial({ color: colorHex });
                         const geometry = new THREE.BoxGeometry(1, 1, 1);
                         const cube = new THREE.Mesh(geometry, material);
                         
-                        // Position the cube in 3D space based on its parameters
                         cube.position.x = (a - aStart) * gridScale;
                         cube.position.y = (b - bStart) * gridScale;
                         cube.position.z = (c - cStart) * gridScale;
@@ -334,10 +433,14 @@
         // === Event Listener ===
         window.onload = function() {
             initThreeJS();
+            document.getElementById('systemSelect').addEventListener('change', (event) => {
+                document.getElementById('generalized-section').classList.remove('active');
+                document.getElementById('kececi-section').classList.remove('active');
+                document.getElementById(`${event.target.value}-section`).classList.add('active');
+            });
             document.getElementById('generateBtn').addEventListener('click', () => {
                 generateModel();
             });
-            // Initial generation
             generateModel();
         };
     </script>
