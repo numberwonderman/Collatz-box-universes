@@ -1,252 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Collatz Box Universes - Main
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
- 
-}
-    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"> // Add this in your index.js file, after the script has loaded.
-// It will log a message once MathJax is available.
-if (window.MathJax) {
-    console.log("MathJax is successfully loaded and ready to use!");}</script>
+  <title>Collatz Box Universes - Main</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+  <!-- MathJax loader (do NOT put JS inside this tag) -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!-- Optional: log readiness once MathJax finishes -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.MathJax?.startup) {
+        MathJax.startup.promise.then(() => {
+          console.log("MathJax is successfully loaded and ready to use!");
+        });
+      }
+    });
+  </script>
+
   <style>
-    /* Custom scrollbar for history div */
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 8px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.3);
-        border-radius: 10px;
-    }
-    body {
-        font-family: 'Inter', sans-serif;
-        /* Corrected: Using the blue-purple gradient from your original desired design */
-        background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        color: #f8fafc; /* Light text for consistency */
-        flex-direction: column; /* Allow content and footer to stack */
-    }
-    /* Corrected: Styling for the main container from your original desired design */
-    .bg-white.bg-opacity-10 {
-        background-color: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px); /* Tailwind's backdrop-blur-lg equivalent */
-        border-radius: 16px; /* Tailwind's rounded-2xl equivalent */
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* Tailwind's shadow-2xl equivalent */
-        border: 1px solid rgba(59, 130, 246, 0.5); /* Tailwind's border border-blue-700 equivalent */
-    }
-    /* Mission statement specific styling */
-   /* New or updated styling for the main introductory paragraph */
-.project-mission-main {
-    max-width: 48rem; /* Equivalent to max-w-2xl in Tailwind (1rem = 16px, 48 * 16 = 768px, close to 700px) */
-    margin-left: auto; /* mx-auto */
-    margin-right: auto; /* mx-auto */
-    font-size: 1.125rem; /* Equivalent to text-lg in Tailwind */
-    line-height: 1.625; /* Equivalent to leading-relaxed in Tailwind */
-    color: #f8fafc; /* Your main light text color */
-    margin-bottom: 1rem; /* Adjust spacing as needed */
-    text-align: center;
-}
-    /* Styling for input fields */
-    input[type="number"] {
-        background-color: rgba(30, 64, 175, 0.5); /* Blue-900 with opacity */
-        color: white;
-        border-color: #1d4ed8; /* Blue-700 */
-        border-radius: 0.75rem; /* rounded-xl */
-        padding: 0.75rem; /* p-3 */
-        transition: all 0.2s ease-in-out;
-        border-width: 1px;
-        box-sizing: border-box; /* Ensure padding doesn't expand width */
-        width: 100%; /* For responsive layout */
-    }
-    /* FIX: Corrected placeholder styling */
-    input[type="number"]::placeholder {
-        color: #93c5fd; /* Blue-200 */
-        opacity: 1; /* Firefox default is 0.5 */
-    }
-    input[type="number"]::-webkit-input-placeholder { /* Chrome, Safari, Edge */
-        color: #93c5fd;
-    }
-    input[type="number"]::-moz-placeholder { /* Firefox */
-        color: #93c5fd;
-    }
-    input[type="number"]:-ms-input-placeholder { /* IE 10-11 */
-        color: #93c5fd;
-    }
-
-    /* Styling for buttons */
-    button {
-        /* Force your border to override Tailwind's default */
-        border: 2px solid white !important; /* KEEP !important for border */
-        background-color: red; /* REMOVED !important from background-color */
-        padding: 0.75rem 1.5rem; /* px-6 py-3 */
-        border-radius: 0.75rem; /* rounded-xl */
-        font-weight: 700; /* font-bold */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-lg */
-        transition: all 0.3s ease-in-out; /* transform transition duration-300 ease-in-out */
-        cursor: pointer;
-    }
-
-    /* Specific button colors from image references */
-    #calculateSingle { background-color: #2563eb; } /* blue-600 */
-    #calculateSingle:hover { background-color: #1d4ed8; } /* blue-700 */
-    #generateBulk { background-color: #9333ea; } /* purple-600 */
-    #generateBulk:hover { background-color: #7e22ce; } /* purple-700 */
-    #launchVisualization { background-color: #8b5cf6; } /* purple-500 */
-    #launchVisualization:hover { background-color: #7c3aed; } /* purple-600 */
-
-    /* NEW: GitHub Button Styling for Header */
-    .github-button {
-        background-color: #24292e; /* GitHub's dark background */
-        color: white;
-        padding: 8px 12px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-family: 'Inter', sans-serif; /* Use Inter for consistency */
-        font-size: 14px;
-        display: inline-block;
-        transition: all 0.3s ease-in-out;
-    }
-
-    .github-button:hover {
-        background-color: #40464d; /* Slightly lighter on hover */
-        transform: scale(1.05); /* Match other button hover effect */
-    }
-
-    /* Specific styling for the 9-net canvas */
-    #singleNineNetCanvas {
-        background-color: rgba(0, 0, 0, 0.2); /* Slightly transparent dark background for the canvas */
-    }
-
-    /* Gold star styling */
-    .gold-star {
-        color: gold;
-        font-size: 1.25rem; /* text-xl */
-        margin-left: 0.25rem; /* ml-1 */
-        display: inline-block; /* To align with text */
-        text-shadow: 0 0 5px rgba(255, 215, 0, 0.7); /* Subtle glow */
-    }
-    .flex.items-center {
-        display: flex;
-        align-items: center;
-    }
-    .flex.items-center input {
-        flex-grow: 1; /* Allow input to take available space */
-    }
-    /* Styling for radio options in visualization tools */
-    .radio-option {
-        display: flex;
-        align-items: center;
-        background-color: rgba(45, 55, 72, 0.7); /* gray-800 with opacity */
-        padding: 0.75rem 1.25rem;
-        border-radius: 0.75rem;
-        cursor: pointer;
-        transition: background-color 0.2s ease-in-out;
-        border: 1px solid rgba(74, 85, 104, 0.5); /* gray-600 with opacity */
-        /* Added to control width and allow wrapping */
-        flex-shrink: 0; /* Prevent shrinking below content size */
-        flex-grow: 0; /* Prevent growing to fill space */
-        
-    }
-    .radio-option:hover {
-        background-color: rgba(74, 85, 104, 0.7); /* darker gray on hover */
-    }
-    .radio-option input[type="radio"] {
-        margin-right: 0.75rem;
-        /* Hide default radio button */
-        appearance: none;
-        -webkit-appearance: none;
-        width: 1.25rem;
-        height: 1.25rem;
-        border: 2px solid #a0aec0; /* gray-400 */
-        border-radius: 50%;
-        cursor: pointer;
-        position: relative;
-        flex-shrink: 0; /* Prevent shrinking */
-    }
-    .radio-option input[type="radio"]:focus {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-}
-   .radio-option input[type="radio"]:focus-visible {
-    outline: 2px solid #2563eb;
-    outline-offset: 2px;
-}
-    .radio-option input[type="radio"]:checked::before {
-        content: '';
-        display: block;
-        width: 0.6rem;
-        height: 0.6rem;
-        background-color: white;
-        border-radius: 50%;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .radio-option i { /* Font Awesome icon styling */
-        margin-right: 0.5rem;
-        color: #90cdf4; /* blue-300 */
-        font-size: 1.2rem;
-    }
-    /* Custom print styles to ensure readability */
-    @media print {
-        body {
-            background: white !important;
-            color: black !important;
-            margin: 0;
-            padding: 0;
-        }
-        .bg-white.bg-opacity-10 {
-            background-color: white !important;
-            box-shadow: none !important;
-            border: none !important;
-            backdrop-filter: none !important;
-            padding: 1rem !important;
-        }
-        button, input, label, #errorMessage, .gold-star, .color-picker-group, .radio-option input, .radio-option i {
-            display: none !important;
-        }
-        h1, h2, p, .text-white, .text-blue-200, .text-blue-300 {
-            color: black !important;
-            text-shadow: none !important;
-        }
-        #historyContainer {
-            display: block !important;
-            background-color: transparent !important;
-            border: none !important;
-            box-shadow: none !important;
-        }
-        #runsHistory {
-            max-height: none !important;
-            overflow-y: visible !important;
-        }
-        .bg-blue-800.bg-opacity-40, .bg-blue-900.bg-opacity-60 {
-            background-color: #f0f0f0 !important;
-            border: 1px solid #ccc !important;
-            color: #333 !important;
-        }
-        canvas {
-            display: none !important; /* Hide canvases in print */
-        }
-    }
-</style>
-</head>
+    /* (keep all your existing CSS here exactly as-is) */
+  </style>
+</head>>
 <body class="min-h-screen bg-gradient-to-br from-blue-800 to-purple-900 flex items-center justify-center p-4">
 
     <div class="bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg rounded-2xl shadow-2xl p-8 w-full max-w-4xl border border-blue-700">
