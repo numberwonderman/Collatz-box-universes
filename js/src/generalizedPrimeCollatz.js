@@ -1,4 +1,11 @@
-// js/src/generalizedPrimeCollatz.js
+const PRIME_CACHE = new Map();
+export function primesBelow(p) {
+  p = BigInt(p);
+  if (PRIME_CACHE.has(p)) return PRIME_CACHE.get(p);
+  // ...compute...
+  PRIME_CACHE.set(p, out);
+  return out;
+}// js/src/generalizedPrimeCollatz.js
 // BigInt throughout
 
 /** Simple primality (trial division). Fine for small p (3,5,7,11,...) */
