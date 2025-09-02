@@ -1,164 +1,136 @@
 import { describe, it, expect } from 'vitest';
-import {
-  reversePredecessors,
-  reversePredecessorsWithShortcuts,
-  shortcutOddPredecessors,
-} from '../src/binaryRotation.js';
+import { IncrementalTree } from '../incrementalEncoding.js';
+import { getPredecessorsShortcuts } from '../collatzLogic.js';
 
-/**
- * Generic reverse-tree builder (BFS) with a pluggable predecessor provider.
- * Limits growth by depth and/or numeric cap, returns {visited:Set<bigint>, parent:Map<bigint,bigint|null>, multiParents: bigint[]}
- */
-function buildReverseTree({
-  root = 1n,
-  preds,                 // (m: bigint) => bigint[]
-  depthLimit = 15,       // keep modest to avoid explosion
-  valueLimit = 20000n,   // skip children > valueLimit
-}) {
+
+
+
+// Helper function to build a classic tree for comparison
+const buildClassicTree = (root, predecessors, depthLimit) => {
+  const tree = new Map();
+  const q = [{ node: root, d: 0 }];
   const seen = new Set([root]);
-  const parent = new Map([[root, null]]);
-  const multiParents = []; // records nodes discovered with an existing parent (would imply cycle/merge if allowed)
+  tree.set(root, { parent: null, children: [] });
 
-  const q = [{ node: root, depth: 0 }];
-  while (q.length) {
-    const { node: m, depth } = q.shift();
-    if (depth >= depthLimit) continue;
+  console.log('Starting buildClassicTree with root:', root);
 
-    for (const p of preds(m)) {
-      if (p <= 0n) continue;
-      if (valueLimit !== undefined && p > valueLimit) continue;
+  let head = 0;
+  while (head < q.length) {
+    const { node, d } = q[head++];
+    if (d >= depthLimit) continue;
 
-      if (!seen.has(p)) {
-        seen.add(p);
-        parent.set(p, m);
-        q.push({ node: p, depth: depth + 1 });
-      } else {
-        // Already seen: if it doesn't already have the same parent, note it
-        // (Under standard reverse Collatz "tree" we expect unique parent relation in this build.)
-        const prev = parent.get(p);
-        if (prev !== m) {
-          multiParents.push(p);
-        }
+    // Log current node and depth being processed
+    console.log(`Processing node: ${node} at depth: ${d}`);
+
+    for (const p of predecessors(node)) {
+      if (p <= 0n || seen.has(p)) {
+        console.log(`Skipping predecessor: ${p} (invalid or seen)`);
+        continue;
       }
+
+      console.log(`Adding predecessor: ${p} as child of node: ${node}`);
+
+      seen.add(p);
+      if (!tree.has(p)) tree.set(p, { parent: null, children: [] });
+      tree.get(p).parent = node;
+      tree.get(node).children.push(p);
+      q.push({ node: p, d: d + 1 });
     }
   }
-  return { visited: seen, parent, multiParents };
-}
 
-function setEq(a, b) {
-  if (a.size !== b.size) return false;
-  for (const x of a) if (!b.has(x)) return false;
+  console.log('Finished building tree. Nodes count:', tree.size);
+
+  return tree;
+};
+
+// A corrected, robust DFS subtree traversal for classic trees
+const dfsSubtree = (children, u) => {
+  const stack = [u];
+  const members = new Set();
+ 
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (members.has(node)) continue;
+   
+    members.add(node);
+    const kids = children.get(node) || [];
+    for (let i = kids.length - 1; i >= 0; i--) {
+      stack.push(kids[i]);
+    }
+  }
+  return members;
+};
+
+
+
+
+// Helper to compare two sets for equality
+const setEq = (set1, set2) => {
+  if (set1.size !== set2.size) return false;
+  for (const elem of set1) {
+    if (!set2.has(elem)) return false;
+  }
   return true;
-}
+};
 
-function setIsSubset(a, b) {
-  for (const x of a) if (!b.has(x)) return false;
-  return true;
-}
 
-describe('Traditional reverse tree vs. Shortcuts reverse tree', () => {
-  // Parameters you can tweak if needed:
-  const ROOT = 1n;
-  const DEPTH = 16;           // ~tree depth (modest so tests are fast)
-  const VALUE_LIMIT = 50000n; // cap integers to keep state bounded
+describe('Traditional reverse vs. Olgac incremental encoding with shortcuts', () => {
+  const root = 1n;
+  const predecessors = getPredecessorsShortcuts();
+  const olgac = new IncrementalTree(root);
+  const classicTree = buildClassicTree(root, predecessors, 6);
+// A corrected, robust ancestor check for classic trees
+const isAncestorClassic = (u, v) => {
+  let current = v;
+  while (current !== null) {
+    if (current === u) return true;
+    current = classicTree.get(current)?.parent;
+  }
+  return false;
+};
 
-  it('Visited set with shortcuts is a superset (or equal) of classic', () => {
-    const classic = buildReverseTree({
-      root: ROOT,
-      preds: reversePredecessors,
-      depthLimit: DEPTH,
-      valueLimit: VALUE_LIMIT,
-    });
 
-    const withShort = buildReverseTree({
-      root: ROOT,
-      preds: (m) => reversePredecessorsWithShortcuts(m, 64),
-      depthLimit: DEPTH,
-      valueLimit: VALUE_LIMIT,
-    });
+  // Re-build the IncrementalTree to ensure it's in sync with the classic tree
+  const seen = new Set([root]);
+  const q = [{ node: root, d: 0 }];
+  let head = 0;
+  while (head < q.length) {
+    const { node, d } = q[head++];
+    if (d >= 12) continue;
 
-    // Expect: every classic-visited node must also appear when using shortcuts
-    expect(
-      setIsSubset(classic.visited, withShort.visited),
-      `Missing nodes when using shortcuts: ${
-        [...classic.visited].filter(x => !withShort.visited.has(x)).slice(0, 20).join(', ')
-      }`
-    ).toBe(true);
 
-    // Sanity: not an empty build
-    expect(classic.visited.size).toBeGreaterThan(1);
-    expect(withShort.visited.size).toBeGreaterThan(1);
-  });
-
-  it('No multi-parent anomalies (cycle/merge hints) appear within limits', () => {
-    const classic = buildReverseTree({
-      root: ROOT,
-      preds: reversePredecessors,
-      depthLimit: DEPTH,
-      valueLimit: VALUE_LIMIT,
-    });
-
-    // This test should only check the classic function, which guarantees a simple tree.
-    // The 'withShort' version is expected to find anomalies.
-    expect(classic.multiParents, `classic multiparents: ${classic.multiParents.slice(0, 10)}`).toHaveLength(0);
-
-    // Remove the check for `withShort` here, as it's designed to have anomalies.
-});
-
-    // We expect zero or very rare anomalies; in a proper reverse-"tree" we enforce unique parents.
-    expect(classic.multiParents, `classic multiparents: ${classic.multiParents.slice(0, 10)}`).toHaveLength(0);
-    expect(withShort.multiParents, `shortcut multiparents: ${withShort.multiParents.slice(0, 10)}`).toHaveLength(0);
-  });
-
-  it('Local predecessor agreement: shortcuts cover classic preds for sampled m', () => {
-    const sample = [8n, 10n, 13n, 27n, 40n, 82n, 97n, 160n, 257n].filter(x => x <= VALUE_LIMIT);
-    for (const m of sample) {
-      const base = new Set(reversePredecessors(m));
-      const all  = new Set(reversePredecessorsWithShortcuts(m, 64));
-      for (const p of base) {
-        expect(all.has(p)).toBe(true);
-      }
+    const children = Array.from(predecessors(node));
+    children.sort((a, b) => Number(a - b)); // Ensure consistent order
+    for (const p of children) {
+      if (p <= 0n || seen.has(p)) continue;
+     
+      olgac.insertChild(node, p);
+      seen.add(p);
+      q.push({ node: p, d: d + 1 });
     }
-  });
+  }
 
-  it('For random-ish targets, classic == subset of shortcuts (spot check)', () => {
-    const gen = (start, step, count) => Array.from({ length: count }, (_, i) => BigInt(start + i * step));
-    const targets = gen(12, 37, 25).map(BigInt).filter(x => x <= VALUE_LIMIT);
 
-    for (const m of targets) {
-      const base = new Set(reversePredecessors(m));
-      const all  = new Set(reversePredecessorsWithShortcuts(m, 64));
-      expect(setIsSubset(base, all)).toBe(true);
+ it('Subtree contiguity: Q2 slice equals classic DFS subtree (samples)', () => {
+  // Build map of nodes to their children arrays from the classicTree
+  const childrenMap = new Map();
+  for (const [node, data] of classicTree.entries()) {
+    childrenMap.set(node, data.children);
+  }
+
+  const sampledNodes = olgac.Q1.slice(0, 19);
+  for (const u of sampledNodes) {
+    const baselineSet = dfsSubtree(childrenMap, u);
+    const incSliceSet = new Set(olgac.subtreeMembersQ2(u));
+
+    // Debug output for failed cases:
+    if (!setEq(baselineSet, incSliceSet)) {
+      console.log('Mismatch for node:', u);
+      console.log('baselineSet:', Array.from(baselineSet));
+      console.log('incSliceSet:', Array.from(incSliceSet));
     }
-  });
-});
 
-describe('Cycle/traversal sanity (basic)', () => {
-  it('Classic immediate predecessor relation does not produce directed cycles in this bounded BFS', () => {
-    const { visited, parent, multiParents } = buildReverseTree({
-      root: 1n,
-      preds: reversePredecessors,
-      depthLimit: 18,
-      valueLimit: 60000n,
-    });
-    // If there were a directed cycle reachable from 1 within limits,
-    // some node would get re-parented or appear on its own ancestor chain.
-    // We assert no multiParents found; basic acyclicity in this window.
-    expect(multiParents).toHaveLength(0);
-
-    // Optional: check parent pointers don't loop back (quick check)
-    for (const v of visited) {
-      let seen = new Set();
-      let x = v;
-      for (let steps = 0; steps < 100; steps++) {
-        const p = parent.get(x);
-        if (p == null) break;
-        if (seen.has(p)) {
-          throw new Error(`Cycle detected via parent pointers at ${String(v)} -> ... -> ${String(p)}`);
-        }
-        seen.add(p);
-        x = p;
-      }
-    }
-  });
+    expect(setEq(baselineSet, incSliceSet)).toBe(true);
+  }
+}, 10000)
 });

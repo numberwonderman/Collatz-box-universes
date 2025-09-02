@@ -7,6 +7,25 @@ function isValidP(p) {
   p = BigInt(p);
   return p >= 3n && (p & 1n) === 1n; // odd and >= 3
 }
+/**
+ * Generates the sequence for a generalized Collatz problem.
+ * @param {BigInt} n - The starting number.
+ * @param {BigInt} alpha - The multiplier for the odd step (alpha*n + beta).
+ * @param {BigInt} beta - The constant for the odd step (alpha*n + beta).
+ * @returns {BigInt[]} The sequence.
+ */
+export function generalizedCollatz(n, alpha, beta) {
+  const sequence = [n];
+  while (n !== 1n) {
+    if (n % 2n === 0n) {
+      n = n / 2n;
+    } else {
+      n = alpha * n + beta;
+    }
+    sequence.push(n);
+  }
+  return sequence;
+}
 
 export function simplifyByPrimesLessThanP(n, p) {
   n = BigInt(n); p = BigInt(p);

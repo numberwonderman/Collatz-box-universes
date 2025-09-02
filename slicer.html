@@ -248,6 +248,15 @@
     <div id="gridContainer" class="grid-container">
         </div>
 
- <script type="module" src="./js/slicer.js"></script>
+ <script type="module" src="./js/slicer.js" >// vitest.config.js
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    // This setting tells Vitest to run tests sequentially, one after another.
+    // It's helpful for reducing memory usage by not loading all tests at once.
+    threads: false,
+  },
+});</script>
 </body>
 </html>
