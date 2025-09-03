@@ -279,4 +279,21 @@ def collatz_reverse_predecessors(m: int):
 if __name__ == "__main__":
     root = 1
     depth_limit = 20
-    value
+    value_limit = None  # can set to limit max node value if desired
+
+    # Build incremental tree using classic Collatz reverse predecessors
+    T = IncrementalTree.build_from_reverse(root, collatz_reverse_predecessors,
+                                          depth_limit=depth_limit,
+                                          value_limit=value_limit)
+
+    # Build baseline reference tree (DFS based)
+    R = ReverseBaseline.build(root, collatz_reverse_predecessors,
+                             depth_limit=depth_limit,
+                             value_limit=value_limit)
+
+    # Quick self-checks
+    for u in T.parent:
+        for v in T.parent:
+            assert T.reaches(u, v) == R.reaches(u, v), f"Mismatch in reachability for ({u},{v})"
+
+    print(f"IncrementalTree built with {len(T.parent)} nodes, passes reachability checks.")
