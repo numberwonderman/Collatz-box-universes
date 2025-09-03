@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Interactive Tree Display</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    label { margin-right: 10px; }
+    input { margin-right: 20px; width: 50px; }
+    #treeCanvas { border: 1px solid #ccc; margin-top: 20px; }
+  </style>
+</head>
+<body>
+
+  <label for="rootNode">Root Node:</label>
+  <input type="text" id="rootNode" value="1" />
+
+  <label for="depthLimit">Depth Limit:</label>
+  <input type="text" id="depthLimit" value="4" />
+
+  <button id="updateTree">Update Tree</button>
+
+  <br />
+  <canvas id="treeCanvas" width="800" height="600"></canvas>
+
+  <script type="module">
+    import { IncrementalTree } from './incrementalEncoding.js'; // Adjust path as needed
+    import { layoutTree } from './layoutTree.js'; // Must implement layoutTree function
+    import { drawTree } from './treeRenderer.js'; // Must implement drawTree function
+
+    function buildSampleTree(root, depthLimit) {
+      const T = new IncrementalTree(root);
+      // Simple example: build a binary tree up to depthLimit
+      function addChildren(node, depth) {
+        if (depth >= depthLimit) return;
+        const left = node * 2;
+        const right = node * 2 + 1;
+        T.insertChild(node, left);
+        T.insertChild(node, right);
+        addChildren(left, depth + 1);
+        addChildren(right, depth + 1);
+      }
+      addChildren(root, 1);
+      return T;
+    }
+
+    document.getElementById('updateTree').addEventListener('click', () => {
+      const root = parseInt(document.getElementById('rootNode').value, 10);
+      const depth = parseInt(document.getElementById('depthLimit').value, 10);
+
+      if (isNaN(root) || isNaN(depth) || depth <= 0) {
+        alert('Please enter valid numeric values for root and depth.');
+        return;
+      }
+
+      const tree = buildSampleTree(root, depth);
+      const layout = layoutTree(tree); // Should return {nodes, edges} with coordinates
+      drawTree(document.getElementById('treeCanvas'), layout);
+    });
+
+    // Initial load
+    document.getElementById('updateTree').click();
+
+  </script>
+</body>
+</html>
