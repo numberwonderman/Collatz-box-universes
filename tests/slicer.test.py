@@ -1,39 +1,28 @@
 import unittest
+import sys
+import os
 
-# Paste the original program here
-#!/usr/bin/env python3
-# SPDX-License-Identifier: BSD-2-Clause
-# Copyright (c) 2018 Jakub Červený
-# This script combines the provided gilbert3d function with a generalized
-# Collatz sequence generator to demonstrate the "slicing" approach.
+# Add project root to sys.path so slicer.py can be imported
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# =========================================================================
-# === Part 1: Generalized Collatz Sequence and XYZ Coordinate Generation
-# =========================================================================
+from slicer import (
+    generalized_collatz,
+    generate_xyz_coords,
+    collatz_slicer,
+    # add other functions you want to test
+)
 
-def generalized_collatz(n, divisor, multiplier, adder):
-    """
-    Generates a sequence based on generalized Collatz rules.
+class TestCollatzSlicer(unittest.TestCase):
 
-    Args:
-        n (int): The starting number.
-        divisor (int): The divisor for even numbers.
-        multiplier (int): The multiplier for odd numbers.
-        adder (int): The value to add to odd numbers.
+    def test_generalized_collatz_standard(self):
+        sequence = generalized_collatz(6, 2, 3, 1)
+        expected_sequence = [6, 3, 10, 5, 16, 8, 4, 2, 1]
+        self.assertEqual(sequence, expected_sequence)
 
-    Returns:
-        list: A list of numbers in the sequence.
-    """
-    sequence = [n]
-    # The sequence stops when it reaches 1 or a repeating cycle
-    # For simplicity, we stop at 1 as a common case.
-    while n != 1:
-        if n % 2 == 0:
-            n = n // divisor
-        else:
-            n = (n * multiplier) + adder
-        sequence.append(n)
-        # Prevents infinite loops for non-converging sequences
+    # (other tests as before)
+
+if __name__ == "__main__":
+    unittest.main()
         if len(sequence) > 1000:
             break
     return sequence
