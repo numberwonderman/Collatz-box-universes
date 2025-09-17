@@ -7,11 +7,10 @@ import {
     drawNineNetCanvasSecondary,
     formatSequenceOutput,
     saveToHistory,
-    showMessage
-} from './utils.js';
-import { calculateCollatzSequence } from './collatzLogic.js';
+    showMessage}
+ from './utils.js';
+import { generalizedCollatz  } from './collatzLogic.js';
 import { getExplorationSetting, setExplorationSetting } from './state.js';
-
 
 // ==========================================================
 // STATE MANAGEMENT (Negative Numbers)
@@ -71,9 +70,9 @@ function setupNineNetCanvas(canvasElement) {
     ctx.scale(dpi, dpi);
 }
 // index.js (client)
-import { IncrementalTree } from './js/incrementalEncoding.js';
-import { layoutTree } from './js/layoutTree.js';
-import { drawTree } from './js/treeRenderer.js';
+import { IncrementalTree } from './incrementalEncoding.js';
+import { layoutTree } from './layoutTree.js';
+import { drawTree } from './treeRenderer.js';
 
 const T = new IncrementalTree(1n);
 // ...build with your reverse predecessors...

@@ -386,3 +386,76 @@ export function render9Net(canvas, sequence, divColor, mulColor, faceDefinitions
         }
     }
 }
+/*
+
+**
+ * Draws the Collatz sequence as a chain and a necklace on a canvas.
+ * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+ * @param {Object} data - The sequence data object from calculateCollatzSequence.
+ */
+export function drawNecklaceCanvas(canvas, data) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const sequence = data.sequence;
+    const isCycle = data.type === "Cycle Detected";
+    
+    // Check if the cycle point exists
+    let necklaceStartIndex = -1;
+    if (isCycle) {
+      // Find the index where the sequence repeats
+      for (let i = 0; i < sequence.length - 1; i++) {
+        if (sequence[i] === sequence[sequence.length - 1]) {
+          necklaceStartIndex = i;
+          break;
+        }
+      }
+    }
+    
+    const nodeRadius = 10;
+    const lineLength = 50;
+    const startX = 50;
+    const startY = canvas.height / 2;
+
+    let currentX = startX;
+    let currentY = startY;
+
+    // Draw the nodes and lines
+    for (let i = 0; i < sequence.length; i++) {
+        const num = sequence[i];
+
+        // Calculate position for the current node
+        const nodeX = currentX;
+        const nodeY = currentY;
+
+        // Draw the line to the next node (if it exists)
+        if (i < sequence.length - 1) {
+            ctx.beginPath();
+            ctx.moveTo(nodeX + nodeRadius, nodeY);
+            ctx.lineTo(currentX + lineLength, currentY);
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Draw the node (a circle)
+        ctx.beginPath();
+        ctx.arc(nodeX, nodeY, nodeRadius, 0, 2 * Math.PI);
+        ctx.fillStyle = (i >= necklaceStartIndex && isCycle) ? '#34d399' : '#fb923c'; // Green for necklace, orange for chain
+        ctx.fill();
+        ctx.strokeStyle = '#f00';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Draw the number text inside the node
+        ctx.fillStyle = isLight(ctx.fillStyle) ? '#000' : '#fff';
+        ctx.font = '10px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(num.toString(), nodeX, nodeY);
+        
+        // Move to the next position
+        currentX += lineLength;
+        // Simple line drawing. For more complex visualizations, you'd need to adjust Y as well to prevent going off-screen.
+    }
+}

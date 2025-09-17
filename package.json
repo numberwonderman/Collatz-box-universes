@@ -5,13 +5,13 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test":  "vitest"
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    
+    "@vitest/coverage-v8": "^3.2.4",
     "vitest": "^3.2.4"
   }
 }
