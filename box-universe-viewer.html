@@ -3,229 +3,614 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Box Universe Explorer - 3D Grid Visualization</title>
-    <!-- Tailwind CSS CDN for styling -->
+    <title>Generalized Collatz Box Universe</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter font for consistent typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start; /* Align content to top */
-            align-items: center;
-            background-color: #1a202c; /* Dark background */
-            overflow-x: hidden; /* Prevent horizontal scrollbar */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a202c;
+            color: #e2e8f0;
         }
-        canvas {
-            display: block;
+        #three-canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            z-index: 10;
         }
-        /* Styles for the message box */
-        #customMessageBox {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(20, 20, 40, 0.95);
-            border: 2px solid #00ff00;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
-            z-index: 1000;
-            color: #fff;
-            font-family: 'Inter', sans-serif;
-            font-size: 14px;
-            max-width: 80vw;
-            text-align: center;
-            display: none; /* Hidden by default */
+        #three-canvas {
+            display: block;
         }
-        #customMessageBox button {
-            margin-top: 15px;
-            background: #00ff00;
-            color: #000;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
+        .ui-panel {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 20;
+            background-color: rgba(45, 55, 72, 0.8);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            width: 350px;
+            max-width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 116, 139, 0.5);
         }
-        #customMessageBox button:hover {
-            box-shadow: 0 0 10px #00ff00;
+        .info-panel {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            z-index: 20;
+            background-color: rgba(45, 55, 72, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            width: 250px;
+            max-width: 90%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 116, 139, 0.5);
+        }
+        .legend-panel {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            z-index: 20;
+            background-color: rgba(45, 55, 72, 0.8);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 116, 139, 0.5);
         }
     </style>
 </head>
-<body class="bg-gray-900">
-    <div id="app-container" class="w-full flex flex-col items-center">
-        <!-- Main application UI and controls -->
-        <div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 mb-8 mt-4">
-            <h1 class="text-4xl font-extrabold text-center text-indigo-400 mb-6 drop-shadow-lg">
-                📦 Box Universe Viewer
-            </h1>
-            <p class="text-center text-gray-300 mb-8 text-lg">
-                Explore generalized Collatz sequences in a 3D parameter space (X, Y, Z). Each cube represents a unique ruleset.
-            </p>
+<body class="bg-gray-900 text-gray-200">
 
-            <!-- Message display area -->
-            <div id="message-area" class="mb-4 p-3 rounded-md text-center hidden text-white"></div>
+    <div id="three-canvas-container">
+        <canvas id="three-canvas"></canvas>
+    </div>
 
-            <!-- Parameter input section -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <!-- N (Starting Number) input -->
-                <div class="bg-gray-700 p-5 rounded-lg shadow-inner">
-                    <label for="nValue" class="block text-gray-300 text-sm font-bold mb-2">
-                        N (Starting Number):
-                    </label>
-                    <input
-                        type="number"
-                        id="nValue"
-                        value="7"
-                        min="1"
-                        class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                    />
-                    <p class="text-xs text-gray-400 mt-2">The initial number for all sequences.</p>
-                </div>
+    <!-- UI Panel -->
+    <div class="ui-panel">
+        <h1 class="text-2xl font-bold mb-4 text-center">Collatz Box Universe</h1>
+        <p class="text-sm text-gray-400 mb-4 text-center">Visualize the behavior of generalized Collatz sequences in a 3D space.</p>
 
-                <!-- X (Divisor) Range input -->
-                <div class="bg-gray-700 p-5 rounded-lg shadow-inner">
-                    <label for="xMin" class="block text-gray-300 text-sm font-bold mb-2">
-                        X (Divisor) Range:
-                    </label>
-                    <div class="flex items-center space-x-3">
-                        <input
-                            type="number"
-                            id="xMin"
-                            value="1"
-                            min="1"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                        <span class="text-gray-300">-</span>
-                        <input
-                            type="number"
-                            id="xMax"
-                            value="3"
-                            min="1"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">Range for the divisor parameter (n/X).</p>
-                </div>
+        <div class="mb-4">
+            <label for="nValue" class="block text-sm font-medium mb-1">Start Number (N)</label>
+            <input type="number" id="nValue" value="6" min="1" class="w-full p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
 
-                <!-- Y (Multiplier) Range input -->
-                <div class="bg-gray-700 p-5 rounded-lg shadow-inner">
-                    <label for="yMin" class="block text-gray-300 text-sm font-bold mb-2">
-                        Y (Multiplier) Range:
-                    </label>
-                    <div class="flex items-center space-x-3">
-                        <input
-                            type="number"
-                            id="yMin"
-                            value="1"
-                            min="1"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                        <span class="text-gray-300">-</span>
-                        <input
-                            type="number"
-                            id="yMax"
-                            value="3"
-                            min="1"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">Range for the multiplier parameter (Y*n+Z).</p>
-                </div>
-
-                <!-- Z (Adder) Range input -->
-                <div class="bg-gray-700 p-5 rounded-lg shadow-inner">
-                    <label for="zMin" class="block text-gray-300 text-sm font-bold mb-2">
-                        Z (Adder) Range:
-                    </label>
-                    <div class="flex items-center space-x-3">
-                        <input
-                            type="number"
-                            id="zMin"
-                            value="0"
-                            min="0"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                        <span class="text-gray-300">-</span>
-                        <input
-                            type="number"
-                            id="zMax"
-                            value="2"
-                            min="0"
-                            class="shadow appearance-none border border-gray-600 rounded w-1/2 py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-900"
-                        />
-                    </div>
-                    <p class="text-xs text-gray-400 mt-2">Range for the adder parameter (Y*n+Z).</p>
-                </div>
+        <div class="space-y-4">
+            <div class="flex items-center space-x-2">
+                <label for="xMin" class="flex-1 text-sm font-medium">Divisor (X) Range</label>
+                <input type="number" id="xMin" value="2" min="1" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="text-gray-400">-</span>
+                <input type="number" id="xMax" value="4" min="1" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
 
-            <!-- Action buttons -->
-            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-                <button
-                    id="generateBtn"
-                    class="flex-1 flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white shadow-lg transition-all duration-200 transform bg-green-600 hover:bg-green-700 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                    📦 Generate & Visualize
-                </button>
+            <div class="flex items-center space-x-2">
+                <label for="yMin" class="flex-1 text-sm font-medium">Multiplier (Y) Range</label>
+                <input type="number" id="yMin" value="3" min="1" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="text-gray-400">-</span>
+                <input type="number" id="yMax" value="5" min="1" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
 
-                <button
-                    id="resetCameraBtn"
-                    class="flex-1 flex items-center justify-center px-4 py-2 border border-yellow-500 text-sm font-medium rounded-md text-yellow-300 bg-gray-700 hover:bg-yellow-600 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 transition-colors duration-200"
-                >
-                    🔄 Reset View
-                </button>
+            <div class="flex items-center space-x-2">
+                <label for="zMin" class="flex-1 text-sm font-medium">Additive (Z) Range</label>
+                <input type="number" id="zMin" value="1" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <span class="text-gray-400">-</span>
+                <input type="number" id="zMax" value="3" class="w-1/2 p-2 rounded-md bg-gray-700 text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </div>
         </div>
 
-        <!-- Three.js canvas container -->
-        <div id="three-canvas-container" class="w-full max-w-4xl aspect-video rounded-xl shadow-2xl bg-gray-700 mb-8">
-            <canvas id="three-canvas" class="block w-full h-full"></canvas>
-            <div id="loading" class="flex items-center justify-center h-full text-gray-400 text-lg hidden">Loading 3D scene...</div>
+        <div class="mt-6 flex flex-col space-y-3">
+            <button id="generateBtn" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md shadow-lg transition-colors duration-200">
+                Generate Universe
+            </button>
+            <button id="cancelBtn" class="w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-md shadow-lg transition-colors duration-200 hidden">
+                Cancel Generation
+            </button>
+            <button id="resetCameraBtn" class="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-md shadow-lg transition-colors duration-200">
+                Reset Camera
+            </button>
+        </div>
+        
+        <div id="loading" class="mt-4 text-center text-sm hidden">
+            <p>Generating cubes... <span id="progress">0</span> of <span id="total">0</span></p>
         </div>
 
-        <!-- Legend for cube colors -->
-        <div class="w-full max-w-4xl bg-gray-800 rounded-xl shadow-2xl p-6 mb-8">
-            <h2 class="text-2xl font-bold text-center text-indigo-400 mb-4">Legend</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-left">
-                <div class="flex items-center">
-                    <span class="inline-block w-6 h-6 rounded-md mr-3" style="background-color: #00ff00;"></span>
-                    <p>Converges</p>
-                </div>
-                <div class="flex items-center">
-                    <span class="inline-block w-6 h-6 rounded-md mr-3" style="background-color: #ff0000;"></span>
-                    <p>Diverges / Max Iterations</p>
-                </div>
-                <div class="flex items-center">
-                    <span class="inline-block w-6 h-6 rounded-md mr-3" style="background-color: #0000ff;"></span>
-                    <p>Enters Cycle</p>
-                </div>
-                <div class="flex items-center">
-                    <span class="inline-block w-6 h-6 rounded-md mr-3" style="background-color: #aaaaaa;"></span>
-                    <p>Unknown</p>
-                </div>
-                <div class="flex items-center">
-                    <span class="inline-block w-6 h-6 rounded-md mr-3" style="background-color: #ffd700;"></span>
-                    <p>Classic Collatz (X=2, Y=3, Z=1)</p>
-                </div>
-            </div>
+        <div id="message-area" class="mt-4 p-3 rounded-md text-center text-white hidden"></div>
+    </div>
+
+    <!-- Info Panel (New) -->
+    <div id="info-panel" class="info-panel hidden">
+        <h2 class="text-lg font-bold mb-2">Cube Info</h2>
+        <div class="space-y-1 text-sm">
+            <p><strong>N:</strong> <span id="info-n"></span></p>
+            <p><strong>X:</strong> <span id="info-x"></span></p>
+            <p><strong>Y:</strong> <span id="info-y"></span></p>
+            <p><strong>Z:</strong> <span id="info-z"></span></p>
+            <p id="info-result-label"><strong>Result:</strong></p>
+            <p id="info-result-value" class="break-words"></p>
         </div>
     </div>
-    <!-- Custom Message Box element -->
-    <div id="customMessageBox"></div>
 
-    <!-- Three.js library import -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls - Using the 'js' version which attaches to window.THREE for global access -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Legend Panel -->
+    <div class="legend-panel">
+        <h2 class="text-xl font-bold mb-2">Legend</h2>
+        <div class="grid grid-cols-2 gap-2">
+            <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #00ff00;"></div> Converges</div>
+            <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #ff0000;"></div> Diverges</div>
+            <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #0000ff;"></div> Cycles</div>
+            <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #aaaaaa;"></div> Unknown</div>
+            <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #ffd700;"></div> Classic (2,3,1)</div>
+        </div>
+    </div>
+    
+    <script>
+        // --- DEBUG MODE FLAG ---
+        const DEBUG_MODE = false; // Set to true to enable console logs, false to disable
 
-    <script type="module" src="js/box-universe-viewer.js"></script>
-       
+        // --- Global Three.js Variables ---
+        let scene, camera, renderer, controls;
+        let meshMap = new Map(); // Stores references to generated Three.js cubes
+        let generationCanceled = false;
+        let currentGenerationPromise = null;
+        let raycaster, mouse;
+        let INTERSECTED; // To store the currently hovered cube
+
+        // --- Constants ---
+        const BOX_SIZE = 1; // Size of each cube representing a ruleset (x,y,z)
+        const GRID_SPACING = BOX_SIZE + 0.6; // Spacing between cubes for better visibility
+        const MAX_ITERATIONS = 5000; // Increased max iterations for BigInt
+        const CYCLE_DETECTION_LIMIT = 5000; // Increased iterations before checking for cycles
+        
+        // Color map for different sequence behaviors (use THREE.Color for direct application)
+        const COLOR_MAP = {
+            converges: new THREE.Color(0x00ff00), // Bright Green
+            diverges: new THREE.Color(0xff0000),  // Bright Red
+            cycles: new THREE.Color(0x0000ff),    // Bright Blue
+            unknown: new THREE.Color(0xaaaaaa),   // Lighter Grey
+            classic: new THREE.Color(0xffd700),   // Gold
+        };
+
+        // --- UI Elements ---
+        const nValueInput = document.getElementById('nValue');
+        const xMinInput = document.getElementById('xMin');
+        const xMaxInput = document.getElementById('xMax');
+        const yMinInput = document.getElementById('yMin');
+        const yMaxInput = document.getElementById('yMax');
+        const zMinInput = document.getElementById('zMin');
+        const zMaxInput = document.getElementById('zMax');
+        const generateBtn = document.getElementById('generateBtn');
+        const resetCameraBtn = document.getElementById('resetCameraBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const loadingDiv = document.getElementById('loading');
+        const progressSpan = document.getElementById('progress');
+        const totalSpan = document.getElementById('total');
+        const messageArea = document.getElementById('message-area');
+        const infoPanel = document.getElementById('info-panel');
+        const infoN = document.getElementById('info-n');
+        const infoX = document.getElementById('info-x');
+        const infoY = document.getElementById('info-y');
+        const infoZ = document.getElementById('info-z');
+        const infoResultLabel = document.getElementById('info-result-label');
+        const infoResultValue = document.getElementById('info-result-value');
+
+
+        // --- Generalized Collatz Logic (with BigInt) ---
+        /**
+         * Computes the generalized Collatz sequence for a number using BigInt for large number support.
+         * The function checks for three main behaviors:
+         * 1. Convergence: The sequence reaches 1.
+         * 2. Cycles: The sequence enters a loop (e.g., 4-2-1 for the classic rule).
+         * 3. Divergence: The numbers grow without bound (or exceed the max iteration count).
+         * @param {BigInt} n The starting number.
+         * @param {BigInt} x The divisor.
+         * @param {BigInt} y The multiplier.
+         * @param {BigInt} z The additive constant.
+         * @param {number} maxIterations The maximum number of steps to compute.
+         * @returns {object} An object containing the result type and any relevant data (value, cycle).
+         */
+        function generalizedCollatz(n, x, y, z, maxIterations) {
+            if (n <= 0n || x === 0n) {
+                return { type: 'error' };
+            }
+
+            let current = n;
+            const history = [];
+            
+            for (let i = 0; i < maxIterations; i++) {
+                // Check for convergence to 1
+                if (current === 1n) {
+                    return { type: 'converges', value: 1n };
+                }
+
+                // Check for cycles by looking for the current number in the history
+                const cycleStartIndex = history.indexOf(current);
+                if (cycleStartIndex !== -1) {
+                    const cycle = history.slice(cycleStartIndex);
+                    return { type: 'cycles', cycle: cycle.map(val => val.toString()) };
+                }
+                history.push(current);
+
+                // Apply the generalized Collatz rule
+                if (current % x === 0n) {
+                    current /= x;
+                } else {
+                    current = current * y + z;
+                }
+            }
+            return { type: 'diverges' };
+        }
+
+        // --- Three.js Initialization ---
+        function initThreeJS() {
+            const canvas = document.getElementById('three-canvas');
+            const container = document.getElementById('three-canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a202c); // Dark background
+
+            camera = new THREE.PerspectiveCamera(
+                75,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                2000
+            );
+            // Adjusted initial camera position to be closer and better frame the default grid
+            camera.position.set(5, 5, 5); // Closer initial view
+            camera.lookAt(0, 0, 0); // Always look at the center
+
+            renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+            // --- LIGHTING SETUP ---
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Softer ambient
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); // Softer directional
+            directionalLight.position.set(50, 50, 50);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048; // Keep high resolution for shadows
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.left = -50;
+            directionalLight.shadow.camera.right = 50;
+            directionalLight.shadow.camera.top = 50;
+            directionalLight.shadow.camera.bottom = -50;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 100;
+            scene.add(directionalLight);
+
+            const hemiLight = new THREE.HemisphereLight(0xb1e1ff, 0xb97a20, 0.5); // Softer hemisphere light
+            scene.add(hemiLight);
+
+            const pointLight = new THREE.PointLight(0xffffff, 1, 100); // Softer point light
+            pointLight.position.set(0, 20, 0);
+            scene.add(pointLight);
+
+            // --- DEBUGGING HELPERS (GridHelper and AxesHelper) ---
+            const gridHelper = new THREE.GridHelper(50, 50, 0x4a5568, 0x4a5568);
+            scene.add(gridHelper);
+
+            const axesHelper = new THREE.AxesHelper(10); // Size 10 for axes (X=red, Y=green, Z=blue)
+            scene.add(axesHelper);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 2; // Allow closer zoom
+            controls.maxDistance = 200;
+            controls.maxPolarAngle = Math.PI / 2;
+            controls.target.set(0, 0, 0); // Ensure target is at the center of the grid
+            controls.update();
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+
+            window.addEventListener('resize', onWindowResize);
+            window.addEventListener('mousemove', onMouseMove);
+            animate();
+
+            if (DEBUG_MODE) console.log('Three.js initialized successfully with reduced lighting and helpers.');
+        }
+
+        // --- Three.js Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            checkIntersects();
+            renderer.render(scene, camera);
+        }
+
+        // --- Visualization Logic ---
+        const cubeGeometry = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
+        function createOrUpdateCube(x, y, z, result) {
+            const key = `${x}-${y}-${z}`;
+            let mesh = meshMap.get(key);
+            let materialColor = COLOR_MAP[result.type] || COLOR_MAP.unknown;
+
+            // Apply a slight shading based on the x-value to visualize the 'sheets'
+            const xMin = parseFloat(xMinInput.value);
+            const xMax = parseFloat(xMaxInput.value);
+            const xRange = xMax - xMin;
+            const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
+            const shade = 0.2 + xNormalized * 0.8; // Vary shade from 0.2 to 1.0
+            
+            materialColor = materialColor.clone().multiplyScalar(shade);
+
+            if (mesh) {
+                // If mesh exists, update its color
+                mesh.material.color.set(materialColor);
+            } else {
+                // Create new cube
+                const material = new THREE.MeshStandardMaterial({ color: materialColor, flatShading: true });
+                mesh = new THREE.Mesh(cubeGeometry, material);
+                
+                // Store the data on the mesh itself
+                mesh.userData = { 
+                    n: parseInt(nValueInput.value),
+                    x: x,
+                    y: y,
+                    z: z,
+                    result: result
+                };
+
+                // Position the cube in the 3D grid, centered around origin
+                const centerX = (parseFloat(xMinInput.value) + parseFloat(xMaxInput.value)) / 2;
+                const centerY = (parseFloat(yMinInput.value) + parseFloat(yMaxInput.value)) / 2;
+                const centerZ = (parseFloat(zMinInput.value) + parseFloat(zMaxInput.value)) / 2;
+
+                const offsetX = (x - centerX);
+                const offsetY = (y - centerY);
+                const offsetZ = (z - centerZ);
+
+                mesh.position.set(
+                    offsetX * GRID_SPACING,
+                    offsetY * GRID_SPACING,
+                    offsetZ * GRID_SPACING
+                );
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                meshMap.set(key, mesh);
+            }
+            // Apply special color for classic Collatz rule if it matches
+            if (x === 2 && y === 3 && z === 1) {
+                mesh.material.color.set(COLOR_MAP.classic);
+            }
+        }
+
+        function clearCubes() {
+            const objectsToRemove = [];
+            scene.children.forEach(child => {
+                if (child.isMesh && child.geometry.type === 'BoxGeometry') {
+                    objectsToRemove.push(child);
+                }
+            });
+            objectsToRemove.forEach(child => {
+                scene.remove(child);
+            });
+            meshMap.clear(); // Clear the map of references
+            if (DEBUG_MODE) console.log("Generated cubes cleared.");
+        }
+
+        async function generateCubes() {
+            generationCanceled = false;
+            generateBtn.disabled = true;
+            resetCameraBtn.disabled = true;
+            cancelBtn.classList.remove('hidden');
+            loadingDiv.classList.remove('hidden');
+            displayMessage("Generating Box Universe...", "info");
+
+            clearCubes();
+
+            const nValue = parseInt(nValueInput.value);
+            const xMin = parseInt(xMinInput.value);
+            const xMax = parseInt(xMaxInput.value);
+            const yMin = parseInt(yMinInput.value);
+            const yMax = parseInt(yMaxInput.value);
+            const zMin = parseInt(zMinInput.value);
+            const zMax = parseInt(zMaxInput.value);
+
+            // Validate ranges
+            if (isNaN(nValue) || nValue < 1 || isNaN(xMin) || xMin < 1 || isNaN(xMax) || xMax < xMin ||
+                isNaN(yMin) || yMin < 1 || isNaN(yMax) || yMax < yMin || isNaN(zMin) || isNaN(zMax) || zMax < zMin) {
+                displayMessage('Please enter valid positive integer ranges. X and Y must be >= 1.', 'error');
+                generateBtn.disabled = false;
+                resetCameraBtn.disabled = false;
+                cancelBtn.classList.add('hidden');
+                loadingDiv.classList.add('hidden');
+                return;
+            }
+
+            if (DEBUG_MODE) console.log(`Generating cubes for N=${nValue}, X=[${xMin}-${xMax}], Y=[${yMin}-${yMax}], Z=[${zMin}-${zMax}]`);
+
+            const totalCubes = (xMax - xMin + 1) * (yMax - yMin + 1) * (zMax - zMin + 1);
+            totalSpan.textContent = totalCubes;
+            let cubesGenerated = 0;
+
+            for (let x = xMin; x <= xMax; x++) {
+                if (generationCanceled) break;
+                for (let y = yMin; y <= yMax; y++) {
+                    if (generationCanceled) break;
+                    for (let z = zMin; z <= zMax; z++) {
+                        if (generationCanceled) break;
+
+                        // Asynchronous processing to prevent UI freezing
+                        await new Promise(resolve => setTimeout(resolve, 0));
+
+                        const result = generalizedCollatz(
+                            BigInt(nValue), BigInt(x), BigInt(y), BigInt(z), MAX_ITERATIONS
+                        );
+                        createOrUpdateCube(x, y, z, result);
+                        
+                        cubesGenerated++;
+                        progressSpan.textContent = cubesGenerated;
+                    }
+                }
+            }
+
+            loadingDiv.classList.add('hidden');
+            generateBtn.disabled = false;
+            resetCameraBtn.disabled = false;
+            cancelBtn.classList.add('hidden');
+            
+            if (generationCanceled) {
+                displayMessage("Generation canceled.", "error");
+            } else {
+                displayMessage("Collatz Box Universe generated!", "success");
+            }
+            
+            resetCameraView();
+            if (DEBUG_MODE) console.log("Cubes generation complete.");
+        }
+
+        function cancelGeneration() {
+            generationCanceled = true;
+            cancelBtn.disabled = true;
+        }
+
+        // --- Camera Reset Function ---
+        function resetCameraView() {
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+            controls.target.set(0, 0, 0);
+            controls.update();
+            displayMessage("Camera view reset!", "info");
+            if (DEBUG_MODE) console.log("Camera reset to default view.");
+        }
+
+        // --- Event Handlers ---
+        generateBtn.addEventListener('click', generateCubes);
+        cancelBtn.addEventListener('click', cancelGeneration);
+        resetCameraBtn.addEventListener('click', resetCameraView);
+        
+        // --- Mouse and Raycasting Logic ---
+        function onMouseMove(event) {
+            // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
+            const container = document.getElementById('three-canvas-container');
+            mouse.x = (event.clientX / container.clientWidth) * 2 - 1;
+            mouse.y = - (event.clientY / container.clientHeight) * 2 + 1;
+        }
+        
+        function checkIntersects() {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(Array.from(meshMap.values()));
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                if (INTERSECTED != intersect.object) {
+                    // Not the same cube as before
+                    if (INTERSECTED) {
+                        // Reset old cube's color
+                        const x = INTERSECTED.userData.x;
+                        const xMin = parseFloat(xMinInput.value);
+                        const xMax = parseFloat(xMaxInput.value);
+                        const xRange = xMax - xMin;
+                        const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
+                        const shade = 0.2 + xNormalized * 0.8;
+                        const originalColor = COLOR_MAP[INTERSECTED.userData.result.type] || COLOR_MAP.unknown;
+                        INTERSECTED.material.color.set(originalColor.clone().multiplyScalar(shade));
+                        
+                        if (INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
+                             INTERSECTED.material.color.set(COLOR_MAP.classic);
+                        }
+                    }
+                    INTERSECTED = intersect.object;
+                    // Highlight new cube
+                    INTERSECTED.material.color.set(0xffffff); // White highlight
+                    
+                    // Update info panel
+                    infoN.textContent = INTERSECTED.userData.n;
+                    infoX.textContent = INTERSECTED.userData.x;
+                    infoY.textContent = INTERSECTED.userData.y;
+                    infoZ.textContent = INTERSECTED.userData.z;
+
+                    const result = INTERSECTED.userData.result;
+                    let resultText = '';
+                    switch (result.type) {
+                        case 'converges':
+                            resultText = `Converges to ${result.value}`;
+                            break;
+                        case 'cycles':
+                            resultText = `Cycles: ${result.cycle.join(' -> ')}`;
+                            break;
+                        case 'diverges':
+                            resultText = 'Diverges';
+                            break;
+                        default:
+                            resultText = 'Unknown';
+                    }
+                    infoResultValue.textContent = resultText;
+                    infoPanel.classList.remove('hidden');
+
+                }
+            } else {
+                // No intersection
+                if (INTERSECTED) {
+                    // Reset old cube's color
+                    const x = INTERSECTED.userData.x;
+                    const xMin = parseFloat(xMinInput.value);
+                    const xMax = parseFloat(xMaxInput.value);
+                    const xRange = xMax - xMin;
+                    const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
+                    const shade = 0.2 + xNormalized * 0.8;
+                    const originalColor = COLOR_MAP[INTERSECTED.userData.result.type] || COLOR_MAP.unknown;
+                    INTERSECTED.material.color.set(originalColor.clone().multiplyScalar(shade));
+                    if (INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
+                        INTERSECTED.material.color.set(COLOR_MAP.classic);
+                    }
+                }
+                INTERSECTED = null;
+                infoPanel.classList.add('hidden');
+            }
+        }
+
+        // --- Window Resize Handler ---
+        function onWindowResize() {
+            const container = document.getElementById('three-canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            if (DEBUG_MODE) console.log("Window resized.");
+        }
+
+        // --- Custom Message Box Function ---
+        let messageTimer = null;
+        function displayMessage(message, type = 'info') {
+            if (messageTimer) {
+                clearTimeout(messageTimer);
+            }
+            messageArea.textContent = message;
+            messageArea.className = `mb-4 p-3 rounded-md text-center text-white ${
+                type === 'success' ? 'bg-green-500' :
+                type === 'error' ? 'bg-red-500' :
+                'bg-blue-500'
+            }`;
+            messageArea.classList.remove('hidden');
+            messageTimer = setTimeout(() => {
+                messageArea.classList.add('hidden');
+            }, 3000);
+        }
+
+        // --- Initialize everything on window load ---
+        window.addEventListener('load', () => {
+            initThreeJS();
+            // Generate initial set of cubes after a short delay to allow Three.js to fully render
+            setTimeout(() => {
+                currentGenerationPromise = generateCubes();
+            }, 500);
+        });
     </script>
 </body>
 </html>

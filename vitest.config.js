@@ -6,5 +6,6 @@ export default defineConfig({
     minThreads: 1,
     hookTimeout: 30000,
     testTimeout: 60000,
+    environment:'jsdom',
   },
 });
