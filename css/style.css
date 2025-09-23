@@ -1,1 +1,101 @@
-
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+body {
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(to bottom right, #1d4ed8, #6d28d9);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    color: #f8fafc;
+}
+.container {
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(59, 130, 246, 0.5);
+    padding: 2rem;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* Styling for input fields */
+input[type="number"] {
+    background-color: rgba(30, 64, 175, 0.5);
+    color: white;
+    border-color: #1d4ed8;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    transition: all 0.2s ease-in-out;
+    border-width: 1px;
+    box-sizing: border-box;
+    width: 100%;
+}
+input[type="number"]::placeholder {
+    color: #93c5fd;
+    opacity: 1;
+}
+input[type="number"]:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
+}
+/* Styling for buttons */
+button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease-in-out;
+    cursor: pointer;
+    background-color: #2563eb;
+    color: white;
+}
+button:hover {
+    transform: scale(1.05);
+    background-color: #1d4ed8;
+}
+button:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.5);
+}
+canvas {
+    border: 1px solid #ccc;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 0.75rem;
+    margin-top: 1.5rem;
+    max-width: 100%;
+    height: auto;
+}
+.flex.items-center {
+    display: flex;
+    align-items: center;
+}
+.flex.items-center input {
+    flex-grow: 1;
+}
+.gold-star {
+    color: gold;
+    font-size: 1.25rem;
+    margin-left: 0.25rem;
+    display: inline-block;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.7);
+}

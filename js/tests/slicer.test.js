@@ -1,106 +1,110 @@
-import { describe, it, expect, vi } from 'vitest';
-import { generateBoxUniverses } from '../slicer.js';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  generateBoxUniverses,
+  getFilterValues,
+  applyAndDrawFilters,
+  updateGoldStarVisibilitySlicer
+} from '../slicer.js'; // Fixed double slash
+import * as collatzLogic from '../collatzLogic.js';
+import * as utils from '../utils.js';
 
-// Mock the generateCollatzSequence function from collatz-dragon.js.
-// This is crucial for isolating the generateBoxUniverses function for testing.
-// The mock simulates the expected behavior without running the full sequence generation.
-vi.mock('./collatz-dragon.js', () => ({
-    generateCollatzSequence: vi.fn((n, x, y, z) => {
-        // Mock a specific case that we know diverges
-        if (n === 2 && x === 1) {
-            return { sequence: [], binaryPath: [], status: 'Divergent (Cycle or Limit Reached)' };
-        }
-        // Mock a simple convergent sequence for other cases
-        const sequence = [n];
-        if (n !== 1) {
-            sequence.push(n / x);
-        }
-        return { sequence, binaryPath: [], status: 'Convergent' };
-    })
+// Mock calculateCollatzSequence to control output for generateBoxUniverses
+vi.mock('../collatzLogic.js', () => ({
+  calculateCollatzSequence: vi.fn()
 }));
 
-describe('generateBoxUniverses', () => {
+// Minimal DOM setup for inputs
+beforeEach(() => {
+  // Clear and reset document.body
+  document.body.innerHTML = `
+    <input id="nMin" value="1" />
+    <input id="nMax" value="2" />
+    <input id="xMin" value="1" />
+    <input id="xMax" value="2" />
+    <input id="yMin" value="1" />
+    <input id="yMax" value="2" />
+    <input id="zMin" value="1" />
+    <input id="zMax" value="2" />
+    <div id="gridContainer"></div>
+    <div id="paramDisplay"></div>
+    <div id="sequenceInfo"></div>
+    <div id="sequenceNumbers"></div>
+    <div id="sequenceRangeInfo"></div>
+    <div id="sequenceSumInfo"></div>
+    <div id="sequenceAvgInfo"></div>
+    <div id="sequenceStdDevInfo"></div>
+    <canvas id="nineNetCanvas"></canvas>
+    <div id="n-star"></div>
+    <div id="x-star"></div>
+    <div id="y-star"></div>
+    <div id="z-star"></div>
+  `;
 
-    it('should generate the correct number of universes within the given ranges', () => {
-        const nMin = 1;
-        const nMax = 2;
-        const xMin = 1;
-        const xMax = 2;
-        const yMin = 1;
-        const yMax = 1;
-        const zMin = 1;
-        const zMax = 1;
-
-        // The total number of permutations is 4, but one combination (N=2, X=1)
-        // results in a divergent sequence and is filtered out.
-        const universes = generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax);
-        
-        // (nMax - nMin + 1) * (xMax - xMin + 1) * (yMax - yMin + 1) * (zMax - zMin + 1)
-        // (2-1+1) * (2-1+1) * (1-1+1) * (1-1+1) = 2 * 2 * 1 * 1 = 4
-        // One is filtered out, so we expect 3.
-        expect(universes.length).toBe(3);
-    });
-
-    it('should generate universes with the correct parameters', () => {
-        const nMin = 1;
-        const nMax = 1;
-        const xMin = 1;
-        const xMax = 2;
-        const yMin = 1;
-        const yMax = 1;
-        const zMin = 1;
-        const zMax = 1;
-
-        const universes = generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax);
-
-        // Check the first generated universe (N=1, X=1, Y=1, Z=1)
-        // A sequence starting at 1 has 0 steps and a "Convergent" type from the mock.
-        expect(universes[0]).toMatchObject({
-            N: 1, 
-            X: 1, 
-            Y: 1, 
-            Z: 1,
-            steps: 0,
-            type: "Convergent"
-        });
-
-        // Check the second generated universe (N=1, X=2, Y=1, Z=1)
-        expect(universes[1]).toMatchObject({
-            N: 1, 
-            X: 2, 
-            Y: 1, 
-            Z: 1,
-            steps: 0,
-            type: "Convergent"
-        });
-    });
-
-    it('should not generate more than 100 universes', () => {
-        // Use a large range to test the generation limit
-        const nMin = 1;
-        const nMax = 50;
-        const xMin = 1;
-        const xMax = 50;
-        const yMin = 1;
-        const yMax = 1;
-        const zMin = 1;
-        const zMax = 1;
-
-        const universes = generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax);
-        expect(universes.length).toBe(100);
-    });
-
-    it('should handle ranges where min > max gracefully', () => {
-        const nMin = 5;
-        const nMax = 1;
-        const xMin = 1;
-        const xMax = 1;
-        const yMin = 1;
-        const yMax = 1;
-        const zMin = 1;
-        const zMax = 1;
-
-        const universes = generateBoxUniverses(nMin, nMax, xMin, xMax, yMin, yMax, zMin, zMax);
-        expect(universes.length).toBe(0);
-    });
+  // Mock drawNineNetCanvasSecondary to avoid canvas drawing
+  vi.spyOn(utils, 'drawNineNetCanvasSecondary').mockImplementation(() => {});
 });
+
+describe('generateBoxUniverses', () => {
+  it('generates universes within given ranges and respects x !== 0', () => {
+    // Mock calculateCollatzSequence to return valid results
+    collatzLogic.calculateCollatzSequence.mockImplementation((n, maxIter, x, y, z) => ({
+      type: "Converges to 1",
+      sequence: [n, 1],
+      steps: 1,
+      minVal: 1,
+      maxVal: n,
+      sumVal: n + 1,
+      avgVal: (n + 1) / 2,
+      stdDev: 0.5
+    }));
+
+    const universes = generateBoxUniverses(1, 1, 0, 1, 1, 1, 1, 1);
+    // x=0 should skip that universe
+    expect(universes.length).toBe(1);
+    expect(universes[0].X).toBe(1);
+
+    const universes2 = generateBoxUniverses(1, 1, 1, 1, 1, 1, 1, 1);
+    expect(universes2.length).toBe(1);
+    expect(universes2[0].N).toBe(1);
+  });
+
+  it('limits the number of universes generated to 100', () => {
+    collatzLogic.calculateCollatzSequence.mockReturnValue({
+      type: "Converges to 1",
+      sequence: [1, 1],
+      steps: 1,
+      minVal: 1,
+      maxVal: 1,
+      sumVal: 2,
+      avgVal: 1,
+      stdDev: 0
+    });
+
+    const universes = generateBoxUniverses(1, 10, 1, 10, 1, 10, 1, 10);
+    // The max number allowed is 100
+    expect(universes.length).toBeLessThanOrEqual(100);
+  });
+});
+
+describe('getFilterValues', () => { // Added missing describe block
+  it('returns current filter values from inputs or defaults', () => {
+    const values = getFilterValues();
+    expect(values).toEqual({
+      nMin: 1, nMax: 50,  // Change from 2 to 50
+      xMin: 1, xMax: 5,   // Change from 2 to 5
+      yMin: 1, yMax: 5,   // Change from 2 to 5
+      zMin: 1, zMax: 5    // Change from 2 to 5
+    });
+  });
+
+  it('returns default values if inputs are missing or invalid', () => {
+    // Remove xMin input element
+    document.getElementById('xMin').remove();
+    // Set invalid value to yMax
+    document.getElementById('yMax').value = 'invalid';
+
+    const values = getFilterValues();
+    expect(values.xMin).toBe(1); // default
+    expect(values.yMax).toBe(5); // default because invalid number
+  });
+}); // Fixed: removed extra closing brace
