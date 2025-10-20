@@ -264,53 +264,57 @@
             }
         }
 
-        // --- Draw Collatz Dragon Curve ---
         function drawCollatzDragon(binaryPath) {
-            // Clear canvas before drawing new path
-            clearCanvas();
+  clearCanvas();
 
-            const canvasWidth = collatzCanvas.width;
-            const canvasHeight = collatzCanvas.height;
+  const canvasWidth = collatzCanvas.width;
+  const canvasHeight = collatzCanvas.height;
+  let stepLen = 10; // Default length
 
-            // Define starting position and scaling for the curve
-            let x = canvasWidth / 2;
-            let y = canvasHeight / 2;
-            let angle = 0; // Initial direction (e.g., pointing right)
+  // Estimate the typical max excursion of the curve
+  let x = 0, y = 0;
+  let angle = 0;
+  let points = [[x, y]];
+  binaryPath.forEach(turn => {
+    angle += (turn === 0 ? -Math.PI/2 : Math.PI/2);
+    x += Math.cos(angle);
+    y += Math.sin(angle);
+    points.push([x, y]);
+  });
 
-            // Length of each segment, scaled by path length
-            // Adjusted factor based on typical dragon curve length characteristics
-            const segmentLength = Math.min(canvasWidth, canvasHeight) / (binaryPath.length > 0 ? binaryPath.length * 2 : 10); // Adjust factor for better fit, prevent division by zero
+  let minX = Math.min(...points.map(p => p[0]));
+  let maxX = Math.max(...points.map(p => p[0]));
+  let minY = Math.min(...points.map(p => p[1]));
+  let maxY = Math.max(...points.map(p => p[1]));
 
-            ctx.beginPath();
-            ctx.moveTo(x, y);
+  // Compute fit scale to fill canvas with margin
+  let pathW = maxX - minX, pathH = maxY - minY;
+  let scale = 0.8 * Math.min(canvasWidth / pathW, canvasHeight / pathH);
 
-            ctx.strokeStyle = '#6366f1'; // Indigo color for the path
-            ctx.lineWidth = 1; // Thin line for detail
+  // Center start
+  let offsetX = (canvasWidth - scale * (minX + maxX)) / 2;
+  let offsetY = (canvasHeight - scale * (minY + maxY)) / 2;
 
-            binaryPath.forEach((turn) => {
-                // '0' (divisible by X) -> turn left, '1' (not divisible by X) -> turn right
-                // Using 90 degrees (Math.PI / 2) for a classic fractal turn.
-                if (turn === 0) { // Divisible rule applied: turn left
-                    angle -= Math.PI / 2; // -90 degrees
-                } else { // Multiply/Add rule applied: turn right
-                    angle += Math.PI / 2; // +90 degrees
-                }
+  // Now do the actual drawing
+  x = 0; y = 0; angle = 0;
+  ctx.beginPath();
+  ctx.moveTo(offsetX + scale * x, offsetY + scale * y);
+  ctx.strokeStyle = '#6366f1';
+  ctx.lineWidth = 2;
 
-                // Calculate new position
-                x += segmentLength * Math.cos(angle);
-                y += segmentLength * Math.sin(angle);
+  binaryPath.forEach(turn => {
+    angle += (turn === 0 ? -Math.PI/2 : Math.PI/2);
+    x += Math.cos(angle);
+    y += Math.sin(angle);
+    ctx.lineTo(offsetX + scale * x, offsetY + scale * y);
+  });
 
-                // Draw line to new position
-                ctx.lineTo(x, y);
-            });
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = "#6366f1";
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
 
-            ctx.stroke();
-            // Add a subtle glow
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#6366f1";
-            ctx.stroke();
-            ctx.shadowBlur = 0; // Reset shadow for other drawings
-        }
 
         // --- Canvas Management ---
         function clearCanvas() {
