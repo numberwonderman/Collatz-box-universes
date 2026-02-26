@@ -1,10 +1,9 @@
-# Collatz Box Universes Explorer Suite
+<div align="center">
 
-<p align="center">
-<img src="assets/Gemini_Generated_Image_36ro5936ro5936ro.png" width="500" alt="Box Universe Logo">
-</p>
+# **Collatz Box Universes Explorer Suite**
+![My bvox universe logo](assets/Gemini_Generated_Image_36ro5936ro5936ro.png)
 
-
+</div>
 
 ## **Long-Term Mission Statement**
 This project aims to explore and visualize generalized Collatz sequences from novel, multi-dimensional perspectives. Moving beyond single-sequence analysis, the goal is to reveal the intricate tapestry of patterns, behaviors, and relationships that define vast "Box Universes." By providing intuitive, multi-level tools and models (such as 9-nets, 2D parameter slicers, and 3D spatial explorers), this approach seeks to offer a unique "visual intuition" and fresh context for the Collatz problem. 
