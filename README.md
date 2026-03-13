@@ -58,6 +58,20 @@ The Box Universe Explorer suite comprises eight distinct web-based applications,
 
 * **Focus:** Providing a static or single-sequence view of the radial representation of a Collatz sequence.  
 * **Key Features:** Plots numbers on a circle based on their value modulo a chosen number, with lines connecting sequence steps, offering a concise snapshot of modular distribution.
+* Researcher's Guide: Exploring Arithmetic Heterogeneity
+​To observe the modular signatures and transition patterns discussed in recent literature (e.g., Bonacorsi et al.), use the following workflow within the suite:
+​Analyze Modular Clustering
+​Tool: index.html (9-Net Launcher)
+​Action: Input a 5n+1 rule (X=2, Y=5, Z=1).
+​Insight: The 9-net visualizes how trajectories cluster within specific residue classes \pmod 9, highlighting the "arithmetic heterogeneity" that governs stopping-time distributions.
+​Identify Global Regimes
+​Tool: chaosSlicer.html
+​Action: Set X=2, Y=3 and gradually increment Z from 1 to 20.
+​Insight: Identify the "tipping points" where stable cycles break into hyperchaotic divergence.
+​Cycle & Attractor Mapping
+​Tool: radial-animator.html
+​Action: Run a known cycling rule (e.g., X=3, Y=4, Z=1).
+​Insight: The radial view reveals the geometric "footprint" of the modular attractors.
 
 ## **Technologies Used**
 
