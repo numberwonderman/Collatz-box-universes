@@ -53,15 +53,28 @@
         return { min, max };
     }
 
-    // Blue (low) -> Red (high) heatmap.
+    // Blue (low) -> Red (high) heatmap hue, or null when the range is degenerate.
+    function heatmapHue(value, range) {
+        if (!range || range.max === range.min) return null;
+        const t = Math.min(1, Math.max(0, (value - range.min) / (range.max - range.min)));
+        return (1 - t) * 0.66; // 0.66 = blue, 0.0 = red
+    }
+
+    // THREE.Color version, for viewers that already load three.js (e.g. box-universe-viewer.html).
     function heatmapColor(value, range) {
         const THREE = global.THREE;
-        if (!range || range.max === range.min) {
+        const hue = heatmapHue(value, range);
+        if (hue === null) {
             return new THREE.Color(0x333333);
         }
-        const t = Math.min(1, Math.max(0, (value - range.min) / (range.max - range.min)));
-        const hue = (1 - t) * 0.66; // 0.66 = blue, 0.0 = red
         return new THREE.Color().setHSL(hue, 0.85, 0.5);
+    }
+
+    // CSS color string version, for viewers with no three.js dependency (e.g. slicer.html).
+    function heatmapColorCss(value, range) {
+        const hue = heatmapHue(value, range);
+        if (hue === null) return '#333333';
+        return `hsl(${Math.round(hue * 360)}, 85%, 50%)`;
     }
 
     global.BridgeDataLoader = {
@@ -71,5 +84,6 @@
         lookupPoint,
         getMetricRange,
         heatmapColor,
+        heatmapColorCss,
     };
 })(window);

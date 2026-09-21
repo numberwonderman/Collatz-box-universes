@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>2D Pseudo-3D Slicer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="js/bridgeDataLoader.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -169,6 +170,7 @@
         <p class="sequence-sum-info text-gray-400 text-sm mb-2" id="sequenceSumInfo"></p>
         <p class="sequence-avg-info text-gray-400 text-sm mb-2" id="sequenceAvgInfo"></p>
         <p class="sequence-stddev-info text-gray-400 text-sm mb-2" id="sequenceStdDevInfo"></p>
+        <p class="text-gray-400 text-sm mb-2" id="bridgeInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
         <canvas id="nineNetCanvas" width="380" height="290"></canvas>
@@ -243,6 +245,19 @@
             </div>
         </div>
         <button id="applyFilters" class="px-4 py-2 bg-green-500 hover:bg-green-600">Apply Filters</button>
+
+        <div class="flex flex-col items-center">
+            <label for="bridgeFileInput">Research Data (collatz-research)</label>
+            <input type="file" id="bridgeFileInput" accept="application/json,.json" class="mt-1 text-sm text-gray-300">
+        </div>
+        <div class="flex flex-col items-center">
+            <label for="metricSelect">Color By</label>
+            <select id="metricSelect" disabled class="mt-1">
+                <option value="">None (default)</option>
+            </select>
+        </div>
+        <button id="clearBridgeBtn" disabled class="px-4 py-2 bg-gray-500 hover:bg-gray-600 disabled:opacity-50">Clear Research Data</button>
+        <p id="bridgeStatus" class="text-xs text-gray-400 w-full text-center"></p>
     </div>
 
     <div id="gridContainer" class="grid-container">
@@ -284,6 +299,14 @@ export default defineConfig({
     let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
     const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
 
+    // === Research Data Bridge State ===
+    // collatz-research's cube scans are keyed by (a, b, c), matching this page's
+    // (X, Y, Z) rule parameters (see calculateCollatzSequence in js/utils.js) -
+    // independent of N, since collatz-research aggregates over an N range per (a,b,c).
+    let bridgeData = null;   // { meta, byKey } from BridgeDataLoader.parseBridgeExport
+    let activeMetric = '';   // metric key from BridgeDataLoader.METRICS, '' = no tint
+    let metricRange = null;  // { min, max } for the active metric, across the loaded cube
+
     // Default colors for the 9-net drawing from utils.js
     const divColor = DEFAULT_LINE_COLOR;
     const mulColor = DEFAULT_NODE_COLOR;
@@ -319,7 +342,22 @@ export default defineConfig({
             xStarSlicer: document.getElementById('x-star'),
             yStarSlicer: document.getElementById('y-star'),
             zStarSlicer: document.getElementById('z-star'),
+
+            // Research Data Bridge elements
+            bridgeInfo: document.getElementById('bridgeInfo'),
+            bridgeFileInput: document.getElementById('bridgeFileInput'),
+            metricSelect: document.getElementById('metricSelect'),
+            clearBridgeBtn: document.getElementById('clearBridgeBtn'),
+            bridgeStatus: document.getElementById('bridgeStatus'),
         };
+    }
+
+    // Formats a bridge data point's stats for display, or a "no data" message.
+    function formatBridgeInfo(x, y, z) {
+        if (!bridgeData) return '';
+        const point = BridgeDataLoader.lookupPoint(bridgeData.byKey, x, y, z);
+        if (!point) return 'Research: no data for this (X, Y, Z)';
+        return `Research: MAD=${point.mad ?? 'n/a'} | Mix Speed=${point.digital_mixing_speed ?? 'n/a'} | χ²=${point.chi_squared_statistic ?? 'n/a'}`;
     }
 
 
@@ -474,9 +512,10 @@ export default defineConfig({
             sequenceNumbersDiv, 
             sequenceRangeInfo, 
             sequenceSumInfo, 
-            sequenceAvgInfo, 
-            sequenceStdDevInfo, 
-            nineNetCanvas 
+            sequenceAvgInfo,
+            sequenceStdDevInfo,
+            nineNetCanvas,
+            bridgeInfo
         } = getSlicerElements();
 
         if (!paramDisplay || !sequenceInfo || !sequenceNumbersDiv || !sequenceRangeInfo || !sequenceSumInfo || !sequenceAvgInfo || !sequenceStdDevInfo || !nineNetCanvas) {
@@ -502,6 +541,7 @@ export default defineConfig({
         sequenceSumInfo.textContent = `Sum: ${typeof universe.sumVal === 'number' && Number.isFinite(universe.sumVal) ? universe.sumVal.toLocaleString() : 'Too Large'}`;
         sequenceAvgInfo.textContent = `Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
         sequenceStdDevInfo.textContent = `StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
+        if (bridgeInfo) bridgeInfo.textContent = formatBridgeInfo(universe.X, universe.Y, universe.Z);
 
 
         drawNineNetCanvasSecondary(nineNetCanvas, universe.sequence, universe.X, divColor, mulColor);
@@ -617,6 +657,15 @@ export default defineConfig({
             infoDiv.innerHTML += `<br>Avg: ${typeof universe.avgVal === 'number' && Number.isFinite(universe.avgVal) ? universe.avgVal.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
             infoDiv.innerHTML += `<br>StdDev: ${typeof universe.stdDev === 'number' && Number.isFinite(universe.stdDev) ? universe.stdDev.toLocaleString(undefined, { maximumFractionDigits: 2 }) : 'N/A'}`;
 
+            const bridgePoint = bridgeData ? BridgeDataLoader.lookupPoint(bridgeData.byKey, universe.X, universe.Y, universe.Z) : null;
+            if (bridgeData) {
+                infoDiv.innerHTML += bridgePoint
+                    ? `<br>MAD: ${bridgePoint.mad ?? 'n/a'} | Mix Speed: ${bridgePoint.digital_mixing_speed ?? 'n/a'}`
+                    : `<br><span class="text-gray-600">No research data</span>`;
+            }
+            gridItem.style.borderLeft = (activeMetric && bridgePoint && typeof bridgePoint[activeMetric] === 'number')
+                ? `6px solid ${BridgeDataLoader.heatmapColorCss(bridgePoint[activeMetric], metricRange)}`
+                : '';
 
             const viewButton = document.createElement('button');
             viewButton.textContent = 'View in Main';
@@ -658,16 +707,76 @@ export default defineConfig({
     }
 
 
-    const { 
-        applyFiltersButton, 
-        nMinInput, nMaxInput, 
-        xMinInput, xMaxInput, 
-        yMinInput, yMaxInput, 
-        zMinInput, zMaxInput 
+    const {
+        applyFiltersButton,
+        nMinInput, nMaxInput,
+        xMinInput, xMaxInput,
+        yMinInput, yMaxInput,
+        zMinInput, zMaxInput,
+        bridgeFileInput, metricSelect, clearBridgeBtn, bridgeStatus
     } = getSlicerElements();
 
     // Event listener for apply filters button
     if (applyFiltersButton) applyFiltersButton.addEventListener('click', applyAndDrawFilters);
+
+    // === Research Data Bridge Handlers ===
+    function populateMetricSelect() {
+        metricSelect.innerHTML = '<option value="">None (default)</option>';
+        Object.entries(BridgeDataLoader.METRICS).forEach(([key, info]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = info.label;
+            metricSelect.appendChild(option);
+        });
+        metricSelect.disabled = false;
+    }
+
+    if (bridgeFileInput) {
+        bridgeFileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            try {
+                const text = await file.text();
+                bridgeData = BridgeDataLoader.parseBridgeExport(text);
+                populateMetricSelect();
+                if (clearBridgeBtn) clearBridgeBtn.disabled = false;
+                if (bridgeStatus) {
+                    bridgeStatus.textContent = `Loaded ${bridgeData.byKey.size} cube points ` +
+                        `(center ${JSON.stringify(bridgeData.meta.cube_center)}, side ${bridgeData.meta.side_length}).`;
+                }
+                applyAndDrawFilters();
+            } catch (err) {
+                bridgeData = null;
+                if (bridgeStatus) bridgeStatus.textContent = `Failed to load: ${err.message}`;
+            }
+        });
+    }
+
+    if (metricSelect) {
+        metricSelect.addEventListener('change', () => {
+            activeMetric = metricSelect.value;
+            metricRange = (activeMetric && bridgeData)
+                ? BridgeDataLoader.getMetricRange(bridgeData.byKey, activeMetric)
+                : null;
+            applyAndDrawFilters();
+        });
+    }
+
+    if (clearBridgeBtn) {
+        clearBridgeBtn.addEventListener('click', () => {
+            bridgeData = null;
+            activeMetric = '';
+            metricRange = null;
+            if (bridgeFileInput) bridgeFileInput.value = '';
+            if (metricSelect) {
+                metricSelect.innerHTML = '<option value="">None (default)</option>';
+                metricSelect.disabled = true;
+            }
+            clearBridgeBtn.disabled = true;
+            if (bridgeStatus) bridgeStatus.textContent = '';
+            applyAndDrawFilters();
+        });
+    }
 
     // Add event listeners to input fields to update gold star visibility
     // These will update the stars as the user types/changes values
@@ -780,6 +889,5 @@ export default defineConfig({
         updateGoldStarVisibilitySlicer();
     });
 </script>
->>>>>>> main
 </body>
 </html>
