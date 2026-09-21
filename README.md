@@ -41,7 +41,7 @@ The suite comprises ten distinct applications designed to provide a unique "Leve
 
 ### **6. box-universe-viewer.html (3D Rule Space Explorer)**
 * **Focus:** Global behavior of different rules applied to a fixed starting number.
-* **Key Features:** Visualizes convergence/divergence as a 3D coordinate map of $(X, Y, Z)$.
+* **Key Features:** Visualizes convergence/divergence as a 3D coordinate map of $(X, Y, Z)$. Includes a **Research Data Bridge** panel that loads a cube-scan JSON exported by [collatz-research](https://github.com/numberwonderman/Collatz-research)'s `bridge_export.py` and re-colors the same cube by Benford's-Law statistics (MAD, digital mixing speed, chi-squared, etc.) instead of only convergence type.
 
 ### **7. collatz-dragon.html (Dragon Explorer)**
 * **Focus:** Fractal properties revealed through the binary path of sequence operations.

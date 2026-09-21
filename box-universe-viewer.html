@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="js/bridgeDataLoader.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -108,6 +109,19 @@
             </div>
         </div>
 
+        <div class="mt-6 pt-4 border-t border-gray-600">
+            <h2 class="text-sm font-bold mb-2 uppercase tracking-wide text-gray-300">Research Data Bridge</h2>
+            <p class="text-xs text-gray-400 mb-2">Load a cube-scan JSON exported by collatz-research's <code>bridge_export.py</code> to color cubes by Benford's-Law statistics instead of convergence type.</p>
+            <input type="file" id="bridgeFileInput" accept="application/json,.json" class="w-full text-xs text-gray-300 mb-2 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-blue-600 file:text-white file:text-xs hover:file:bg-blue-700">
+            <select id="metricSelect" disabled class="w-full p-2 rounded-md bg-gray-700 text-gray-200 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50">
+                <option value="">Convergence Type (default)</option>
+            </select>
+            <button id="clearBridgeBtn" disabled class="w-full py-1.5 px-4 bg-gray-600 hover:bg-gray-700 disabled:opacity-50 disabled:hover:bg-gray-600 text-white text-sm font-bold rounded-md transition-colors duration-200">
+                Clear Research Data
+            </button>
+            <p id="bridgeStatus" class="mt-2 text-xs text-gray-400"></p>
+        </div>
+
         <div class="mt-6 flex flex-col space-y-3">
             <button id="generateBtn" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md shadow-lg transition-colors duration-200">
                 Generate Universe
@@ -143,12 +157,21 @@
     <!-- Legend Panel -->
     <div class="legend-panel">
         <h2 class="text-xl font-bold mb-2">Legend</h2>
-        <div class="grid grid-cols-2 gap-2">
+        <div id="legend-convergence" class="grid grid-cols-2 gap-2">
             <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #00ff00;"></div> Converges</div>
             <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #ff0000;"></div> Diverges</div>
             <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #0000ff;"></div> Cycles</div>
             <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #aaaaaa;"></div> Unknown</div>
             <div class="flex items-center"><div class="w-4 h-4 rounded-full mr-2" style="background-color: #ffd700;"></div> Classic (2,3,1)</div>
+        </div>
+        <div id="legend-metric" class="hidden w-48">
+            <p id="legend-metric-label" class="text-sm font-medium mb-1"></p>
+            <div class="w-full h-3 rounded" style="background: linear-gradient(to right, hsl(240,85%,50%), hsl(120,85%,50%), hsl(0,85%,50%));"></div>
+            <div class="flex justify-between text-xs text-gray-400 mt-1">
+                <span id="legend-metric-min"></span>
+                <span id="legend-metric-max"></span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Dark grey = no research data for that cell</p>
         </div>
     </div>
     
@@ -163,6 +186,11 @@
         let currentGenerationPromise = null;
         let raycaster, mouse;
         let INTERSECTED; // To store the currently hovered cube
+
+        // --- Bridge Data State ---
+        let bridgeData = null;   // { meta, byKey } from BridgeDataLoader.parseBridgeExport
+        let activeMetric = '';   // metric key from BridgeDataLoader.METRICS, '' = convergence-type coloring
+        let metricRange = null;  // { min, max } for the active metric, across the loaded cube
 
         // --- Constants ---
         const BOX_SIZE = 1; // Size of each cube representing a ruleset (x,y,z)
@@ -201,6 +229,15 @@
         const infoZ = document.getElementById('info-z');
         const infoResultLabel = document.getElementById('info-result-label');
         const infoResultValue = document.getElementById('info-result-value');
+        const bridgeFileInput = document.getElementById('bridgeFileInput');
+        const metricSelect = document.getElementById('metricSelect');
+        const clearBridgeBtn = document.getElementById('clearBridgeBtn');
+        const bridgeStatus = document.getElementById('bridgeStatus');
+        const legendConvergence = document.getElementById('legend-convergence');
+        const legendMetric = document.getElementById('legend-metric');
+        const legendMetricLabel = document.getElementById('legend-metric-label');
+        const legendMetricMin = document.getElementById('legend-metric-min');
+        const legendMetricMax = document.getElementById('legend-metric-max');
 
 
         // --- Generalized Collatz Logic (with BigInt) ---
@@ -333,11 +370,26 @@
         }
 
         // --- Visualization Logic ---
+
+        // Picks the cube's base color: the research-data heatmap when a metric is
+        // active and the point exists in the loaded bridge export, otherwise the
+        // original convergence/divergence/cycle coloring.
+        function computeBaseColor(x, y, z, result) {
+            if (activeMetric && bridgeData) {
+                const point = BridgeDataLoader.lookupPoint(bridgeData.byKey, x, y, z);
+                if (point && typeof point[activeMetric] === 'number') {
+                    return BridgeDataLoader.heatmapColor(point[activeMetric], metricRange);
+                }
+                return new THREE.Color(0x333333); // no research data for this cell
+            }
+            return COLOR_MAP[result.type] || COLOR_MAP.unknown;
+        }
+
         const cubeGeometry = new THREE.BoxGeometry(BOX_SIZE, BOX_SIZE, BOX_SIZE);
         function createOrUpdateCube(x, y, z, result) {
             const key = `${x}-${y}-${z}`;
             let mesh = meshMap.get(key);
-            let materialColor = COLOR_MAP[result.type] || COLOR_MAP.unknown;
+            let materialColor = computeBaseColor(x, y, z, result);
 
             // Apply a slight shading based on the x-value to visualize the 'sheets'
             const xMin = parseFloat(xMinInput.value);
@@ -384,10 +436,31 @@
                 scene.add(mesh);
                 meshMap.set(key, mesh);
             }
-            // Apply special color for classic Collatz rule if it matches
-            if (x === 2 && y === 3 && z === 1) {
+            // Apply special color for classic Collatz rule if it matches (convergence mode only;
+            // in metric mode gold would be mistaken for a heatmap value)
+            if (!activeMetric && x === 2 && y === 3 && z === 1) {
                 mesh.material.color.set(COLOR_MAP.classic);
             }
+        }
+
+        // Recolors existing cubes in place (no recomputation of sequences) after
+        // research data is loaded, cleared, or the active metric changes.
+        function refreshCubeColors() {
+            meshMap.forEach((mesh) => {
+                const { x, y, z, result } = mesh.userData;
+                const xMin = parseFloat(xMinInput.value);
+                const xMax = parseFloat(xMaxInput.value);
+                const xRange = xMax - xMin;
+                const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
+                const shade = 0.2 + xNormalized * 0.8;
+
+                const color = computeBaseColor(x, y, z, result).clone().multiplyScalar(shade);
+                mesh.material.color.set(color);
+
+                if (!activeMetric && x === 2 && y === 3 && z === 1) {
+                    mesh.material.color.set(COLOR_MAP.classic);
+                }
+            });
         }
 
         function clearCubes() {
@@ -490,11 +563,78 @@
             if (DEBUG_MODE) console.log("Camera reset to default view.");
         }
 
+        // --- Bridge Data Handlers ---
+        function populateMetricSelect() {
+            metricSelect.innerHTML = '<option value="">Convergence Type (default)</option>';
+            Object.entries(BridgeDataLoader.METRICS).forEach(([key, info]) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = info.label;
+                metricSelect.appendChild(option);
+            });
+            metricSelect.disabled = false;
+        }
+
+        function updateMetricLegend() {
+            if (!activeMetric || !bridgeData) {
+                legendConvergence.classList.remove('hidden');
+                legendMetric.classList.add('hidden');
+                return;
+            }
+            legendConvergence.classList.add('hidden');
+            legendMetric.classList.remove('hidden');
+            legendMetricLabel.textContent = BridgeDataLoader.METRICS[activeMetric].label;
+            legendMetricMin.textContent = metricRange ? metricRange.min.toFixed(5) : 'n/a';
+            legendMetricMax.textContent = metricRange ? metricRange.max.toFixed(5) : 'n/a';
+        }
+
+        bridgeFileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                bridgeData = BridgeDataLoader.parseBridgeExport(text);
+                populateMetricSelect();
+                clearBridgeBtn.disabled = false;
+                bridgeStatus.textContent = `Loaded ${bridgeData.byKey.size} cube points ` +
+                    `(center ${JSON.stringify(bridgeData.meta.cube_center)}, side ${bridgeData.meta.side_length}).`;
+                displayMessage('Research data loaded!', 'success');
+            } catch (err) {
+                bridgeData = null;
+                bridgeStatus.textContent = `Failed to load: ${err.message}`;
+                displayMessage('Failed to load research data.', 'error');
+            }
+        });
+
+        metricSelect.addEventListener('change', () => {
+            activeMetric = metricSelect.value;
+            metricRange = (activeMetric && bridgeData)
+                ? BridgeDataLoader.getMetricRange(bridgeData.byKey, activeMetric)
+                : null;
+            updateMetricLegend();
+            refreshCubeColors();
+        });
+
+        clearBridgeBtn.addEventListener('click', () => {
+            bridgeData = null;
+            activeMetric = '';
+            metricRange = null;
+            bridgeFileInput.value = '';
+            metricSelect.innerHTML = '<option value="">Convergence Type (default)</option>';
+            metricSelect.disabled = true;
+            clearBridgeBtn.disabled = true;
+            bridgeStatus.textContent = '';
+            updateMetricLegend();
+            refreshCubeColors();
+            displayMessage('Research data cleared.', 'info');
+        });
+
         // --- Event Handlers ---
         generateBtn.addEventListener('click', generateCubes);
         cancelBtn.addEventListener('click', cancelGeneration);
         resetCameraBtn.addEventListener('click', resetCameraView);
-        
+
         // --- Mouse and Raycasting Logic ---
         function onMouseMove(event) {
             // Calculate mouse position in normalized device coordinates (-1 to +1) for both components
@@ -519,10 +659,10 @@
                         const xRange = xMax - xMin;
                         const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
                         const shade = 0.2 + xNormalized * 0.8;
-                        const originalColor = COLOR_MAP[INTERSECTED.userData.result.type] || COLOR_MAP.unknown;
+                        const originalColor = computeBaseColor(INTERSECTED.userData.x, INTERSECTED.userData.y, INTERSECTED.userData.z, INTERSECTED.userData.result);
                         INTERSECTED.material.color.set(originalColor.clone().multiplyScalar(shade));
-                        
-                        if (INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
+
+                        if (!activeMetric && INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
                              INTERSECTED.material.color.set(COLOR_MAP.classic);
                         }
                     }
@@ -551,6 +691,13 @@
                         default:
                             resultText = 'Unknown';
                     }
+
+                    const bridgePoint = bridgeData
+                        ? BridgeDataLoader.lookupPoint(bridgeData.byKey, INTERSECTED.userData.x, INTERSECTED.userData.y, INTERSECTED.userData.z)
+                        : null;
+                    if (bridgePoint) {
+                        resultText += ` | MAD: ${bridgePoint.mad ?? 'n/a'} | Mix Speed: ${bridgePoint.digital_mixing_speed ?? 'n/a'}`;
+                    }
                     infoResultValue.textContent = resultText;
                     infoPanel.classList.remove('hidden');
 
@@ -565,9 +712,9 @@
                     const xRange = xMax - xMin;
                     const xNormalized = xRange > 0 ? (x - xMin) / xRange : 0;
                     const shade = 0.2 + xNormalized * 0.8;
-                    const originalColor = COLOR_MAP[INTERSECTED.userData.result.type] || COLOR_MAP.unknown;
+                    const originalColor = computeBaseColor(INTERSECTED.userData.x, INTERSECTED.userData.y, INTERSECTED.userData.z, INTERSECTED.userData.result);
                     INTERSECTED.material.color.set(originalColor.clone().multiplyScalar(shade));
-                    if (INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
+                    if (!activeMetric && INTERSECTED.userData.x === 2 && INTERSECTED.userData.y === 3 && INTERSECTED.userData.z === 1) {
                         INTERSECTED.material.color.set(COLOR_MAP.classic);
                     }
                 }
