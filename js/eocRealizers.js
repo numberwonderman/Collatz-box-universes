@@ -400,13 +400,13 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
     for (const cv of betaConvergents(12)) {
         if (cv.n < 3 || cv.p > N) continue;
         periodic.push(realizerTrajectory(periodicWord(cv.p, cv.q, N), {
-            cls: 'periodic', label: `w(${cv.p}/${cv.q}) convergent n=${cv.n}`,
+            cls: 'periodic', label: `w(${cv.p}/${cv.q}) convergent n=${cv.n}`, gen: { type: 'periodic', p: cv.p, q: cv.q },
             tag: `critical, ${cv.side} beta`, period: cv.p, convergent: cv,
         }));
     }
     for (const [p, q] of [[2, 3], [3, 7]]) {
         periodic.push(realizerTrajectory(periodicWord(p, q, N), {
-            cls: 'periodic', label: `w(${p}/${q})`, tag: 'off-critical', period: p,
+            cls: 'periodic', label: `w(${p}/${q})`, tag: 'off-critical', period: p, gen: { type: 'periodic', p, q },
         }));
     }
 
@@ -420,7 +420,7 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
         const rhos = tag === 'critical' ? [0, 0.2071, 0.4142, 0.6213, 0.8284] : [0, 0.4142];
         for (const rho of rhos) {
             sturmian.push(realizerTrajectory(beattyWord(lambda, rho, N), {
-                cls: 'sturmian',
+                cls: 'sturmian', gen: { type: 'beatty', lambda, rho },
                 label: rho === 0 && tag === 'critical' ? '1c_beta (slope log2 3, rho=0)' : `slope ${name}, rho=${rho}`,
                 tag,
             }));
@@ -479,6 +479,149 @@ export function depthLawTable(maxN = 9) {
         rows.push({ n, p, q, side, predicted, observed, twoAdic: v2(rs > rw ? rs - rw : rw - rs) });
     }
     return rows;
+}
+
+// ---------- Carry-walk residue tower ----------
+//
+// For q = p^e (p prime, p not dividing 6) the carry sum factors through the
+// multiplicative walk u_0 = 1, u_{j+1} = u_j * 2^(d_j) * 3^-1 on K_e = <2,3> in
+// (Z/qZ)^x, since u_j = 2^(S_j) 3^-j and C_N = 3^(N-1) * sum_{j<N} u_j (mod q).
+// This is the state space of De Jesus, "Exact Spectral Inheritance in
+// Prime-Power Resolution Towers" (DOI 10.5281/zenodo.23088511). Here its
+// orthogonal splitting H_{e+1} = J_e(H_e) (+) Z_{e+1} is applied to the
+// occupation density of one walk; the transfer operators themselves are not built.
+
+const groupCache = new Map();
+
+/** Elements of K = <2,3> in (Z/qZ)^x. */
+export function residueGroup(q) {
+    if (!groupCache.has(q)) {
+        const seen = new Set([1 % q]);
+        const stack = [1 % q];
+        while (stack.length) {
+            const x = stack.pop();
+            for (const g of [2, 3]) {
+                const y = (x * g) % q;
+                if (!seen.has(y)) { seen.add(y); stack.push(y); }
+            }
+        }
+        groupCache.set(q, [...seen].sort((a, b) => a - b));
+    }
+    return groupCache.get(q);
+}
+
+function invMod(a, q) {
+    let [r0, r1, s0, s1] = [q, a % q, 0, 1];
+    while (r1) {
+        const t = Math.floor(r0 / r1);
+        [r0, r1] = [r1, r0 - t * r1];
+        [s0, s1] = [s1, s0 - t * s1];
+    }
+    return ((s0 % q) + q) % q;
+}
+
+function walkStep(x, d, q, inv3) {
+    for (let k = 0; k < d; k++) x = (x * 2) % q;
+    return (x * inv3) % q;
+}
+
+/** Carry walk u_0..u_{N-1} of a word mod q. */
+export function carryWalk(word, q) {
+    const inv3 = invMod(3, q);
+    const u = new Array(word.length);
+    let x = 1 % q;
+    for (let j = 0; j < word.length; j++) {
+        u[j] = x;
+        x = walkStep(x, word[j], q, inv3);
+    }
+    return u;
+}
+
+/**
+ * Split densities f_1..f_E (relative to uniform on K_e) along the tower:
+ * energy_e = ||f_e - 1||^2 and fresh_e = ||f_e - J f_{e-1}||^2 in the normalized
+ * inner product, so energy_e = energy_{e-1} + fresh_e exactly.
+ */
+function splitDensities(dens, p, maxE) {
+    const levels = [];
+    let prevSize = 1;
+    for (let e = 1; e <= maxE; e++) {
+        const q = p ** e, K = residueGroup(q), f = dens[e];
+        let energy = 0, fresh = 0;
+        for (const x of K) {
+            const fe = f.get(x) || 0;
+            const fp = e === 1 ? 1 : (dens[e - 1].get(x % (q / p)) || 0);
+            energy += (fe - 1) ** 2;
+            fresh += (fe - fp) ** 2;
+        }
+        levels.push({
+            e, q, size: K.length,
+            dimZ: K.length - prevSize,          // dimension of the new sector Z_e
+            energy: energy / K.length,
+            fresh: fresh / K.length,
+        });
+        prevSize = K.length;
+    }
+    return levels;
+}
+
+/**
+ * Empirical residue tower of one word: per level e, the new-sector energy and its
+ * ratio to the i.i.d.-uniform expectation dimZ/N ("excess"; 1 = sampling noise).
+ * Levels with |K_e| > N/4 are flagged as undersampled.
+ */
+export function residueTower(word, p, maxE = 3) {
+    const N = word.length;
+    const dens = {};
+    for (let e = 1; e <= maxE; e++) {
+        const q = p ** e, size = residueGroup(q).length;
+        const f = new Map();
+        for (const x of carryWalk(word, q)) f.set(x, (f.get(x) || 0) + size / N);
+        dens[e] = f;
+    }
+    return splitDensities(dens, p, maxE).map(l => ({
+        ...l, N, excess: l.fresh * N / l.dimZ, sampled: l.size <= N / 4,
+    }));
+}
+
+/**
+ * Exact N -> infinity residue tower of the periodic word X^inf: the walk satisfies
+ * u_{i+P} = u_i g with g = 2^Q 3^-P, so its limiting occupation is the average of
+ * the uniform measures on the cosets u_i <g>, i < P.
+ */
+export function periodicLimitTower(block, p, maxE = 3) {
+    const dens = {};
+    for (let e = 1; e <= maxE; e++) {
+        const q = p ** e, size = residueGroup(q).length, inv3 = invMod(3, q);
+        const u = carryWalk(block, q);
+        const g = walkStep(u[block.length - 1], block[block.length - 1], q, inv3);
+        const H = [1 % q];
+        for (let y = g; y !== 1 % q; y = (y * g) % q) H.push(y);
+        const f = new Map();
+        const w = size / (block.length * H.length);
+        for (const ui of u) for (const h of H) {
+            const x = (ui * h) % q;
+            f.set(x, (f.get(x) || 0) + w);
+        }
+        dens[e] = f;
+    }
+    return splitDensities(dens, p, maxE).map(l => ({ ...l, fresh: l.fresh < 1e-12 ? 0 : l.fresh }));
+}
+
+/** p-adic valuation of a BigInt (nonzero). */
+export function vp(x, p) {
+    const P = BigInt(p);
+    let k = 0;
+    x = x < 0n ? -x : x;
+    while (x % P === 0n) { x /= P; k++; }
+    return k;
+}
+
+/** Valuation word used for the residue tower: synthetic words are regenerated at length `len`. */
+export function towerWord(t, len) {
+    if (t.gen?.type === 'periodic') return periodicWord(t.gen.p, t.gen.q, len);
+    if (t.gen?.type === 'beatty') return beattyWord(t.gen.lambda, t.gen.rho, len);
+    return t.word;
 }
 
 /** Mean / standard deviation helper over a list of numbers. */

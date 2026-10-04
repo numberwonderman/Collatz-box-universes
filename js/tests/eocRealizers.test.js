@@ -3,6 +3,7 @@ import {
     leastRealizer, accelOrbit, accelOrbitToOne, carrySum, periodicWord, beattyWord,
     betaConvergents, recordHolders, lifetime, lifetimeRecords, occupation, trajectoryStats,
     heightAmortization, depthLawTable, buildThreeClasses, summarizeClasses, LOG2_3, log2Big,
+    residueGroup, carryWalk, residueTower, periodicLimitTower, vp, geometricWord, mulberry32,
 } from '../eocRealizers.js';
 
 // Smallest odd m whose first word.length accelerated valuations equal word.
@@ -133,5 +134,51 @@ describe('eocRealizers', () => {
                 expect(Math.abs(sum[c].depthPerS.mean)).toBeLessThan(0.05);
             }
         }
+    });
+
+    describe('carry-walk residue tower', () => {
+        it('K_e = <2,3> mod p^e has the expected sizes', () => {
+            expect([1, 2, 3].map(e => residueGroup(11 ** e).length)).toEqual([10, 110, 1210]);
+            expect([1, 2, 3].map(e => residueGroup(13 ** e).length)).toEqual([12, 156, 2028]);
+        });
+
+        it('carry sum factors through the walk: C_N = 3^(N-1) sum u_j (mod q)', () => {
+            const w = beattyWord(LOG2_3, 0.3, 80);
+            for (const q of [125, 343, 1331, 2197]) {
+                const sum = BigInt(carryWalk(w, q).reduce((a, b) => a + b, 0));
+                expect((3n ** 79n * sum) % BigInt(q)).toBe(carrySum(w) % BigInt(q));
+            }
+        });
+
+        it('energy splits exactly into inherited plus new sectors', () => {
+            const w = geometricWord(3000, mulberry32(5));
+            for (const p of [5, 7, 13]) {
+                const t = residueTower(w, p);
+                let acc = 0;
+                for (const l of t) {
+                    acc += l.fresh;
+                    expect(l.energy).toBeCloseTo(acc, 10);
+                }
+            }
+        });
+
+        it('periodic limit tower matches a long simulation', () => {
+            const block = periodicWord(5, 8, 5);
+            expect(periodicLimitTower(block, 13).map(l => l.fresh)).toEqual([expect.closeTo(1.4, 10), 0, 0]);
+            expect(periodicLimitTower(block, 7).map(l => l.fresh)).toEqual([0, expect.closeTo(0.4, 10), 0]);
+            const sim = residueTower(periodicWord(5, 8, 5 * 4000), 7);
+            expect(sim[1].fresh).toBeCloseTo(0.4, 4);
+        });
+
+        it('detects the EOC denominators 13 | 3^5 - 2^8 and 11 | 3^53 - 2^84', () => {
+            expect(vp(3n ** 5n - 2n ** 8n, 13)).toBe(1);
+            expect(vp(3n ** 53n - 2n ** 84n, 11)).toBe(1);
+            expect(periodicLimitTower(periodicWord(53, 84, 53), 11)[0].fresh).toBeGreaterThan(0);
+        });
+
+        it('critical Sturmian walk: new-sector energy at 7^3 decays with N', () => {
+            const at = N => residueTower(beattyWord(LOG2_3, 0, N), 7)[2].fresh;
+            expect(at(32000)).toBeLessThan(at(4000) / 5);
+        });
     });
 });

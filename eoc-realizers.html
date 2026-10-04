@@ -126,6 +126,42 @@
         <div id="dotplots" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
+    <section class="panel p-3 mt-3">
+        <h2 class="font-semibold mb-1">Carry-walk residue tower</h2>
+        <p class="muted text-xs mb-2">Modulo q = p<sup>e</sup> the carry sum factors through the walk u<sub>0</sub> = 1,
+            u<sub>j+1</sub> = u<sub>j</sub>·2<sup>d<sub>j</sub></sup>·3<sup>−1</sup> on K<sub>e</sub> = ⟨2,3⟩ ≤ (ℤ/qℤ)<sup>×</sup>, since
+            C<sub>N</sub> ≡ 3<sup>N−1</sup>·Σ u<sub>j</sub>. Following De Jesús, <em>Exact Spectral Inheritance in Prime-Power
+            Resolution Towers</em> (DOI 10.5281/zenodo.23088511), each walk's occupation density f<sub>e</sub> on K<sub>e</sub> is split
+            along H<sub>e</sub> = J(H<sub>e−1</sub>) ⊕ Z<sub>e</sub>: the part inherited from level e−1 and the genuinely new
+            part. The new-sector energy ‖f<sub>e</sub> − J f<sub>e−1</sub>‖² is plotted relative to its i.i.d.-uniform expectation
+            dim Z<sub>e</sub> / N, so 1 is sampling noise, values far below 1 mean a low-discrepancy walk, and values far above 1
+            mean new fine structure. This uses the paper's state space and splitting only. The transfer operators and the
+            gap g<sub>0</sub>(p, e) are not computed here.</p>
+        <div class="flex flex-wrap gap-3 items-end mb-2 text-sm">
+            <label>Prime p
+                <select id="inP" class="ml-1">
+                    <option value="5">5</option><option value="7" selected>7</option>
+                    <option value="11">11</option><option value="13">13</option>
+                </select>
+            </label>
+            <label>Walk length for periodic / Sturmian words
+                <select id="inWalk" class="ml-1">
+                    <option value="1000">1 000</option><option value="4000" selected>4 000</option>
+                    <option value="16000">16 000</option>
+                </select>
+            </label>
+            <span class="muted text-xs">Actual orbits and the random control keep their own lengths (≤ 195 steps), so their fine levels are often undersampled.</span>
+        </div>
+        <div id="towerplots" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+        <h3 class="font-semibold text-sm mt-3 mb-1">Exact limit for periodic words (N → ∞)</h3>
+        <p class="muted text-xs mb-2">For X<sup>∞</sup> with block length P and block sum Q, u<sub>j+P</sub> = u<sub>j</sub>·g with
+            g = 2<sup>Q</sup>3<sup>−P</sup>, so the limiting density is the average of the uniform measures on the cosets
+            u<sub>i</sub>⟨g⟩. Its new-sector energy at level e is the sum of |avg<sub>i&lt;P</sub> χ(u<sub>i</sub>)|² over the characters
+            χ that are new at level e and trivial on ⟨g⟩. The last column is v<sub>p</sub>(3<sup>P</sup> − 2<sup>Q</sup>), the EOC
+            denominator δ<sub>X</sub> (Thm. 5.4).</p>
+        <div class="overflow-x-auto"><table class="stats text-xs" id="limittable"></table></div>
+    </section>
+
     <section class="panel p-3 mt-3 overflow-x-auto">
         <h2 class="font-semibold mb-1">Periodic vs Sturmian: 2-adic agreement depth</h2>
         <p class="muted text-xs mb-2">lcp of the parity words of 1c<sub>β</sub> and w<sub>n</sub><sup>∞</sup>, compared with the
@@ -165,6 +201,25 @@
         <p class="mb-2"><b>Occupation.</b> Residue occupation is word structure again: m ≡ 5 (mod 8) exactly when d ≥ 3,
             so words over {1,2} never visit that class. Actual record holders visit it at about 0.18 (delay records) or 0.14
             (L₁ records), below the generic 1/4, because they are selected for slow decay.</p>
+        <p class="mb-2"><b>Residue tower.</b> At walk length 4 000 the periodic and Sturmian walks are low-discrepancy
+            on every sampled level: their new-sector energy is typically 10<sup>−3</sup>–10<sup>−1</sup> of sampling noise. The two
+            classes separate in the limit N → ∞:</p>
+        <ul class="list-disc ml-5 mb-2">
+            <li><b>Periodic words</b> keep a persistent new-sector energy at a few specific levels, computed exactly in the table,
+                and it is zero at every other level in range. Divisibility of the EOC denominator 3<sup>P</sup> − 2<sup>Q</sup> by
+                p<sup>e</sup> is one way it arises. 13 | 3<sup>5</sup> − 2<sup>8</sup> makes w(5/8)'s walk exactly periodic mod 13
+                (energy 7/5), and 11 | 3<sup>53</sup> − 2<sup>84</sup> does the same for w(53/84). It is not the only way:
+                w(12/19) carries energy at 5² and 13², although neither 5 nor 13 divides 3<sup>12</sup> − 2<sup>19</sup> = 7153.</li>
+            <li><b>Sturmian words</b> should have no persistent energy at any level. Argument sketch: the walk's discrete log is
+                A·⌊jλ + ρ⌋ − B·j mod |K<sub>e</sub>|, where 2 = g<sup>A</sup> and 3 = g<sup>B</sup>. Because λ is irrational,
+                (jλ/n mod 1, j mod n) is jointly equidistributed, which forces every nontrivial character average to 0.
+                The convergence can be slow: the critical words show excess ≈ 24 at 7³ for N = 4 000, but the energy itself falls
+                from 1.5 to 0.065 between N = 4 000 and 32 000. The cause of that slow level was not identified.</li>
+        </ul>
+        <p class="mb-2">Actual orbits below 10<sup>6</sup> are at most 195 steps long, so only levels with |K<sub>e</sub>| ≤ N/4 are
+            resolvable (e = 1, and e = 2 for p = 5, 7). There their excess (median 0.3–1.2) is indistinguishable from the random
+            control (0.55–1.0). At these resolutions the residue tower separates periodic from Sturmian words, but it does not
+            separate actual orbits from generic words.</p>
         <p class="muted text-xs">Diagnostics only, in the spirit of EOC §15: the ranges scanned are stated in the controls, and
             no trend is claimed beyond them. One discrepancy to note: for m₀ = 285175 this page counts O₁ = 98 indices
             n ≥ 0 with R<sub>n</sub> ≤ 1 (exact integer test), while EOC Rem. 6.2 reports 97. L₁ = 14 agrees.</p>
@@ -173,7 +228,10 @@
 <div id="tooltip"></div>
 
 <script type="module">
-import { buildThreeClasses, summarizeClasses, depthLawTable, log2Big, LOG2_3 } from './js/eocRealizers.js';
+import {
+    buildThreeClasses, summarizeClasses, depthLawTable, log2Big, LOG2_3,
+    residueTower, periodicLimitTower, periodicWord, towerWord, vp,
+} from './js/eocRealizers.js';
 
 const css = getComputedStyle(document.documentElement);
 const CLASS_INFO = {
@@ -423,6 +481,83 @@ function renderSummary() {
     document.getElementById('summary').innerHTML = html;
 }
 
+// ---------- Residue tower ----------
+function attachTips(root) {
+    root.querySelectorAll('circle[data-tip]').forEach(el => {
+        el.addEventListener('mousemove', e => {
+            tooltip.style.display = 'block';
+            tooltip.textContent = el.dataset.tip;
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY + 12) + 'px';
+        });
+        el.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+    });
+}
+
+function renderTower() {
+    if (!classes) return;
+    const p = parseInt(document.getElementById('inP').value, 10);
+    const len = parseInt(document.getElementById('inWalk').value, 10);
+    const towers = {};
+    for (const c of CLASS_ORDER) {
+        towers[c] = classes[c].map(t => ({ t, levels: residueTower(towerWord(t, len), p) }));
+    }
+    const wrap = document.getElementById('towerplots');
+    wrap.innerHTML = '';
+    const W = 360, rowH = 32, top = 24, left = 96, right = 12;
+    const lo = -4, hi = 4; // log10 range of excess
+    const sx = v => left + (W - left - right) * (Math.max(lo, Math.min(hi, Math.log10(Math.max(v, 1e-6)))) - lo) / (hi - lo);
+    for (let e = 1; e <= 3; e++) {
+        const q = p ** e;
+        const H = top + rowH * CLASS_ORDER.length + 20;
+        let svg = `<svg viewBox="0 0 ${W} ${H}" class="dotplot w-full" role="img" aria-label="New-sector excess at level ${e}">`;
+        svg += `<text x="0" y="14" style="fill:var(--text-primary);font-weight:600">Level e = ${e} (q = ${q})</text>`;
+        const x1 = sx(1);
+        svg += `<line x1="${x1}" x2="${x1}" y1="${top - 4}" y2="${H - 18}" stroke="var(--text-muted)" stroke-dasharray="3 3"/>`;
+        svg += `<text x="${x1 + 3}" y="${top - 6}">i.i.d.</text>`;
+        CLASS_ORDER.forEach((c, r) => {
+            const y = top + rowH * r + rowH / 2;
+            const all = towers[c];
+            const ok = all.filter(o => o.levels[e - 1].sampled);
+            svg += `<line class="axis" x1="${left}" x2="${W - right}" y1="${y}" y2="${y}"/>`;
+            const short = { periodic: 'Periodic', sturmian: 'Sturmian', actual: 'Actual orbits', generic: 'Random words' }[c];
+            svg += `<text x="0" y="${y + 4}">${short}</text>`;
+            if (ok.length < all.length) {
+                svg += `<text x="0" y="${y + 14}" style="font-size:9px;fill:var(--text-muted)">${all.length - ok.length}/${all.length} undersampled</text>`;
+            }
+            ok.forEach((o, i) => {
+                const l = o.levels[e - 1];
+                const jitter = ((i * 7919) % 11 - 5) * 1.2;
+                svg += `<circle cx="${sx(l.excess)}" cy="${y + jitter}" r="4" fill="${CLASS_INFO[c].color}" fill-opacity="0.8"
+                    stroke="var(--surface-1)" stroke-width="2"
+                    data-tip="${o.t.label}: excess ${l.excess.toPrecision(3)} (N=${l.N}, |K|=${l.size})"/>`;
+            });
+        });
+        for (let k = lo; k <= hi; k++) {
+            if (k % 2) continue;
+            const sup = String(Math.abs(k)).replace(/\d/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]);
+            svg += `<text x="${sx(10 ** k)}" y="${H - 4}" text-anchor="middle">10${k < 0 ? '⁻' : ''}${sup}</text>`;
+        }
+        svg += '</svg>';
+        const div = document.createElement('div');
+        div.innerHTML = svg;
+        wrap.appendChild(div);
+    }
+    attachTips(wrap);
+
+    // Exact limits for the periodic class.
+    let html = `<tr><th>Word</th>${[1, 2, 3].map(e => `<th>new energy at ${p}${e > 1 ? '<sup>' + e + '</sup>' : ''}</th>`).join('')}<th>v<sub>${p}</sub>(3<sup>P</sup> − 2<sup>Q</sup>)</th></tr>`;
+    for (const t of classes.periodic) {
+        const { p: P, q: Q } = t.gen;
+        const lim = periodicLimitTower(periodicWord(P, Q, P), p);
+        const v = vp(3n ** BigInt(P) - 2n ** BigInt(Q), p);
+        html += `<tr><td>${t.label}</td>${lim.map(l => `<td>${l.fresh === 0 ? '<span class="muted">0</span>' : l.fresh.toPrecision(4)}</td>`).join('')}<td>${v}</td></tr>`;
+    }
+    document.getElementById('limittable').innerHTML = html;
+}
+document.getElementById('inP').addEventListener('change', renderTower);
+document.getElementById('inWalk').addEventListener('change', renderTower);
+
 function renderDepthLaw() {
     const rows = depthLawTable(9);
     let html = '<tr><th>n</th><th>p/q</th><th>side of β</th><th>predicted</th><th>lcp</th><th>v₂(r − r′)</th></tr>';
@@ -449,7 +584,7 @@ function build() {
             actualKind: document.getElementById('inKind').value,
         });
         selected = null;
-        renderLegend(); renderList(); renderSelInfo(); drawBox(); renderDotplots(); renderSummary();
+        renderLegend(); renderList(); renderSelInfo(); drawBox(); renderDotplots(); renderSummary(); renderTower();
         status.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)} s.`;
         btn.disabled = false;
     }, 30);
