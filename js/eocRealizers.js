@@ -19,6 +19,7 @@
  *   sturmian  - Beatty/Sturmian words; the critical one at intercept 0 is the
  *               word 1c_beta of De Jesus, "The 3x+1 conjugacy map sends every
  *               Sturmian word to an irrational 2-adic integer"
+ *               (DOI 10.5281/zenodo.23108370)
  *   actual    - real orbits: delay/glide record holders (whole orbit), or
  *               L_1 lifetime record holders (their confined episode)
  *   generic   - control: random words with P(d = k) = 2^-k
