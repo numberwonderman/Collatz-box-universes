@@ -1,6 +1,8 @@
 <div align="center">
 
 # **Collatz Box Universes Explorer Suite**
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23144148.svg)](https://doi.org/10.5281/zenodo.23144148)
 ![My bvox universe logo](assets/Gemini_Generated_Image_36ro5936ro5936ro.png)
 
 </div>
@@ -57,7 +59,7 @@ The suite comprises eleven distinct applications designed to provide a unique "L
 
 ### **11. eoc-realizers.html (EOC Three-Class Realizer Comparison)**
 * **Focus:** Least realizers of valuation words for the accelerated map $T(m) = (3m+1)/2^{a(m)}$, comparing periodic (convergent) words, Sturmian words, extremal actual orbits and matched ordinary orbits in one Box Universe view.
-* **Key Features:** Exact BigInt realizers mod $2^{S_N+1}$, drift $R_n$ with the occupation corridor, endpoint depth $E(D)$, height amortization $\rho_N$, a check of the Sturmian depth law, and selection-effect controls (matched ordinary orbits, the residual $\log_2(m_0/r(D))$, and a near-record control matched on orbit length and seed size), a separated-returns decomposition of the occupation $O_c$ into corridor episodes (EOC Open Problem F), and a carry-walk residue tower: an empirical Fourier diagnostic, informed by De Jesús, *Exact Spectral Inheritance in Prime-Power Resolution Towers* (DOI 10.5281/zenodo.23088511), that splits each orbit's occupation of $\langle 2,3\rangle \le (\mathbb{Z}/p^e\mathbb{Z})^\times$ into inherited and new sectors. Logic lives in `js/eocRealizers.js` (tested in `js/tests/eocRealizers.test.js`). Follows De Jesús, *A Global Occupation Conjecture for the Accelerated 3x+1 Map*, Rev. 7 (DOI 10.5281/zenodo.22906673), and checks the depth law of De Jesús, *The 3x+1 Conjugacy Map Sends Every Sturmian Word to an Irrational 2-adic Integer* (DOI 10.5281/zenodo.23108370).
+* **Key Features:** Exact BigInt realizers mod $2^{S_N+1}$, drift $R_n$ with the occupation corridor, endpoint depth $E(D)$, height amortization $\rho_N$, a check of the Sturmian depth law, and selection-effect controls (matched ordinary orbits, the residual $\log_2(m_0/r(D))$, and a near-record control matched on orbit length and seed size), a separated-returns decomposition of the occupation $O_c$ into corridor episodes (EOC Open Problem F), and a carry-walk residue tower: an empirical Fourier diagnostic, informed by De Jesús, *Exact Spectral Inheritance in Prime-Power Resolution Towers* (DOI 10.5281/zenodo.23088511), that splits each orbit's occupation of $\langle 2,3\rangle \le (\mathbb{Z}/p^e\mathbb{Z})^\times$ into inherited and new sectors. Logic lives in `js/eocRealizers.js` (tested in `js/tests/eocRealizers.test.js`). Archived as release [v1.0-eoc-realizers](https://github.com/numberwonderman/Collatz-box-universes/releases/tag/v1.0-eoc-realizers), DOI [10.5281/zenodo.23144148](https://doi.org/10.5281/zenodo.23144148); see `CITATION.cff`. Follows De Jesús, *A Global Occupation Conjecture for the Accelerated 3x+1 Map*, Rev. 7 (DOI 10.5281/zenodo.22906673), and checks the depth law of De Jesús, *The 3x+1 Conjugacy Map Sends Every Sturmian Word to an Irrational 2-adic Integer* (DOI 10.5281/zenodo.23108370).
 
 ---
 
@@ -85,4 +87,4 @@ This suite serves as a powerful computational research toolkit for identifying e
 * Persistent storage (Firebase) for cataloging discovered "edge cases" and hyperchaotic rulesets.
 
 ---
-*© 2025 Franklin Loeb. Explore the code on [GitHub](https://github.com/numberwonderman/Collatz-box-universes/).*
+*© 2025 Franklin Loeb Jr. Explore the code on [GitHub](https://github.com/numberwonderman/Collatz-box-universes/).*

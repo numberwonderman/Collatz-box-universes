@@ -5,7 +5,16 @@ type: software
 authors:
   - family-names: Loeb
     given-names: Franklin
+    name-suffix: Jr
 version: v1.0-eoc-realizers
+doi: 10.5281/zenodo.23144148
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.23144148
+    description: "Zenodo archive of release v1.0-eoc-realizers"
+  - type: url
+    value: "https://github.com/numberwonderman/Collatz-box-universes/releases/tag/v1.0-eoc-realizers"
+    description: "GitHub release"
 date-released: "2026-10-04"
 license: MIT
 repository-code: "https://github.com/numberwonderman/Collatz-box-universes"
