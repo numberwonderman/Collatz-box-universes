@@ -1,0 +1,46 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata below."
+title: "Collatz Box Universes Explorer Suite: EOC realizer comparison"
+type: software
+authors:
+  - family-names: Loeb
+    given-names: Franklin
+version: v1.0-eoc-realizers
+date-released: "2026-10-04"
+license: MIT
+repository-code: "https://github.com/numberwonderman/Collatz-box-universes"
+abstract: >-
+  Browser-based explorer for generalized Collatz dynamics. Release
+  v1.0-eoc-realizers adds eoc-realizers.html and js/eocRealizers.js: a
+  comparison of least realizers of valuation words for the accelerated 3x+1
+  map (periodic convergent words, Sturmian words, extremal actual orbits),
+  endpoint-depth selection-effect controls, a near-record control matched on
+  orbit length and seed size, a carry-sum residue tower (an empirical Fourier
+  diagnostic), and a separated-returns decomposition of corridor occupation
+  (EOC Open Problem F).
+keywords:
+  - Collatz conjecture
+  - 3x+1 map
+  - valuation words
+  - Sturmian words
+  - visualization
+references:
+  - type: article
+    title: "A Global Occupation Conjecture for the Accelerated 3x+1 Map"
+    authors:
+      - family-names: De Jesús
+        given-names: Elias
+    version: "Revision 7"
+    doi: 10.5281/zenodo.22906673
+  - type: article
+    title: "The 3x+1 Conjugacy Map Sends Every Sturmian Word to an Irrational 2-adic Integer"
+    authors:
+      - family-names: De Jesús
+        given-names: Elias
+    doi: 10.5281/zenodo.23108370
+  - type: article
+    title: "Exact Spectral Inheritance in Prime-Power Resolution Towers"
+    authors:
+      - family-names: De Jesús
+        given-names: Elias
+    doi: 10.5281/zenodo.23088511
