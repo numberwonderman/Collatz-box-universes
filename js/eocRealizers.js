@@ -559,6 +559,172 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
     return out;
 }
 
+// ---------- Near-record control ----------
+//
+// Records are essentially unique at their exact (N, S_N): since
+// S_N = N log2 3 + log2 m0 + E_N, fixing both pins the seed size to within the
+// carry excess. So the control matches on N (within +-dN) and on
+// kappa = log2 m0 / N, which fixes the mean valuation via
+// mu = log2 3 + kappa + E_N / N, and then removes the remaining kappa / N
+// trend by a local linear fit over the K nearest non-record neighbours.
+
+/**
+ * Accelerated length N(m) and valuation sum S_N(m) of the orbit to 1 for every
+ * odd m <= M (index (m - 1) / 2). Number arithmetic: orbit values stay far
+ * below 2^53 for M up to ~1e8.
+ */
+export function seedTables(M) {
+    const size = (M + 1) >> 1;
+    const len = new Uint16Array(size), sum = new Uint16Array(size);
+    for (let m = 3; m <= M; m += 2) {
+        let x = m, n = 0, S = 0;
+        while (x >= m) {
+            let u = 3 * x + 1;
+            while ((u & 1) === 0) { u /= 2; S++; }
+            x = u; n++;
+        }
+        const j = (x - 1) >> 1;
+        len[(m - 1) >> 1] = n + len[j];
+        sum[(m - 1) >> 1] = S + sum[j];
+    }
+    return { M, len, sum, N: m => len[(m - 1) >> 1], S: m => sum[(m - 1) >> 1] };
+}
+
+/**
+ * Odd seeds <= M to exclude as (possible) records: every odd m that sets a new
+ * maximum of the standard delay N + S_N among odd seeds, or of the standard
+ * glide. Ignoring even seeds can only add non-records, so the set contains
+ * every odd delay or glide record holder <= M.
+ */
+export function recordExclusion(tables) {
+    const out = new Set();
+    let bestD = 0, bestG = 0;
+    for (let m = 3; m <= tables.M; m += 2) {
+        const d = tables.N(m) + tables.S(m);
+        if (d > bestD) { bestD = d; out.add(m); }
+        let x = m, g = 0;
+        do { x = x % 2 ? 3 * x + 1 : x / 2; g++; } while (x >= m);
+        if (g > bestG) { bestG = g; out.add(m); }
+    }
+    return out;
+}
+
+/** Exact two-sided sign test p-value for k successes out of n. */
+export function signTestP(k, n) {
+    if (n === 0) return 1;
+    const lo = Math.min(k, n - k);
+    let p = 0, c = 1;
+    for (let i = 0; i <= lo; i++) {
+        if (i > 0) c = c * (n - i + 1) / i;
+        p += c / 2 ** n;
+    }
+    return Math.min(1, 2 * p);
+}
+
+function olsFit(X, y) {
+    const p = X[0].length;
+    const A = Array.from({ length: p }, () => new Array(p).fill(0)), b = new Array(p).fill(0);
+    for (let i = 0; i < X.length; i++) {
+        for (let j = 0; j < p; j++) {
+            b[j] += X[i][j] * y[i];
+            for (let k = 0; k < p; k++) A[j][k] += X[i][j] * X[i][k];
+        }
+    }
+    for (let j = 0; j < p; j++) A[j][j] += 1e-12;
+    for (let c = 0; c < p; c++) {
+        let piv = c;
+        for (let r = c + 1; r < p; r++) if (Math.abs(A[r][c]) > Math.abs(A[piv][c])) piv = r;
+        [A[c], A[piv]] = [A[piv], A[c]];
+        [b[c], b[piv]] = [b[piv], b[c]];
+        for (let r = 0; r < p; r++) {
+            if (r === c) continue;
+            const f = A[r][c] / A[c][c];
+            for (let k = c; k < p; k++) A[r][k] -= f * A[c][k];
+            b[r] -= f * b[c];
+        }
+    }
+    return b.map((v, j) => v / A[j][j]);
+}
+
+/** Statistics compared by the near-record control. `pinned` ones are fixed by (N, kappa) up to E_N / N. */
+export const NEAR_STATS = [
+    { key: 'occ', name: 'Fraction of steps with R ≤ 1', f: s => s.occupationFrac },
+    { key: 'L1', name: 'Lifetime L₁ from the seed', f: s => s.lifetime },
+    { key: 'big', name: 'Frequency of d ≥ 3 (= occupation of 5 mod 8)', f: s => s.occupancy[5] },
+    { key: 'maxA', name: 'Max valuation', f: s => s.maxA },
+    { key: 'disc', name: 'Discrepancy max|Sᵢ − iμ| / √N', f: s => s.balanceRootN },
+    { key: 'rise', name: 'Max rise max log₂(mᵢ/m₀) (bits)', f: s => s.startBits * (s.peakRatio - 1) },
+    { key: 'mu', name: 'Mean valuation μ (pinned: log₂3 + κ + E_N/N)', f: s => s.mu, pinned: true },
+];
+
+/**
+ * Near-record control for full-orbit record holders.
+ * For each record (n, N): the K non-record odd seeds m <= M with |N(m) - N| <= dN
+ * closest in kappa = log2 m / N(m); each statistic is fitted on the neighbours as
+ * a + b (kappa - kappa_n) + c (N(m) - N), and the record's residual from a is
+ * reported in units of the neighbours' residual standard deviation (z).
+ */
+export function nearRecordControl(actual, { M = 8000000, K = 50, dN = 3, tables, exclude } = {}) {
+    tables = tables || seedTables(M);
+    exclude = exclude || recordExclusion(tables);
+    const byN = new Map();
+    for (let m = 3; m <= tables.M; m += 2) {
+        if (exclude.has(m)) continue;
+        const L = tables.N(m);
+        if (!byN.has(L)) byN.set(L, []);
+        byN.get(L).push(m);
+    }
+    const perRecord = [];
+    const z = Object.fromEntries(NEAR_STATS.map(st => [st.key, []]));
+    for (const t of actual) {
+        const n = Number(t.orbit[0]), N = t.word.length, SN = t.stats.SN;
+        const kappa = Math.log2(n) / N;
+        // Exact (N, S_N) peers among all non-record seeds <= M.
+        let exactPeers = 0;
+        for (const m of byN.get(N) || []) if (m !== n && tables.S(m) === SN) exactPeers++;
+        const cand = [];
+        for (let L = N - dN; L <= N + dN; L++) {
+            for (const m of byN.get(L) || []) if (m !== n) cand.push({ d: Math.abs(Math.log2(m) / L - kappa), m, L });
+        }
+        cand.sort((a, b) => a.d - b.d);
+        const nb = cand.slice(0, K).map(c => {
+            const { orbit, word } = accelOrbitToOne(BigInt(c.m));
+            return { m: c.m, L: c.L, kappa: Math.log2(c.m) / c.L, stats: trajectoryStats(word, orbit) };
+        });
+        const row = {
+            n, N, SN, kappa, exactPeers, neighbours: nb.length, neighbourSeeds: nb.map(o => o.m),
+            maxDeltaKappa: nb.length ? Math.max(...nb.map(o => Math.abs(o.kappa - kappa))) : NaN,
+            deltaLog2: nb.length ? [Math.min(...nb.map(o => Math.log2(o.m / n))), Math.max(...nb.map(o => Math.log2(o.m / n)))] : null,
+            z: {},
+        };
+        if (nb.length >= 5) {
+            const X = nb.map(o => [1, o.kappa - kappa, o.L - N]);
+            for (const st of NEAR_STATS) {
+                const y = nb.map(o => st.f(o.stats));
+                const beta = olsFit(X, y);
+                const res = y.map((v, i) => v - (beta[0] + beta[1] * X[i][1] + beta[2] * X[i][2]));
+                const sd = Math.sqrt(res.reduce((a, r) => a + r * r, 0) / Math.max(1, res.length - 3));
+                const zz = sd > 0 ? (st.f(t.stats) - beta[0]) / sd : 0;
+                row.z[st.key] = zz;
+                z[st.key].push(zz);
+            }
+        }
+        perRecord.push(row);
+    }
+    const summary = NEAR_STATS.map(st => {
+        const zs = z[st.key], sorted = [...zs].sort((a, b) => a - b);
+        const pos = zs.filter(v => v > 0).length, neg = zs.filter(v => v < 0).length;
+        return {
+            ...st, n: zs.length,
+            medianZ: sorted.length ? sorted[sorted.length >> 1] : NaN,
+            meanZ: zs.length ? zs.reduce((a, b) => a + b, 0) / zs.length : NaN,
+            pos, neg, p: signTestP(pos, pos + neg),
+        };
+    });
+    const free = summary.filter(s => !s.pinned).length;
+    return { M: tables.M, K, dN, perRecord, summary, bonferroni: 0.05 / free };
+}
+
 /** Per-class summary of the selection-effect quantities (actual-orbit classes only). */
 export function selectionSummary(classes) {
     const out = {};

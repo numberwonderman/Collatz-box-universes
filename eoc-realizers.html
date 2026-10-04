@@ -144,6 +144,35 @@
         <table class="stats text-xs mb-3" id="selsummary"></table>
         <h3 class="font-semibold text-sm mb-1">Per record holder</h3>
         <table class="stats text-xs" id="seltable"></table>
+
+        <h3 class="font-semibold text-sm mt-4 mb-1">Near-record control: matched on N and seed size</h3>
+        <p class="muted text-xs mb-2">Records are essentially unique at their exact (N, S<sub>N</sub>). Since
+            S<sub>N</sub> = N·log₂3 + log₂m₀ + E<sub>N</sub>, fixing both pins the seed size to within the carry excess, and
+            almost no other seed shares them. So this control relaxes the match. For each delay/glide record it takes the
+            K non-record odd seeds m ≤ M with |N(m) − N| ≤ dN that are closest in κ = log₂m₀/N, the quantity that fixes the
+            mean valuation (μ = log₂3 + κ + E<sub>N</sub>/N). Each statistic is fitted on the neighbours as
+            a + b·(κ − κ<sub>n</sub>) + c·(N(m) − N). The record's residual from a is reported in units of the neighbours'
+            residual spread (z). Records are the κ-minima for their size, so the neighbours lie mostly on one side and the fit
+            extrapolates slightly. μ is included as a check: after the adjustment its residual is only the carry-excess
+            term E<sub>N</sub>/N. Excluded seeds are every odd seed ≤ M that sets a new odd-seed maximum of delay or glide, a
+            superset of the record holders. Neighbouring orbits often merge with the record's, so the comparisons are not
+            independent.</p>
+        <div class="flex flex-wrap gap-3 items-end mb-2 text-sm">
+            <label>Seed range M
+                <select id="inNearM" class="ml-1">
+                    <option value="2000000">2·10⁶</option>
+                    <option value="8000000" selected>8·10⁶</option>
+                </select>
+            </label>
+            <label>Neighbours K <input id="inNearK" type="number" min="10" max="200" value="50" class="w-16 ml-1"></label>
+            <label>Length tolerance dN <input id="inNearDN" type="number" min="0" max="10" value="3" class="w-14 ml-1"></label>
+            <button id="btnNear" class="btn">Run near-record control</button>
+            <span id="nearStatus" class="muted text-xs"></span>
+        </div>
+        <table class="stats text-xs mb-2" id="nearsummary"></table>
+        <details class="text-xs"><summary class="cursor-pointer muted">Per-record matching quality and z-scores</summary>
+            <div class="overflow-x-auto mt-2"><table class="stats text-xs" id="neartable"></table></div>
+        </details>
     </section>
 
     <section class="panel p-3 mt-3">
@@ -229,8 +258,13 @@
             for N-matched ordinary orbits and the generic 1/4. Records also have a smaller mean valuation and spend more of
             their steps with R ≤ 1. These differences are largely the same selection again. For an orbit that reaches 1,
             μ = log₂3 + (log₂m₀ + E<sub>N</sub>)/N exactly, so a small seed at fixed length forces fewer large valuations.
-            Whether anything survives after also matching on log₂m₀/N has not been tested here. That would mean comparing
-            records with near-record orbits of the same length and seed size.</p>
+            The near-record control tests what survives once length and seed size are matched. With N matched within ±3 and
+            the κ = log₂m₀/N trend removed, no free statistic separates records from their neighbours after a Bonferroni
+            correction: fraction of time in the corridor, L₁, frequency of d ≥ 3, max valuation, discrepancy and max rise.
+            With M = 8·10⁶, K = 50 and dN = 3, discrepancy (median z −0.45) and max rise (+0.20) both have p ≈ 0.05.
+            Their signs are consistent across K ∈ {30, 50, 100} and dN ∈ {1, 3, 6}, but none reaches significance.
+            The residual in μ is the carry-excess term E<sub>N</sub>/N, which is larger for smaller seeds. Only 9 of the
+            39 records have any other seed ≤ 8·10⁶ with the same (N, S<sub>N</sub>). That is why the match has to be relaxed.</p>
         <p class="mb-2"><b>Residue tower</b> (empirical Fourier diagnostic informed by the spectral-inheritance theorem). At walk length 4 000 the periodic and Sturmian walks are low-discrepancy
             on every sampled level: their new-sector energy is typically 10<sup>−3</sup>–10<sup>−1</sup> of sampling noise. The two
             classes separate in the limit N → ∞:</p>
@@ -260,6 +294,7 @@
 <script type="module">
 import {
     buildThreeClasses, summarizeClasses, selectionSummary, depthLawTable, log2Big, LOG2_3,
+    seedTables, recordExclusion, nearRecordControl,
     residueTower, periodicLimitTower, periodicWord, towerWord, vp,
 } from './js/eocRealizers.js';
 
@@ -568,6 +603,54 @@ function renderSelection() {
     }
     document.getElementById('seltable').innerHTML = tbl;
 }
+
+// ---------- Near-record control ----------
+const nearCache = new Map(); // M -> { tables, exclude }
+function runNearRecord() {
+    const status = document.getElementById('nearStatus');
+    if (!classes || classes.meta.actualKind !== 'delay') {
+        status.textContent = 'Switch "Actual orbits" to delay/glide records and rebuild: this control uses whole orbits.';
+        return;
+    }
+    const M = parseInt(document.getElementById('inNearM').value, 10);
+    const K = Math.max(10, Math.min(200, parseInt(document.getElementById('inNearK').value, 10) || 50));
+    const dN = Math.max(0, Math.min(10, parseInt(document.getElementById('inNearDN').value, 10) || 0));
+    const btn = document.getElementById('btnNear');
+    btn.disabled = true;
+    status.textContent = 'Tabulating seeds and matching neighbours…';
+    setTimeout(() => {
+        const t0 = performance.now();
+        if (!nearCache.has(M)) {
+            const tables = seedTables(M);
+            nearCache.set(M, { tables, exclude: recordExclusion(tables) });
+        }
+        const { tables, exclude } = nearCache.get(M);
+        const r = nearRecordControl(classes.actual, { tables, exclude, K, dN });
+        const exact = r.perRecord.filter(x => x.exactPeers > 0).length;
+        let html = '<tr><th>Statistic</th><th>median z</th><th>mean z</th><th>records above / below</th><th>sign test p</th><th></th></tr>';
+        for (const st of r.summary) {
+            const verdict = st.pinned ? '<span class="muted">check (pinned)</span>'
+                : st.p < r.bonferroni ? 'significant' : '<span class="muted">not significant</span>';
+            html += `<tr><td>${st.name}</td><td>${st.medianZ.toFixed(2)}</td><td>${st.meanZ.toFixed(2)}</td>` +
+                `<td>${st.pos} / ${st.neg}</td><td>${st.p.toFixed(3)}</td><td>${verdict}</td></tr>`;
+        }
+        html += `<tr><td colspan="6" class="muted">${r.perRecord.length} records, K = ${K}, dN = ${dN}, M = ${M.toLocaleString()}. ` +
+            `Significance threshold ${r.bonferroni.toFixed(4)} (Bonferroni over ${r.summary.filter(x => !x.pinned).length} free statistics). ` +
+            `${exact} of ${r.perRecord.length} records have any non-record seed ≤ M with identical (N, S<sub>N</sub>).</td></tr>`;
+        document.getElementById('nearsummary').innerHTML = html;
+        let tbl = '<tr><th>Record n</th><th>N</th><th>κ</th><th>exact (N,S) peers</th><th>max |Δκ|</th><th>Δlog₂m₀ range</th>' +
+            r.summary.map(st => `<th>z ${st.key}</th>`).join('') + '</tr>';
+        for (const row of r.perRecord) {
+            tbl += `<tr><td>${row.n}</td><td>${row.N}</td><td>${row.kappa.toFixed(4)}</td><td>${row.exactPeers}</td>` +
+                `<td>${row.maxDeltaKappa.toFixed(4)}</td><td>${row.deltaLog2 ? row.deltaLog2.map(v => v.toFixed(1)).join(' … ') : '—'}</td>` +
+                r.summary.map(st => `<td>${row.z[st.key] === undefined ? '—' : row.z[st.key].toFixed(2)}</td>`).join('') + '</tr>';
+        }
+        document.getElementById('neartable').innerHTML = tbl;
+        status.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)} s.`;
+        btn.disabled = false;
+    }, 30);
+}
+document.getElementById('btnNear').addEventListener('click', runNearRecord);
 
 // ---------- Residue tower ----------
 function attachTips(root) {

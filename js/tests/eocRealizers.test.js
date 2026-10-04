@@ -5,6 +5,7 @@ import {
     heightAmortization, depthLawTable, buildThreeClasses, summarizeClasses, LOG2_3, log2Big,
     residueGroup, carryWalk, residueTower, periodicLimitTower, vp, geometricWord, mulberry32,
     ordinaryMatched, actualTrajectory, selectionSummary,
+    seedTables, recordExclusion, signTestP, nearRecordControl,
 } from '../eocRealizers.js';
 
 // Smallest odd m whose first word.length accelerated valuations equal word.
@@ -252,6 +253,54 @@ describe('eocRealizers', () => {
             const { list, unmatched } = ordinaryMatched([rec], { maxTries: 0 });
             expect(list).toEqual([]);
             expect(unmatched).toBe(1);
+        });
+    });
+
+    describe('near-record control', () => {
+        const tables = seedTables(1000000);
+        const exclude = recordExclusion(tables);
+
+        it('seed tables agree with direct orbits', () => {
+            for (const m of [3, 27, 703, 77031, 837799, 999999]) {
+                const { word } = accelOrbitToOne(BigInt(m));
+                expect(tables.N(m)).toBe(word.length);
+                expect(tables.S(m)).toBe(word.reduce((a, b) => a + b, 0));
+            }
+        });
+
+        it('exclusion set contains every odd delay and glide record holder', () => {
+            const { delay, glide } = recordHolders(1000000);
+            for (const r of [...delay, ...glide]) if (r.n % 2 === 1 && r.n > 1) expect(exclude.has(r.n)).toBe(true);
+        });
+
+        it('exact sign test', () => {
+            expect(signTestP(0, 10)).toBeCloseTo(2 / 1024, 12);
+            expect(signTestP(5, 10)).toBe(1);
+            expect(signTestP(0, 0)).toBe(1);
+        });
+
+        it('neighbours are non-records within dN of the record length, K per record', () => {
+            const C = buildThreeClasses({ N: 60, recordLimit: 20000 });
+            const r = nearRecordControl(C.actual, { tables, exclude, K: 20, dN: 3 });
+            expect(r.perRecord.length).toBe(C.actual.length);
+            for (const row of r.perRecord) {
+                expect(row.neighbourSeeds.length).toBe(20);
+                for (const m of row.neighbourSeeds) {
+                    expect(exclude.has(m)).toBe(false);
+                    expect(m).not.toBe(row.n);
+                    expect(Math.abs(tables.N(m) - row.N)).toBeLessThanOrEqual(3);
+                }
+                for (const st of r.summary) expect(Number.isFinite(row.z[st.key])).toBe(true);
+            }
+            expect(r.bonferroni).toBeCloseTo(0.05 / 6, 12);
+        });
+
+        it('pinned statistic: mu - log2 3 - kappa equals E_N / N for every record', () => {
+            const C = buildThreeClasses({ N: 60, recordLimit: 20000 });
+            for (const t of C.actual) {
+                const kappa = Math.log2(Number(t.orbit[0])) / t.word.length;
+                expect(t.stats.mu - LOG2_3 - kappa).toBeCloseTo(t.selection.carryExcess / t.word.length, 9);
+            }
         });
     });
 });
