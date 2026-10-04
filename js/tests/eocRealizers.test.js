@@ -4,6 +4,7 @@ import {
     betaConvergents, recordHolders, lifetime, lifetimeRecords, occupation, trajectoryStats,
     heightAmortization, depthLawTable, buildThreeClasses, summarizeClasses, LOG2_3, log2Big,
     residueGroup, carryWalk, residueTower, periodicLimitTower, vp, geometricWord, mulberry32,
+    ordinaryMatched, actualTrajectory, selectionSummary,
 } from '../eocRealizers.js';
 
 // Smallest odd m whose first word.length accelerated valuations equal word.
@@ -179,6 +180,78 @@ describe('eocRealizers', () => {
         it('critical Sturmian walk: new-sector energy at 7^3 decays with N', () => {
             const at = N => residueTower(beattyWord(LOG2_3, 0, N), 7)[2].fresh;
             expect(at(32000)).toBeLessThan(at(4000) / 5);
+        });
+    });
+
+    describe('selection-effect controls', () => {
+        const small = { N: 60, recordLimit: 20000 };
+
+        it('ordinary orbits are non-records matched on N (or S_N) to each record holder', () => {
+            for (const matchOn of ['N', 'S']) {
+                const C = buildThreeClasses({ ...small, matchOn });
+                const records = new Set(C.actual.map(t => t.orbit[0]));
+                expect(C.meta.unmatchedOrdinary).toBe(0);
+                expect(C.ordinary.length).toBe(C.actual.length);
+                for (const o of C.ordinary) {
+                    const rec = C.actual.find(t => t.orbit[0] === o.matchedTo);
+                    expect(records.has(o.orbit[0])).toBe(false);
+                    if (matchOn === 'N') expect(o.word.length).toBe(rec.word.length);
+                    else expect(o.stats.SN).toBe(rec.stats.SN);
+                    expect(o.orbit[o.orbit.length - 1]).toBe(1n);
+                }
+            }
+        });
+
+        it('L1 controls have the same lifetime and are not records', () => {
+            const C = buildThreeClasses({ ...small, actualKind: 'lifetime' });
+            for (const o of C.ordinary) {
+                const rec = C.actual.find(t => t.orbit[0] === o.matchedTo);
+                expect(o.orbit[0] > rec.orbit[0]).toBe(true);
+                expect(lifetime(o.orbit[0], 1)).toBe(rec.word.length);
+                expect(o.word.length).toBe(rec.word.length);
+            }
+        });
+
+        it('residual log2(m0 / r(D)) is exactly 0 whenever m0 < 2^(S_N+1)', () => {
+            for (const actualKind of ['delay', 'lifetime']) {
+                const C = buildThreeClasses({ ...small, actualKind });
+                for (const t of [...C.actual, ...C.ordinary]) {
+                    expect(t.selection.seedBelowModulus).toBe(true);
+                    expect(t.realizer).toBe(t.orbit[0]);
+                    expect(t.selection.residual).toBe(0);
+                }
+            }
+        });
+
+        it('a short prefix of a large seed has r(D) < m0 and a positive residual', () => {
+            const t = actualTrajectory(837799n, {}, 3);       // S_3 + 1 < log2 m0
+            expect(t.selection.seedBelowModulus).toBe(false);
+            expect(t.realizer < t.orbit[0]).toBe(true);
+            expect(t.selection.residual).toBeGreaterThan(0);
+            expect((t.orbit[0] - t.realizer) % (1n << BigInt(t.modulusBits))).toBe(0n);
+        });
+
+        it('E(D) = N log2 3 + E_N - log2 m_N exactly (Lem. 2.2 with r(D) = m0)', () => {
+            const C = buildThreeClasses(small);
+            const sum = selectionSummary(C);
+            expect(sum.actual.maxIdentityGap).toBeLessThan(1e-9);
+            expect(sum.ordinary.maxIdentityGap).toBeLessThan(1e-9);
+        });
+
+        it('records and N-matched ordinary orbits share E(D)/N; E(D)/S_N differs only via log2 m0 / S_N', () => {
+            const sum = selectionSummary(buildThreeClasses(small));
+            expect(Math.abs(sum.actual.EperN.mean - sum.ordinary.EperN.mean)).toBeLessThan(0.02);
+            expect(sum.actual.EperS.mean).toBeGreaterThan(sum.ordinary.EperS.mean);
+            const gapE = sum.actual.EperS.mean - sum.ordinary.EperS.mean;
+            const gapSeed = sum.ordinary.log2m0PerS.mean - sum.actual.log2m0PerS.mean;
+            expect(gapE).toBeCloseTo(gapSeed, 10); // E/S = 1 - log2 m0 / S when r(D) = m0
+        });
+
+        it('ordinaryMatched reports unmatched records instead of inventing matches', () => {
+            const rec = actualTrajectory(27n, { cls: 'actual' });
+            const { list, unmatched } = ordinaryMatched([rec], { maxTries: 0 });
+            expect(list).toEqual([]);
+            expect(unmatched).toBe(1);
         });
     });
 });

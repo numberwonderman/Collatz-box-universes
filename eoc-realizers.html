@@ -92,6 +92,12 @@
                 <option value="lifetime">L₁ lifetime records (confined episode)</option>
             </select>
         </label>
+        <label>Ordinary orbits matched on
+            <select id="inMatch" class="ml-1">
+                <option value="N" selected>word length N</option>
+                <option value="S">valuation depth S_N</option>
+            </select>
+        </label>
         <label>Height axis
             <select id="inY" class="ml-1">
                 <option value="class" selected>log₂mᵢ / (S_N+1) — position in residue class</option>
@@ -126,17 +132,32 @@
         <div id="dotplots" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
     </section>
 
+    <section class="panel p-3 mt-3 overflow-x-auto">
+        <h2 class="font-semibold mb-1">Selection-effect control: record holders vs ordinary orbits</h2>
+        <p class="muted text-xs mb-2">When D is read off the orbit of its own seed m₀, m₀ realizes D, so
+            r(D) ≡ m₀ (mod 2<sup>S<sub>N</sub>+1</sup>) and r(D) ≤ m₀. Hence E(D)/S<sub>N</sub> ≥ 1 − log₂m₀/S<sub>N</sub>
+            automatically, as De Jesús pointed out. The residual log₂(m₀/r(D)) is what is left after removing that effect.
+            Ordinary orbits are non-record seeds matched to the record holders on word length N or valuation depth
+            S<sub>N</sub> (selector above), drawn at random with a fixed seed. Seeds above the record search range are not
+            checked for record status. For L₁ episodes, the control is the next odd seed above each record with the same
+            lifetime L₁; it cannot be a record.</p>
+        <table class="stats text-xs mb-3" id="selsummary"></table>
+        <h3 class="font-semibold text-sm mb-1">Per record holder</h3>
+        <table class="stats text-xs" id="seltable"></table>
+    </section>
+
     <section class="panel p-3 mt-3">
         <h2 class="font-semibold mb-1">Carry-walk residue tower</h2>
         <p class="muted text-xs mb-2">Modulo q = p<sup>e</sup> the carry sum factors through the walk u<sub>0</sub> = 1,
             u<sub>j+1</sub> = u<sub>j</sub>·2<sup>d<sub>j</sub></sup>·3<sup>−1</sup> on K<sub>e</sub> = ⟨2,3⟩ ≤ (ℤ/qℤ)<sup>×</sup>, since
-            C<sub>N</sub> ≡ 3<sup>N−1</sup>·Σ u<sub>j</sub>. Following De Jesús, <em>Exact Spectral Inheritance in Prime-Power
-            Resolution Towers</em> (DOI 10.5281/zenodo.23088511), each walk's occupation density f<sub>e</sub> on K<sub>e</sub> is split
-            along H<sub>e</sub> = J(H<sub>e−1</sub>) ⊕ Z<sub>e</sub>: the part inherited from level e−1 and the genuinely new
-            part. The new-sector energy ‖f<sub>e</sub> − J f<sub>e−1</sub>‖² is plotted relative to its i.i.d.-uniform expectation
+            C<sub>N</sub> ≡ 3<sup>N−1</sup>·Σ u<sub>j</sub>. This section is an <b>empirical Fourier diagnostic informed by the
+            theorem</b> of De Jesús, <em>Exact Spectral Inheritance in Prime-Power Resolution Towers</em>
+            (DOI 10.5281/zenodo.23088511), not a consequence of it. Each walk's occupation density f<sub>e</sub> on K<sub>e</sub> is
+            split along the decomposition H<sub>e</sub> = J(H<sub>e−1</sub>) ⊕ Z<sub>e</sub> used there: the part inherited from
+            level e−1 and the genuinely new part. The new-sector energy ‖f<sub>e</sub> − J f<sub>e−1</sub>‖² is plotted relative to its i.i.d.-uniform expectation
             dim Z<sub>e</sub> / N, so 1 is sampling noise, values far below 1 mean a low-discrepancy walk, and values far above 1
-            mean new fine structure. This uses the paper's state space and splitting only. The transfer operators and the
-            gap g<sub>0</sub>(p, e) are not computed here.</p>
+            mean new fine structure. The theorem concerns the transfer operators L<sub>e,t,x</sub> and the gap
+            g<sub>0</sub>(p, e). Neither is computed here, so nothing in this section tests the theorem or follows from it.</p>
         <div class="flex flex-wrap gap-3 items-end mb-2 text-sm">
             <label>Prime p
                 <select id="inP" class="ml-1">
@@ -150,7 +171,7 @@
                     <option value="16000">16 000</option>
                 </select>
             </label>
-            <span class="muted text-xs">Actual orbits and the random control keep their own lengths (≤ 195 steps), so their fine levels are often undersampled.</span>
+            <span class="muted text-xs">Record, ordinary and random-control words keep their own lengths (≤ 195 steps), so their fine levels are often undersampled.</span>
         </div>
         <div id="towerplots" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
         <h3 class="font-semibold text-sm mt-3 mb-1">Exact limit for periodic words (N → ∞)</h3>
@@ -183,11 +204,16 @@
             the drift walk R<sub>i</sub> of its word, shifted by the size of its seed. The visible differences reduce to two numbers:</p>
         <ol class="list-decimal ml-5 mb-2">
             <li><b>Endpoint depth E(D) = S<sub>N</sub> − log₂ r(D)</b>, which is where the realizer sits inside its residue class mod
-                2<sup>S<sub>N</sub>+1</sup>. For every synthetic class (periodic, Sturmian, random control) the least realizer is an
-                ordinary member of its class, so E(D) = O(1) and the path sits at the ceiling of the box. Actual extremal
-                orbits have E(D)/S<sub>N</sub> ≈ 0.9: they come from seeds about 2<sup>0.9·S</sup> below the top of the class. This
-                is the residue axis of EOC. The realizer frontier r<sub>min</sub>(N, c) asks how deep E(D) can go across all
-                c-confined words, and record chronology (Prop. 6.4) says the L₁ record holders are exactly that frontier.</li>
+                2<sup>S<sub>N</sub>+1</sup>. For every synthetic class the least realizer is an ordinary member of its class, so
+                E(D) = O(1) and the path sits at the ceiling of the box. For actual orbits the large value is automatic, as
+                De Jesús pointed out. The seed realizes its own word and lies below 2<sup>S<sub>N</sub>+1</sup>, so r(D) = m₀ and the
+                residual log₂(m₀/r(D)) is exactly 0, for record holders and ordinary orbits alike. Then
+                E(D) = N·log₂3 + E<sub>N</sub> − log₂ m<sub>N</sub> exactly (Lem. 2.2), which for an orbit reaching 1 is
+                N·log₂3 plus a carry excess of about a quarter of a bit here. Matched on length, records and ordinary orbits
+                have the same E(D)/N. Their E(D)/S<sub>N</sub> differs only through log₂m₀/S<sub>N</sub>, which restates the
+                record criterion: a long orbit from a small seed. So the box separates words read off a seed from words built
+                symbolically. It does not detect an arithmetic property of record holders. The realizer frontier
+                r<sub>min</sub>(N, c), a minimum over all c-confined words, is not computed on this page.</li>
             <li><b>Shape of the drift walk.</b> Periodic and Sturmian words are balanced (|S<sub>i</sub> − iμ| &lt; 1); the
                 critical ones stay inside a unit band of R, which is band rigidity (EOC App. A), and so are confined for their
                 whole length. Actual orbits and random words wander about √N.</li>
@@ -199,9 +225,13 @@
             two are linked by the 2-adic depth law in the table above: the least realizers of 1c<sub>β</sub> and of its odd
             convergents agree in q<sub>n</sub> + q<sub>n+1</sub> − 1 low bits.</p>
         <p class="mb-2"><b>Occupation.</b> Residue occupation is word structure again: m ≡ 5 (mod 8) exactly when d ≥ 3,
-            so words over {1,2} never visit that class. Actual record holders visit it at about 0.18 (delay records) or 0.14
-            (L₁ records), below the generic 1/4, because they are selected for slow decay.</p>
-        <p class="mb-2"><b>Residue tower.</b> At walk length 4 000 the periodic and Sturmian walks are low-discrepancy
+            so words over {1,2} never visit that class. Delay/glide record holders visit it at about 0.18, against about 0.25
+            for N-matched ordinary orbits and the generic 1/4. Records also have a smaller mean valuation and spend more of
+            their steps with R ≤ 1. These differences are largely the same selection again. For an orbit that reaches 1,
+            μ = log₂3 + (log₂m₀ + E<sub>N</sub>)/N exactly, so a small seed at fixed length forces fewer large valuations.
+            Whether anything survives after also matching on log₂m₀/N has not been tested here. That would mean comparing
+            records with near-record orbits of the same length and seed size.</p>
+        <p class="mb-2"><b>Residue tower</b> (empirical Fourier diagnostic informed by the spectral-inheritance theorem). At walk length 4 000 the periodic and Sturmian walks are low-discrepancy
             on every sampled level: their new-sector energy is typically 10<sup>−3</sup>–10<sup>−1</sup> of sampling noise. The two
             classes separate in the limit N → ∞:</p>
         <ul class="list-disc ml-5 mb-2">
@@ -229,19 +259,35 @@
 
 <script type="module">
 import {
-    buildThreeClasses, summarizeClasses, depthLawTable, log2Big, LOG2_3,
+    buildThreeClasses, summarizeClasses, selectionSummary, depthLawTable, log2Big, LOG2_3,
     residueTower, periodicLimitTower, periodicWord, towerWord, vp,
 } from './js/eocRealizers.js';
 
 const css = getComputedStyle(document.documentElement);
 const CLASS_INFO = {
-    periodic: { name: 'Periodic (convergents)', color: css.getPropertyValue('--series-periodic').trim() },
-    sturmian: { name: 'Sturmian', color: css.getPropertyValue('--series-sturmian').trim() },
-    actual:   { name: 'Actual extremal orbits', color: css.getPropertyValue('--series-actual').trim() },
-    generic:  { name: 'Generic random words (control)', color: css.getPropertyValue('--series-generic').trim() },
+    periodic: { name: 'Periodic (convergents)', short: 'Periodic', color: css.getPropertyValue('--series-periodic').trim() },
+    sturmian: { name: 'Sturmian', short: 'Sturmian', color: css.getPropertyValue('--series-sturmian').trim() },
+    actual:   { name: 'Actual extremal orbits (records)', short: 'Records', color: css.getPropertyValue('--series-actual').trim() },
+    ordinary: { name: 'Ordinary orbits (matched control)', short: 'Ordinary orbits', color: css.getPropertyValue('--series-actual').trim(), hollow: true },
+    generic:  { name: 'Generic random words (control)', short: 'Random words', color: css.getPropertyValue('--series-generic').trim() },
 };
-const CLASS_ORDER = ['periodic', 'sturmian', 'actual', 'generic'];
-const visible = { periodic: true, sturmian: true, actual: true, generic: false };
+const CLASS_ORDER = ['periodic', 'sturmian', 'actual', 'ordinary', 'generic'];
+const visible = { periodic: true, sturmian: true, actual: true, ordinary: true, generic: false };
+
+// Ordinary orbits share the records' hue; identity is carried by a hollow marker / dashed line.
+function swatch(cls) {
+    const { color, hollow } = CLASS_INFO[cls];
+    return hollow
+        ? `<span class="swatch" style="background:transparent;border:2px solid ${color}"></span>`
+        : `<span class="swatch" style="background:${color}"></span>`;
+}
+function dot(cls, cx, cy, tip) {
+    const { color, hollow } = CLASS_INFO[cls];
+    const paint = hollow
+        ? `fill="var(--surface-1)" stroke="${color}" stroke-width="2"`
+        : `fill="${color}" fill-opacity="0.8" stroke="var(--surface-1)" stroke-width="2"`;
+    return `<circle cx="${cx}" cy="${cy}" r="4" ${paint} data-tip="${tip}"/>`;
+}
 
 let classes = null;
 let selected = null;
@@ -331,11 +377,15 @@ function drawBox() {
         for (const t of classes[cls]) {
             const isSel = selected === t;
             const dim = selected && !isSel;
-            const mat = new THREE.LineBasicMaterial({
+            const opts = {
                 color: CLASS_INFO[cls].color, transparent: true,
                 opacity: dim ? 0.08 : (cls === 'generic' ? 0.45 : 0.9),
-            });
+            };
+            const mat = CLASS_INFO[cls].hollow
+                ? new THREE.LineDashedMaterial({ ...opts, dashSize: 1.5, gapSize: 1.2 })
+                : new THREE.LineBasicMaterial(opts);
             const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pathPoints(t, yMode)), mat);
+            if (CLASS_INFO[cls].hollow) line.computeLineDistances();
             if (isSel) line.renderOrder = 1;
             trajGroup.add(line);
         }
@@ -351,7 +401,7 @@ function renderLegend() {
         lab.className = 'cursor-pointer select-none';
         const n = classes ? classes[cls].length : 0;
         lab.innerHTML = `<input type="checkbox" ${visible[cls] ? 'checked' : ''} class="mr-1">` +
-            `<span class="swatch" style="background:${CLASS_INFO[cls].color}"></span>${CLASS_INFO[cls].name}` +
+            `${swatch(cls)}${CLASS_INFO[cls].name}` +
             ` <span class="muted">(${n})</span>`;
         lab.querySelector('input').addEventListener('change', e => { visible[cls] = e.target.checked; drawBox(); });
         el.appendChild(lab);
@@ -369,7 +419,7 @@ function renderList() {
     for (const cls of CLASS_ORDER) {
         for (const t of classes[cls]) {
             const li = document.createElement('li');
-            li.innerHTML = `<span class="swatch" style="background:${CLASS_INFO[cls].color}"></span>${t.label}`;
+            li.innerHTML = `${swatch(cls)}${t.label}`;
             if (selected === t) li.classList.add('active');
             li.addEventListener('click', () => {
                 selected = selected === t ? null : t;
@@ -391,6 +441,8 @@ function renderSelInfo() {
         `N = ${s.N}, S<sub>N</sub> = ${s.SN}, μ = ${s.mu.toFixed(3)}<br>` +
         `R<sub>N</sub> = ${s.RN.toFixed(2)}, L₁ within word = ${s.lifetime}, balance = ${s.balance.toFixed(2)}<br>` +
         `E(D) = ${s.endpointDepth.toFixed(2)} (E/S = ${(s.endpointDepth / s.SN).toFixed(3)}), ρ<sub>N</sub> = ${s.rho.toFixed(3)}<br>` +
+        (selected.selection ? `log₂m₀ = ${selected.selection.log2m0.toFixed(2)}, log₂r(D) = ${selected.selection.log2r.toFixed(2)}, ` +
+            `residual = ${selected.selection.residual.toFixed(3)}<br>` : '') +
         (selected.occupationTotal ? `O₁ (full orbit) = ${selected.occupationTotal} = ${(selected.occupationTotal / s.startBits).toFixed(2)}·log₂m₀<br>` : '') +
         `p(8) = ${s.complexity[8]}, occ(5 mod 8) = ${s.occupancy[5].toFixed(3)}, max d = ${s.maxA}<br>` +
         `word: <code>${selected.word.slice(0, 40).join('')}${selected.word.length > 40 ? '…' : ''}</code>`;
@@ -399,6 +451,7 @@ function renderSelInfo() {
 // ---------- Dot plots ----------
 const METRICS = [
     { key: s => s.endpointDepth / s.SN, name: 'Endpoint depth E(D) / S_N', fmt: 3 },
+    { key: s => s.endpointDepth / s.N, name: 'Endpoint depth per step E(D) / N', fmt: 3, ref: LOG2_3, refLabel: 'log₂3' },
     { key: s => s.rho, name: 'Height amortization ρ_N = log₂H / S_N', fmt: 3, ref: 1, refLabel: '1' },
     { key: s => s.balanceRootN, name: 'Word discrepancy max|Sᵢ − iμ| / √N', fmt: 3 },
     { key: s => s.occupationFrac, name: 'Fraction of steps with R ≤ 1 (within the word)', fmt: 3 },
@@ -422,7 +475,7 @@ function renderDotplots() {
         CLASS_ORDER.forEach((c, r) => {
             const y = top + rowH * r + rowH / 2;
             svg += `<line class="axis" x1="${left}" x2="${W - right}" y1="${y}" y2="${y}"/>`;
-            svg += `<text x="0" y="${y + 4}">${CLASS_INFO[c].name.replace(' (control)', '')}</text>`;
+            svg += `<text x="0" y="${y + 4}">${CLASS_INFO[c].short}</text>`;
         });
         if (m.ref !== undefined) {
             const x = sx(m.ref);
@@ -432,11 +485,11 @@ function renderDotplots() {
         CLASS_ORDER.forEach((c, r) => {
             const y = top + rowH * r + rowH / 2;
             const vals = classes[c].map(t => m.key(t.stats));
+            if (!vals.length) return;
             classes[c].forEach((t, i) => {
                 const v = vals[i];
                 const jitter = ((i * 7919) % 11 - 5) * 1.2;
-                svg += `<circle cx="${sx(v)}" cy="${y + jitter}" r="4" fill="${CLASS_INFO[c].color}" fill-opacity="0.8"
-                    stroke="var(--surface-1)" stroke-width="2" data-tip="${t.label}: ${v.toFixed(m.fmt)}"/>`;
+                svg += dot(c, sx(v), y + jitter, `${t.label}: ${v.toFixed(m.fmt)}`);
             });
             const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
             svg += `<line x1="${sx(mean)}" x2="${sx(mean)}" y1="${y - 10}" y2="${y + 10}" stroke="var(--text-primary)" stroke-width="2"/>`;
@@ -471,14 +524,49 @@ function renderSummary() {
         ['rho', 'Height amortization ρ_N'], ['peakRatio', 'Peak / start height (bits)'],
     ];
     let html = '<tr><th>Statistic</th>' + CLASS_ORDER.map(c =>
-        `<th><span class="swatch" style="background:${CLASS_INFO[c].color}"></span>${CLASS_INFO[c].name}</th>`).join('') + '</tr>';
+        `<th>${swatch(c)}${CLASS_INFO[c].name}</th>`).join('') + '</tr>';
     for (const [k, name] of rows) {
         html += `<tr><td>${name}</td>` + CLASS_ORDER.map(c => {
-            const v = sum[c][k];
+            const v = sum[c]?.[k];
+            if (v === undefined) return '<td class="muted">—</td>';
             return `<td>${typeof v === 'number' ? v : `${v.mean.toFixed(3)} ± ${v.std.toFixed(3)}`}</td>`;
         }).join('') + '</tr>';
     }
     document.getElementById('summary').innerHTML = html;
+}
+
+// ---------- Selection-effect control ----------
+function renderSelection() {
+    const sum = selectionSummary(classes);
+    const f = o => `${o.mean.toFixed(3)} ± ${o.std.toFixed(3)}`;
+    const cols = ['actual', 'ordinary'].filter(c => sum[c]);
+    const rows = [
+        ['Words', c => sum[c].count],
+        ['max |log₂(m₀ / r(D))| (residual)', c => sum[c].maxAbsResidual.toExponential(1)],
+        ['every seed below 2^(S_N+1)', c => (sum[c].allSeedsBelowModulus ? 'yes' : 'no')],
+        ['E(D) / S_N', c => f(sum[c].EperS)],
+        ['E(D) / N', c => f(sum[c].EperN)],
+        ['log₂m₀ / S_N (the automatic part)', c => f(sum[c].log2m0PerS)],
+        ['carry excess E_N (bits)', c => f(sum[c].carryExcess)],
+        ['max |E(D) − (N log₂3 + E_N − log₂m_N)|', c => sum[c].maxIdentityGap.toExponential(1)],
+    ];
+    let html = '<tr><th>Quantity</th>' + cols.map(c => `<th>${swatch(c)}${CLASS_INFO[c].name}</th>`).join('') + '</tr>';
+    for (const [name, fn] of rows) html += `<tr><td>${name}</td>${cols.map(c => `<td>${fn(c)}</td>`).join('')}</tr>`;
+    const un = classes.meta?.unmatchedOrdinary || 0;
+    if (un) html += `<tr><td colspan="${cols.length + 1}" class="muted">${un} record holder(s) had no matched ordinary orbit within the search budget.</td></tr>`;
+    document.getElementById('selsummary').innerHTML = html;
+
+    const byRecord = new Map(classes.ordinary.map(o => [o.matchedTo, o]));
+    const cell = t => t ? `<td>${t.word.length}</td><td>${t.stats.SN}</td><td>${t.selection.log2m0.toFixed(1)}</td>` +
+        `<td>${t.selection.EperS.toFixed(3)}</td><td>${t.selection.EperN.toFixed(3)}</td><td>${t.selection.residual.toFixed(3)}</td>`
+        : '<td colspan="6" class="muted">no match within budget</td>';
+    let tbl = '<tr><th>Record n</th><th>N</th><th>S_N</th><th>log₂m₀</th><th>E/S</th><th>E/N</th><th>residual</th>' +
+        '<th>Ordinary m₀</th><th>N</th><th>S_N</th><th>log₂m₀</th><th>E/S</th><th>E/N</th><th>residual</th></tr>';
+    for (const t of classes.actual) {
+        const o = byRecord.get(t.orbit[0]);
+        tbl += `<tr><td>${t.orbit[0]}</td>${cell(t)}<td>${o ? fmtBig(o.orbit[0]) : '—'}</td>${cell(o)}</tr>`;
+    }
+    document.getElementById('seltable').innerHTML = tbl;
 }
 
 // ---------- Residue tower ----------
@@ -520,7 +608,7 @@ function renderTower() {
             const all = towers[c];
             const ok = all.filter(o => o.levels[e - 1].sampled);
             svg += `<line class="axis" x1="${left}" x2="${W - right}" y1="${y}" y2="${y}"/>`;
-            const short = { periodic: 'Periodic', sturmian: 'Sturmian', actual: 'Actual orbits', generic: 'Random words' }[c];
+            const short = CLASS_INFO[c].short;
             svg += `<text x="0" y="${y + 4}">${short}</text>`;
             if (ok.length < all.length) {
                 svg += `<text x="0" y="${y + 14}" style="font-size:9px;fill:var(--text-muted)">${all.length - ok.length}/${all.length} undersampled</text>`;
@@ -528,9 +616,7 @@ function renderTower() {
             ok.forEach((o, i) => {
                 const l = o.levels[e - 1];
                 const jitter = ((i * 7919) % 11 - 5) * 1.2;
-                svg += `<circle cx="${sx(l.excess)}" cy="${y + jitter}" r="4" fill="${CLASS_INFO[c].color}" fill-opacity="0.8"
-                    stroke="var(--surface-1)" stroke-width="2"
-                    data-tip="${o.t.label}: excess ${l.excess.toPrecision(3)} (N=${l.N}, |K|=${l.size})"/>`;
+                svg += dot(c, sx(l.excess), y + jitter, `${o.t.label}: excess ${l.excess.toPrecision(3)} (N=${l.N}, |K|=${l.size})`);
             });
         });
         for (let k = lo; k <= hi; k++) {
@@ -582,10 +668,15 @@ function build() {
             N,
             recordLimit: parseInt(document.getElementById('inLimit').value, 10),
             actualKind: document.getElementById('inKind').value,
+            matchOn: document.getElementById('inMatch').value,
         });
         selected = null;
-        renderLegend(); renderList(); renderSelInfo(); drawBox(); renderDotplots(); renderSummary(); renderTower();
-        status.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)} s.`;
+        renderLegend(); renderList(); renderSelInfo(); drawBox(); renderDotplots(); renderSelection(); renderSummary(); renderTower();
+        const m = classes.meta;
+        const how = m.actualKind === 'lifetime' ? 'ordinary orbits matched on L₁ (next seed above each record)'
+            : `ordinary orbits matched on ${m.matchOn === 'S' ? 'S_N' : 'N'}`;
+        status.textContent = `Done in ${((performance.now() - t0) / 1000).toFixed(1)} s · ${how}` +
+            (m.unmatchedOrdinary ? ` · ${m.unmatchedOrdinary} unmatched` : '') + '.';
         btn.disabled = false;
     }, 30);
 }

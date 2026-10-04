@@ -22,6 +22,9 @@
  *               (DOI 10.5281/zenodo.23108370)
  *   actual    - real orbits: delay/glide record holders (whole orbit), or
  *               L_1 lifetime record holders (their confined episode)
+ *   ordinary  - control: non-record orbits matched to the actual ones on word
+ *               length N (or valuation depth S_N); for L_1 episodes, the next
+ *               non-record seed with the same lifetime
  *   generic   - control: random words with P(d = k) = 2^-k
  */
 
@@ -384,7 +387,95 @@ export function realizerTrajectory(word, meta) {
 export function actualTrajectory(n, meta, len) {
     const { orbit, word } = len === undefined ? accelOrbitToOne(BigInt(n)) : accelOrbit(BigInt(n), len);
     const { realizer, modulusBits } = leastRealizer(word);
-    return { ...meta, word, orbit, realizer, modulusBits, stats: trajectoryStats(word, orbit) };
+    const t = { ...meta, word, orbit, realizer, modulusBits, stats: trajectoryStats(word, orbit) };
+    t.selection = selectionStats(t);
+    return t;
+}
+
+/**
+ * Selection-effect bookkeeping for a word D read off the orbit of its own seed m0.
+ * m0 realizes D, so r(D) == m0 (mod 2^(S_N+1)) and r(D) <= m0; whenever
+ * m0 < 2^(S_N+1) this forces r(D) = m0, i.e. residual log2(m0 / r(D)) = 0.
+ * Then E(D) = S_N - log2 m0 = N log2 3 + E_N - log2 m_N exactly (Lem. 2.2), where
+ * E_N = sum_{i<N} log2(1 + 1/(3 m_i)) is the carry excess.
+ */
+export function selectionStats(t) {
+    const N = t.word.length, SN = t.stats.SN;
+    const log2m0 = log2Big(t.orbit[0]);
+    const log2r = log2Big(t.realizer);
+    let carryExcess = 0;
+    for (let i = 0; i < N; i++) carryExcess += Math.log2(1 + 1 / (3 * Number(t.orbit[i])));
+    const E = t.stats.endpointDepth;
+    return {
+        log2m0, log2r,
+        residual: log2m0 - log2r,
+        seedBelowModulus: log2m0 < SN + 1,
+        EperS: E / SN,
+        EperN: E / N,
+        trivialFloor: 1 - log2m0 / SN,            // E(D)/S_N >= this, automatically
+        carryExcess,
+        identityGap: E - (N * LOG2_3 + carryExcess - log2Big(t.orbit[N])),
+    };
+}
+
+/** Uniform random odd BigInt with exactly `bits` bits. */
+export function randomOddBig(bits, rand) {
+    let x = 1n;
+    for (let i = 1; i < bits; i++) x = (x << 1n) | (rand() < 0.5 ? 1n : 0n);
+    return x | 1n;
+}
+
+function shortBig(m) {
+    const s = m.toString();
+    return s.length > 12 ? `${s.slice(0, 5)}…${s.slice(-3)} (${s.length} digits)` : s;
+}
+
+/**
+ * Ordinary (non-record) orbits matched to record holders.
+ * Full orbits: random odd seeds whose orbit to 1 has the same word length N
+ * (matchOn 'N') or the same valuation depth S_N (matchOn 'S'); seeds in the
+ * record set are rejected. L_1 episodes: the next odd seed above the record with
+ * the same lifetime L_1 (it cannot be a record, since L_1 = L was already reached).
+ */
+export function ordinaryMatched(actual, { actualKind = 'delay', matchOn = 'N', seed = 7, exclude = new Set(),
+    maxTries = 20000, scanBudget = 300000 } = {}) {
+    const rand = mulberry32(seed);
+    const list = [];
+    let unmatched = 0;
+    for (const t of actual) {
+        const n = t.orbit[0];
+        let found = null;
+        if (actualKind === 'lifetime') {
+            const L = t.word.length;
+            for (let m = n + 2n, k = 0; k < scanBudget; m += 2n, k++) {
+                if (lifetime(m, 1) === L) { found = actualTrajectory(m, { tag: `next seed above n=${n} with L1=${L}` }, L); break; }
+            }
+        } else {
+            const target = matchOn === 'S' ? t.stats.SN : t.word.length;
+            const b0 = Math.round(target / (matchOn === 'S' ? 4.82 : 2.41)); // E[N] ~ 2.41 log2 m0, E[S_N] ~ 4.82 log2 m0
+            for (let k = 0; k < maxTries && !found; k++) {
+                const m = randomOddBig(Math.max(3, b0 + Math.floor(rand() * 7) - 3), rand);
+                if (m === 1n || exclude.has(m)) continue;
+                let x = m, N = 0, S = 0;
+                while (x !== 1n && (matchOn === 'S' ? S : N) < target) {
+                    const { next, a } = accelStep(x);
+                    x = next; N++; S += a;
+                }
+                if (x === 1n && (matchOn === 'S' ? S : N) === target) {
+                    found = actualTrajectory(m, { tag: `random seed matched to n=${n} on ${matchOn === 'S' ? 'S_N' : 'N'}` });
+                }
+            }
+        }
+        if (found) {
+            found.cls = 'ordinary';
+            found.matchedTo = n;
+            found.label = `m=${shortBig(found.orbit[0])} (N=${found.word.length}, matches n=${n})`;
+            list.push(found);
+        } else {
+            unmatched++;
+        }
+    }
+    return { list, unmatched };
 }
 
 /**
@@ -394,7 +485,7 @@ export function actualTrajectory(n, meta, len) {
  * @param {number} o.recordLimit  search limit for actual record holders
  * @param {'delay'|'lifetime'} o.actualKind  which extremal orbits to use
  */
-export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind = 'delay', seed = 2026 } = {}) {
+export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind = 'delay', matchOn = 'N', seed = 2026 } = {}) {
     const periodic = [];
     // Convergents p_n/q_n of beta with n >= 3 (Theorem 5.3 range), period p_n <= N.
     for (const cv of betaConvergents(12)) {
@@ -428,6 +519,7 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
     }
 
     const actual = [];
+    const recordSeeds = new Set();
     if (actualKind === 'lifetime') {
         for (const r of lifetimeRecords(recordLimit, 1)) {
             if (r.L < 4) continue;
@@ -437,6 +529,7 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
         }
     } else {
         const { delay, glide } = recordHolders(recordLimit);
+        for (const r of [...delay, ...glide]) recordSeeds.add(BigInt(r.n));
         const seen = new Set();
         for (const r of [...delay, ...glide]) {
             if (r.n < 27 || seen.has(r.n)) continue;
@@ -458,7 +551,33 @@ export function buildThreeClasses({ N = 120, recordLimit = 1000000, actualKind =
     const generic = actual.map((t, i) => realizerTrajectory(geometricWord(t.word.length, rand), {
         cls: 'generic', label: `random word #${i + 1} (N=${t.word.length})`, tag: 'control',
     }));
-    return { periodic, sturmian, actual, generic };
+
+    // Control: ordinary orbits matched to the actual ones.
+    const { list: ordinary, unmatched } = ordinaryMatched(actual, { actualKind, matchOn, exclude: recordSeeds });
+    const out = { periodic, sturmian, actual, ordinary, generic };
+    Object.defineProperty(out, 'meta', { value: { actualKind, matchOn, unmatchedOrdinary: unmatched, recordLimit } });
+    return out;
+}
+
+/** Per-class summary of the selection-effect quantities (actual-orbit classes only). */
+export function selectionSummary(classes) {
+    const out = {};
+    for (const c of ['actual', 'ordinary']) {
+        const list = classes[c] || [];
+        if (!list.length) continue;
+        const pick = f => meanStd(list.map(t => f(t.selection)));
+        out[c] = {
+            count: list.length,
+            maxAbsResidual: Math.max(...list.map(t => Math.abs(t.selection.residual))),
+            allSeedsBelowModulus: list.every(t => t.selection.seedBelowModulus),
+            EperS: pick(s => s.EperS),
+            EperN: pick(s => s.EperN),
+            log2m0PerS: pick(s => 1 - s.trivialFloor),
+            carryExcess: pick(s => s.carryExcess),
+            maxIdentityGap: Math.max(...list.map(t => Math.abs(t.selection.identityGap))),
+        };
+    }
+    return out;
 }
 
 /** 2-adic agreement of 1c_beta with its convergent periodic words (Sturmian paper, Thm 5.3). */
@@ -486,10 +605,12 @@ export function depthLawTable(maxN = 9) {
 // For q = p^e (p prime, p not dividing 6) the carry sum factors through the
 // multiplicative walk u_0 = 1, u_{j+1} = u_j * 2^(d_j) * 3^-1 on K_e = <2,3> in
 // (Z/qZ)^x, since u_j = 2^(S_j) 3^-j and C_N = 3^(N-1) * sum_{j<N} u_j (mod q).
-// This is the state space of De Jesus, "Exact Spectral Inheritance in
-// Prime-Power Resolution Towers" (DOI 10.5281/zenodo.23088511). Here its
-// orthogonal splitting H_{e+1} = J_e(H_e) (+) Z_{e+1} is applied to the
-// occupation density of one walk; the transfer operators themselves are not built.
+// What follows is an empirical Fourier diagnostic informed by the theorem of
+// De Jesus, "Exact Spectral Inheritance in Prime-Power Resolution Towers"
+// (DOI 10.5281/zenodo.23088511), not a consequence of it: the orthogonal
+// splitting H_{e+1} = J_e(H_e) (+) Z_{e+1} used there is applied to the
+// occupation density of one walk. The theorem concerns the transfer operators,
+// which are not built here.
 
 const groupCache = new Map();
 
