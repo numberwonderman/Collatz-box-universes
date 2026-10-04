@@ -19,7 +19,7 @@ For any number $n$:
 *(The standard Collatz conjecture uses $X=2, Y=3, Z=1$)*
 
 ## **Exploring the Box Universe: A Multi-Level Perspective (LOD)**
-The suite comprises ten distinct applications designed to provide a unique "Level of Detail" (LOD) for understanding generalized Collatz sequences and their chaotic properties:
+The suite comprises eleven distinct applications designed to provide a unique "Level of Detail" (LOD) for understanding generalized Collatz sequences and their chaotic properties:
 
 ### **1. index.html (Quantitative Analysis & Hub)**
 * **Focus:** Detailed analysis of individual sequences and central launcher.
@@ -54,6 +54,10 @@ The suite comprises ten distinct applications designed to provide a unique "Leve
 
 ### **10. radial-viewer.html (Radial Viewer: Static snapshots)**
 * **Focus:** Snapshot views of modular distribution on a circular path.
+
+### **11. eoc-realizers.html (EOC Three-Class Realizer Comparison)**
+* **Focus:** Least realizers of valuation words for the accelerated map $T(m) = (3m+1)/2^{a(m)}$, comparing periodic (convergent) words, Sturmian words and extremal actual orbits in one Box Universe view.
+* **Key Features:** Exact BigInt realizers mod $2^{S_N+1}$, drift $R_n$ with the occupation corridor, endpoint depth $E(D)$, height amortization $\rho_N$, and a check of the Sturmian depth law. Logic lives in `js/eocRealizers.js` (tested in `js/tests/eocRealizers.test.js`). Follows De Jesús, *A Global Occupation Conjecture for the Accelerated 3x+1 Map*, Rev. 7 (DOI 10.5281/zenodo.22906673).
 
 ---
 
