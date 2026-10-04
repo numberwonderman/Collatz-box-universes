@@ -6,6 +6,7 @@ import {
     residueGroup, carryWalk, residueTower, periodicLimitTower, vp, geometricWord, mulberry32,
     ordinaryMatched, actualTrajectory, selectionSummary,
     seedTables, recordExclusion, signTestP, nearRecordControl,
+    corridorEpisodes, returnStats,
 } from '../eocRealizers.js';
 
 // Smallest odd m whose first word.length accelerated valuations equal word.
@@ -292,7 +293,7 @@ describe('eocRealizers', () => {
                 }
                 for (const st of r.summary) expect(Number.isFinite(row.z[st.key])).toBe(true);
             }
-            expect(r.bonferroni).toBeCloseTo(0.05 / 6, 12);
+            expect(r.bonferroni).toBeCloseTo(0.05 / r.summary.filter(x => !x.pinned).length, 12);
         });
 
         it('pinned statistic: mu - log2 3 - kappa equals E_N / N for every record', () => {
@@ -301,6 +302,60 @@ describe('eocRealizers', () => {
                 const kappa = Math.log2(Number(t.orbit[0])) / t.word.length;
                 expect(t.stats.mu - LOG2_3 - kappa).toBeCloseTo(t.selection.carryExcess / t.word.length, 9);
             }
+        });
+    });
+
+    describe('separated returns (EOC Open Problem F)', () => {
+        it('decomposes the occupation of m0 = 285175 into episodes', () => {
+            const { word, orbit } = accelOrbitToOne(285175n);
+            const r = returnStats(word, orbit, { c: 1, endsAtOne: true });
+            expect(r.O).toBe(98);
+            expect(r.first).toBe(15);               // L_1 + 1
+            expect(r.sep).toBe(83);
+            expect(r.P).toBe(7);
+            expect(r.episodes.map(e => e.start)).toEqual([0, 16, 21, 31, 98, 100, 108]);
+            expect(r.entryLemmaOK).toBe(true);
+        });
+
+        it('total equals occupation() and the first episode is L_c + 1', () => {
+            for (const n of [27, 703, 77031, 837799]) {
+                const { word, orbit } = accelOrbitToOne(BigInt(n));
+                for (const c of [1, 2]) {
+                    const r = returnStats(word, orbit, { c, endsAtOne: true });
+                    expect(r.O).toBe(occupation(n, c));
+                    expect(r.first).toBe(lifetime(n, c) + 1);
+                }
+            }
+        });
+
+        it('entry lemma (Prop. 13.1) holds on every re-entry of records and ordinary orbits', () => {
+            const C = buildThreeClasses({ N: 60, recordLimit: 100000 });
+            let reentries = 0;
+            for (const t of [...C.actual, ...C.ordinary]) {
+                for (const c of [0, 1, 2]) {
+                    const r = returnStats(t.word, t.orbit, { c, endsAtOne: true });
+                    expect(r.entryLemmaOK).toBe(true);
+                    reentries += r.reentries;
+                }
+            }
+            expect(reentries).toBeGreaterThan(50);
+        });
+
+        it('single-window charge obeys Q >= P (1 + K (log2 m0 - c)) (Rem. 13.3)', () => {
+            for (const n of [27, 285175, 837799]) {
+                const { word, orbit } = accelOrbitToOne(BigInt(n));
+                for (const K of [1, 3]) {
+                    const r = returnStats(word, orbit, { c: 1, endsAtOne: true, K });
+                    const Q = r.chargeRatio * r.O;
+                    expect(Q).toBeGreaterThanOrEqual(r.P * (1 + K * (Math.log2(n) - 1)) - 1e-9);
+                }
+            }
+        });
+
+        it('critical Sturmian word stays in one episode (band rigidity)', () => {
+            const w = beattyWord(LOG2_3, 0, 300);
+            expect(corridorEpisodes(w, { c: 1 }).length).toBe(1);
+            expect(corridorEpisodes(w, { c: 1 })[0].len).toBe(301);
         });
     });
 });

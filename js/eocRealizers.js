@@ -319,6 +319,69 @@ export function heightAmortization(word, period) {
     return log2Big(absA > absL ? absA : absL) / SN;
 }
 
+// ---------- Corridor episodes and separated returns (EOC Open Problem F) ----------
+
+/**
+ * Maximal runs ("episodes") of indices n >= 0 with R_n <= c, using the exact test
+ * 2^(S_n) <= 2^c 3^n (c a non-negative integer). With endsAtOne the orbit is
+ * continued past m_N = 1 with valuation 2 (R grows by 2 - alpha per step), so
+ * the count matches the full-orbit occupation O_c; otherwise only the prefix
+ * n <= N is used. Each episode records its start a, length l, the digit
+ * d_{a-1} before it and its entry depth c - R_a.
+ */
+export function corridorEpisodes(word, { c = 1, endsAtOne = false } = {}) {
+    const N = word.length, cB = BigInt(c);
+    const eps = [];
+    let S = 0n, pow3 = 1n, cur = null;
+    for (let n = 0; ; n++) {
+        if (n > N && !endsAtOne) break;
+        const inside = (1n << S) <= (pow3 << cB);
+        if (inside) {
+            if (!cur) {
+                cur = { start: n, len: 0, prevD: n === 0 ? null : (n <= N ? word[n - 1] : 2), entryDepth: c - (Number(S) - n * LOG2_3) };
+                eps.push(cur);
+            }
+            cur.len++;
+        } else {
+            cur = null;
+            if (n >= N) break; // past the end of the orbit R only increases
+        }
+        const d = n < N ? word[n] : 2;
+        S += BigInt(d);
+        pow3 *= 3n;
+    }
+    return eps;
+}
+
+/**
+ * Separated-return statistics. O_c = sum of episode lengths; the first episode is
+ * the single window l_0 = L_c + 1; O_c - l_0 is the occupation carried by
+ * separated returns. Q_K is the single-window charge sum of EOC Rem. 13.3,
+ * sum_i (1 + K (log2 m_{a_i} + c_i)) with c_0 = c and c_i = c - R_{a_i}.
+ */
+export function returnStats(word, orbit, { c = 1, endsAtOne = false, K = 1 } = {}) {
+    const eps = corridorEpisodes(word, { c, endsAtOne });
+    const O = eps.reduce((a, e) => a + e.len, 0);
+    const first = eps[0].len;
+    const later = eps.slice(1);
+    let Q = 0;
+    for (const e of eps) {
+        const m = e.start < orbit.length ? orbit[e.start] : 1n;
+        Q += 1 + K * (log2Big(m) + e.entryDepth);
+    }
+    return {
+        c, O, first, sep: O - first, P: eps.length,
+        share: (O - first) / O,
+        laterMeanLen: later.length ? later.reduce((a, e) => a + e.len, 0) / later.length : 0,
+        perBit: O / Math.max(log2Big(orbit[0]), 1e-9),
+        chargeRatio: Q / O,
+        reentries: later.length,
+        entryLemmaOK: later.every(e => e.prevD === 1 && e.entryDepth >= -1e-12 && e.entryDepth < LOG2_3 - 1),
+        maxEntryDepth: later.length ? Math.max(...later.map(e => e.entryDepth)) : null,
+        episodes: eps,
+    };
+}
+
 /** Statistics of one trajectory (word + orbit of its realizer). */
 export function trajectoryStats(word, orbit, { period = 0, c = 1 } = {}) {
     const N = word.length;
@@ -367,6 +430,7 @@ export function trajectoryStats(word, orbit, { period = 0, c = 1 } = {}) {
         maxA: Math.max(...word),
         endpointDepth: SN - h0,            // E(D) = S - log2 r(D)
         rho: heightAmortization(word, period),
+        returns: returnStats(word, orbit, { c, endsAtOne: orbit[N] === 1n }),
     };
 }
 
@@ -654,6 +718,10 @@ export const NEAR_STATS = [
     { key: 'maxA', name: 'Max valuation', f: s => s.maxA },
     { key: 'disc', name: 'Discrepancy max|Sᵢ − iμ| / √N', f: s => s.balanceRootN },
     { key: 'rise', name: 'Max rise max log₂(mᵢ/m₀) (bits)', f: s => s.startBits * (s.peakRatio - 1) },
+    { key: 'O', name: 'Total occupation O₁', f: s => s.returns.O },
+    { key: 'sep', name: 'Separated-return occupation O₁ − ℓ₀', f: s => s.returns.sep },
+    { key: 'P', name: 'Episode count P', f: s => s.returns.P },
+    { key: 'share', name: 'Separated share (O₁ − ℓ₀) / O₁', f: s => s.returns.share },
     { key: 'mu', name: 'Mean valuation μ (pinned: log₂3 + κ + E_N/N)', f: s => s.mu, pinned: true },
 ];
 
