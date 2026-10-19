@@ -89,3 +89,28 @@ The data shows no reciprocity obstruction for (−1, 2, 2, 3). It matches Graham
 Mallows–Wilks–Yan (2003, arXiv math/0009113), which reported exactly 61 missing admissible
 integers for this packing, with largest 97287. They suggested the list is finite, but that is
 a conjecture. Before citing "unobstructed" formally, confirm it against HKRS's own tables.
+
+## 4. Maximal prime gaps (`prime_gaps.py`, `prime_gaps.c` → `prime_gaps_maximal.csv`, `prime_gaps_ratio.png`)
+
+This is Problem 9.2, Cramér's conjecture. The script runs a segmented sieve up to 10¹⁰ in
+about 20 seconds.
+- **Prime count:** π(10¹⁰) = 455,052,511, which is the known value.
+- **Maximal gaps:** a gap counts as maximal when it is larger than every earlier gap. There are
+  **35** below 10¹⁰, and the last is **354**, from 4,302,407,359 to 4,302,407,713.
+- **Independent re-check:** each gap was confirmed by Miller–Rabin. Both ends are prime and
+  nothing in between is prime.
+- **Published table:** the list agrees with OEIS A002386 / A005250. oeis.org is blocked from
+  this environment, so the comparison table in the script was written from memory. I
+  cross-checked its top four starting primes against Caldwell's t5k.org table. That table
+  lists each gap as g − 1 (291, 319, 335, 353), because it counts the composites in between.
+
+**Results for g / log² p** (p is the prime where the gap starts):
+- **Small p:** the very small cases give the biggest ratios. The gap of 1 at p = 2 gives 2.08,
+  and the gap of 2 at p = 3 gives 1.66. These are artifacts of tiny p, not evidence about the
+  limit.
+- **For p > 1000:** the largest ratio is **0.7395**, from the gap of 210 at 20,831,323. Up to
+  10¹⁰ the ratio stays between about 0.4 and 0.74.
+- **At the last record:** the ratio is 0.719, well below the conjectured lim sup 2e^−γ ≈ 1.1229.
+  That is expected this low down. Published records only reach about 0.92 (gap 1132 near
+  1.7·10¹⁸), and the convergence is extremely slow. These numbers cannot decide anything about
+  the limit. They are a check that the machinery works.
