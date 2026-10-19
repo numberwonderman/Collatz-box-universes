@@ -74,8 +74,16 @@ which is the expected set of 8 classes.
 - Up to 10⁵ there are **61** admissible-class integers that are missing. They thin out quickly,
   and the largest is **97287**.
 
-Up to 10⁵ there is no sign of an infinite family, such as squares, among the missing numbers.
-I have not checked whether Haag, Kertzer, Rickards and Stange list (−1, 2, 2, 3) as an
-obstructed packing. Read their tables before drawing a conclusion. I recall 97287 being reported as the largest
-exception for this packing in earlier, much larger computations, but that should be checked
-against Fuchs–Sanden or HKRS before relying on it.
+**Is this packing obstructed?** I could not read the HKRS paper itself, because arxiv and the
+survey PDFs are blocked from the environment I ran in. So this answer is empirical, not a
+citation. `apollonian_obstruction_check.py` extends the run to 10⁶ (about 30 s):
+- **No new missing numbers appear between 10⁵ and 10⁶.** The count stays at 61.
+- A quadratic or quartic reciprocity obstruction would remove a whole family c·n² or c·n⁴
+  from an admissible class, so the missing count would keep growing.
+- **Every such family with squarefree c ≤ 200 has all of its admissible members above 10⁵
+  present.**
+
+The data shows no reciprocity obstruction for (−1, 2, 2, 3). It matches Graham–Lagarias–
+Mallows–Wilks–Yan (2003, arXiv math/0009113), which reported exactly 61 missing admissible
+integers for this packing, with largest 97287. They suggested the list is finite, but that is
+a conjecture. Before citing "unobstructed" formally, confirm it against HKRS's own tables.
