@@ -1,0 +1,19 @@
+limit                       : 1000000
+triples found (sorted, up to perm): 40
+(a) distinct Markoff numbers: 40
+(b) m with count != 1       : none
+(c) largest m verified      : 925765  triple (34, 9077, 925765)
+
+first Markoff numbers and their unique triple:
+         1  count=1  [(1, 1, 1)]
+         2  count=1  [(1, 1, 2)]
+         5  count=1  [(1, 2, 5)]
+        13  count=1  [(1, 5, 13)]
+        29  count=1  [(2, 5, 29)]
+        34  count=1  [(1, 13, 34)]
+        89  count=1  [(1, 34, 89)]
+       169  count=1  [(2, 29, 169)]
+       194  count=1  [(5, 13, 194)]
+       233  count=1  [(1, 89, 233)]
+       433  count=1  [(5, 29, 433)]
+       610  count=1  [(1, 233, 610)]
