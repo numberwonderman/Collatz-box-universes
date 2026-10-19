@@ -4,6 +4,8 @@ These are data runs on three of the quieter problems in Grechuk, *Landscape of 2
 Mathematics* (2nd ed.), Chapter 9. They give counts, lists and checks of known results. Nothing
 here is a proof.
 
+`CHAPTER_MAP.md` indexes all 100 problems in the chapter and adds five more starter prompts.
+
 Re-run everything with `python3 markoff_unicity.py`, `python3 dn_sets.py` and `python3 apollonian.py`.
 It takes about 10 seconds and needs only Python 3 and gcc.
 
@@ -12,7 +14,7 @@ It takes about 10 seconds and needs only Python 3 and gcc.
 | Problem | Status found |
 |---|---|
 | 9.8 Markoff unicity | Still open. It is proved for Markoff numbers that are prime powers or twice prime powers (Baragar, Button, Schmutz; Lang–Tan; Zhang). |
-| 9.7 D(n)-sets | No D(n)-quadruple exists when n ≡ 2 (mod 4). For n = 1 there is no quintuple (He–Togbé–Ziegler 2019), and the same holds for n = 4 (Bliznac Trebješanin–Filipin 2019). Every other n ≢ 2 (mod 4) has a known quadruple except n ∈ {−4, −3, −1, 3, 5, 8, 12, 20}, where existence is open. The best general bound is M(n) ≤ (2+o(1)) log\|n\| (Yip 2025). |
+| 9.7 D(n)-sets | No D(n)-quadruple exists when n ≡ 2 (mod 4). For n = 1 there is no quintuple (He–Togbé–Ziegler 2019), and the same holds for n = 4 (Bliznac Trebješanin–Filipin 2019). Every other n ≢ 2 (mod 4) has a known quadruple except n ∈ {−4, −3, −1, 3, 5, 8, 12, 20} (Dujella). Bonciocat–Cipu–Mignotte (2022) proved M(−1) = M(−4) = 3, which leaves 3, 5, 8, 12 and 20 open. The chapter also notes M(n) ≤ 31 for \|n\| ≤ 400, and that sup M(n) ≥ 6 because of the sextuple below. The best general bound is M(n) ≤ (2+o(1)) log\|n\| (Yip 2025). |
 | 9.72 Apollonian curvatures | The local-global conjecture is **false** in general. Haag, Kertzer, Rickards and Stange (Annals 2024) found quadratic and quartic reciprocity obstructions, and a revised conjecture replaces it. |
 
 ## 1. Markoff unicity (`markoff_unicity.py` → `markoff_counts.csv`)

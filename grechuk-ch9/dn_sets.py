@@ -19,7 +19,7 @@ EXE = os.path.join(HERE, "dn_sets")
 
 # Literature status for n in this range (see README):
 #  - n = 2 (mod 4): no D(n)-quadruple exists (Brown; Gupta-Singh; Mohanty-Ramasamy).
-#  - n in {3, 5, 8, 12, 20} (and -1, -3, -4): quadruple existence is OPEN;
+#  - n in {3, 5, 8, 12, 20} (and -3): quadruple existence is OPEN (M(-1) = M(-4) = 3, 2022);
 #    for every other n not 2 (mod 4) a D(n)-quadruple is known to exist.
 #  - n = 1: no quintuple (He-Togbe-Ziegler 2019); n = 4: no quintuple
 #    (Bliznac Trebjesanin-Filipin 2019).
