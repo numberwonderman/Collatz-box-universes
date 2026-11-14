@@ -334,7 +334,7 @@ function initialize() {
     // Parse URL parameters for initial state
     const urlParams = new URLSearchParams(window.location.search);
     DOMElements.startNumberInput.value = parseInt(urlParams.get('n'), 10) || 10;
-    DOMEElements.xValueInput.value = parseInt(urlParams.get('x'), 10) || 2;
+    DOMElements.xValueInput.value = parseInt(urlParams.get('x'), 10) || 2;
     DOMElements.yValueInput.value = parseInt(urlParams.get('y'), 10) || 3;
     DOMElements.zValueInput.value = parseInt(urlParams.get('z'), 10) || 1;
     const modulusFromURL = parseInt(urlParams.get('modulus'), 10);

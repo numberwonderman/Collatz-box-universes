@@ -19,17 +19,27 @@ export function isValidP(p) {
  * @param {BigInt} n - The starting number.
  * @param {BigInt} alpha - The multiplier for the odd step (alpha*n + beta).
  * @param {BigInt} beta - The constant for the odd step (alpha*n + beta).
- * @returns {BigInt[]} The sequence.
+ * @param {number} [maxSteps=10000] - Safety cap on the number of steps.
+ * @returns {BigInt[]} The sequence. If the orbit enters a cycle that does not
+ *   contain 1, the sequence ends with the first repeated value (so the last
+ *   element also appears earlier). If maxSteps is hit, it is simply truncated.
  */
-export function generalizedCollatz(n, alpha, beta) {
+export function generalizedCollatz(n, alpha, beta, maxSteps = 10000) {
   const sequence = [n];
-  while (n !== 1n) {
+  // Previously this looped forever (and grew `sequence` without bound) for any
+  // orbit that never reaches 1, e.g. (5n, 3n, -1n) or (13n, 5n, 1n).
+  const seen = new Set([n]);
+  let steps = 0;
+  while (n !== 1n && steps < maxSteps) {
     if (n % 2n === 0n) {
       n = n / 2n;
     } else {
       n = alpha * n + beta;
     }
     sequence.push(n);
+    steps++;
+    if (seen.has(n)) break; // cycle not through 1
+    seen.add(n);
   }
   return sequence;
 }
@@ -45,7 +55,8 @@ export function simplifyByPrimesLessThanP(n, p) {
   p = BigInt(p);
   const primes = primesBelow(p);
 
-  if (primes.length === 0) {
+  // 0 is divisible by every prime, so the loop below would never terminate.
+  if (primes.length === 0 || n === 0n) {
     return n;
   }
 
@@ -106,6 +117,7 @@ export function iterateP(n, p, maxSteps = 10000) {
         // Check for cycle before pushing to sequence
         if (seen.has(key)) {
             seq.push(currentN);
+            steps++; // count the step that closed the cycle (was off by one vs. 'hit_1')
             return { sequence: seq, steps, type: 'cycle' };
         }
 

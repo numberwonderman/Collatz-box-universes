@@ -403,11 +403,19 @@ export function drawNecklaceCanvas(canvas, data) {
     // Check if the cycle point exists
     let necklaceStartIndex = -1;
     if (isCycle) {
-      // Find the index where the sequence repeats
-      for (let i = 0; i < sequence.length - 1; i++) {
-        if (sequence[i] === sequence[sequence.length - 1]) {
-          necklaceStartIndex = i;
-          break;
+      // calculateCollatzSequence does not append the repeated value to `sequence`;
+      // it records it in paradoxicalOccurrences. The old search for a duplicate of
+      // the last element therefore never matched, and the whole chain (tail
+      // included) was coloured as necklace.
+      const hit = (data.paradoxicalOccurrences || []).find(o => o.reason === "Cycle detected");
+      if (hit) necklaceStartIndex = sequence.indexOf(hit.value);
+      if (necklaceStartIndex === -1) {
+        // Fallback for data that does include the repeated value at the end.
+        for (let i = 0; i < sequence.length - 1; i++) {
+          if (sequence[i] === sequence[sequence.length - 1]) {
+            necklaceStartIndex = i;
+            break;
+          }
         }
       }
     }
@@ -441,7 +449,7 @@ export function drawNecklaceCanvas(canvas, data) {
         // Draw the node (a circle)
         ctx.beginPath();
         ctx.arc(nodeX, nodeY, nodeRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = (i >= necklaceStartIndex && isCycle) ? '#34d399' : '#fb923c'; // Green for necklace, orange for chain
+        ctx.fillStyle = (isCycle && necklaceStartIndex !== -1 && i >= necklaceStartIndex) ? '#34d399' : '#fb923c'; // Green for necklace, orange for chain
         ctx.fill();
         ctx.strokeStyle = '#f00';
         ctx.lineWidth = 2;

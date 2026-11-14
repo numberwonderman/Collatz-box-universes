@@ -25,7 +25,7 @@ def generalized_collatz(n, divisor, multiplier, adder):
     # The sequence stops when it reaches 1 or a repeating cycle
     # For simplicity, we stop at 1 as a common case.
     while n != 1:
-        if n % 2 == 0:
+        if n % divisor == 0:  # was `n % 2`: wrong (floored) results for divisor != 2
             n = n // divisor
         else:
             n = (n * multiplier) + adder

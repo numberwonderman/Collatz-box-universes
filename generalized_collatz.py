@@ -54,6 +54,11 @@ def generalized_collatz(a1, b, c, max_iterations=10000):
         sequence.append(current)
 
         d = current * b + c
+        if d == 0:
+            # 0 is divisible by 2 forever: the halving loop below would never end
+            # (e.g. a1=1, b=1, c=-1). Record the 0 and stop.
+            sequence.append(0)
+            return sequence, None
         while d % 2 == 0:
             d //= 2
 

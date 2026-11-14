@@ -1,0 +1,5 @@
+S={} n<100000: JS found 1 cycle(s), counts [99999]; identical to Python: true (0.0 s)
+S={1} n<100000: JS found 1 cycle(s), counts [99999]; identical to Python: true (2.5 s)
+S={2,3} n<100000: JS found 4 cycle(s), counts [47008,18102,6078,28811]; identical to Python: true (2.1 s)
+S={3} n<100000: JS found 3 cycle(s), counts [30376,27239,42384]; identical to Python: true (0.1 s)
+JS and Python agree on every cycle and every count.

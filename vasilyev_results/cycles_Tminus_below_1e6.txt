@@ -1,0 +1,32 @@
+
+T^-_S, S = {}: starts 1 <= n < 1,000,000  (0.6 s)
+  distinct cycles found: 1   unresolved starts: 0
+  min    1  length   1  starts ending here:   999,999 (100.0000%)
+      (1,)
+  longest walk before dropping below its start / closing a cycle: 1 steps
+  largest value met: 19 bits (from start 999,999)
+
+T^-_S, S = {1}: starts 1 <= n < 1,000,000  (0.5 s)
+  distinct cycles found: 2   unresolved starts: 0
+  min    1  length   1  starts ending here:   372,615 (37.2615%)
+      (1,)
+  min    2  length   2  starts ending here:   627,384 (62.7385%)
+      (2, 3)
+  longest walk before dropping below its start / closing a cycle: 2 steps
+  largest value met: 21 bits (from start 999,998)
+
+T^-_S, S = {2,3}: starts 1 <= n < 1,000,000  (0.4 s)
+  distinct cycles found: 1   unresolved starts: 0
+  min    1  length   1  starts ending here:   999,999 (100.0000%)
+      (1,)
+  longest walk before dropping below its start / closing a cycle: 4 steps
+  largest value met: 22 bits (from start 999,992)
+
+T^-_S, S = {3}: starts 1 <= n < 1,000,000  (0.4 s)
+  distinct cycles found: 1   unresolved starts: 0
+  min    1  length   1  starts ending here:   999,999 (100.0000%)
+      (1,)
+  longest walk before dropping below its start / closing a cycle: 2 steps
+  largest value met: 21 bits (from start 999,992)
+
+wrote vasilyev_results/cycles_Tminus_below_1e6.json

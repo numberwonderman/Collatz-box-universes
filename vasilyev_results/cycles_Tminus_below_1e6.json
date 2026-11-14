@@ -1,0 +1,98 @@
+[
+ {
+  "map": "T^-",
+  "S": [],
+  "limit": 1000000,
+  "seconds": 0.6,
+  "cycles": [
+   {
+    "min": 1,
+    "length": 1,
+    "elements": [
+     1
+    ],
+    "starts": 999999
+   }
+  ],
+  "unresolved": [],
+  "max_walk_steps": 1,
+  "max_value_bits": 19,
+  "max_value_start": 999999
+ },
+ {
+  "map": "T^-",
+  "S": [
+   1
+  ],
+  "limit": 1000000,
+  "seconds": 0.5,
+  "cycles": [
+   {
+    "min": 1,
+    "length": 1,
+    "elements": [
+     1
+    ],
+    "starts": 372615
+   },
+   {
+    "min": 2,
+    "length": 2,
+    "elements": [
+     2,
+     3
+    ],
+    "starts": 627384
+   }
+  ],
+  "unresolved": [],
+  "max_walk_steps": 2,
+  "max_value_bits": 21,
+  "max_value_start": 999998
+ },
+ {
+  "map": "T^-",
+  "S": [
+   2,
+   3
+  ],
+  "limit": 1000000,
+  "seconds": 0.4,
+  "cycles": [
+   {
+    "min": 1,
+    "length": 1,
+    "elements": [
+     1
+    ],
+    "starts": 999999
+   }
+  ],
+  "unresolved": [],
+  "max_walk_steps": 4,
+  "max_value_bits": 22,
+  "max_value_start": 999992
+ },
+ {
+  "map": "T^-",
+  "S": [
+   3
+  ],
+  "limit": 1000000,
+  "seconds": 0.4,
+  "cycles": [
+   {
+    "min": 1,
+    "length": 1,
+    "elements": [
+     1
+    ],
+    "starts": 999999
+   }
+  ],
+  "unresolved": [],
+  "max_walk_steps": 2,
+  "max_value_bits": 21,
+  "max_value_start": 999992
+ }
+]

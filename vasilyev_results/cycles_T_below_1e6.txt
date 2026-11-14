@@ -1,0 +1,40 @@
+
+T_S, S = {}: starts 1 <= n < 1,000,000  (1.1 s)
+  distinct cycles found: 1   unresolved starts: 0
+  min    1  length   2  starts ending here:   999,999 (100.0000%)
+      (1, 2)
+  longest walk before dropping below its start / closing a cycle: 152 steps
+  largest value met: 35 bits (from start 704,511)
+
+T_S, S = {1}: starts 1 <= n < 1,000,000  (43.0 s)
+  distinct cycles found: 1   unresolved starts: 0
+  min    1  length   5  starts ending here:   999,999 (100.0000%)
+      (1, 2, 3, 5, 8)
+  longest walk before dropping below its start / closing a cycle: 86,626 steps
+  largest value met: 602 bits (from start 907,482)
+
+T_S, S = {2,3}: starts 1 <= n < 1,000,000  (33.1 s)
+  distinct cycles found: 4   unresolved starts: 0
+  min    1  length   2  starts ending here:   472,660 (47.2660%)
+      (1, 2)
+  min    5  length  18  starts ending here:   177,032 (17.7032%)
+      (5, 8, 12, 18, 9, 14, 7, 11, 17, 26, 13, 20, 30, 15, 23, 35, 53, 80)
+  min   19  length   8  starts ending here:    66,450 (6.6450%)
+      (19, 29, 44, 66, 33, 50, 25, 38)
+  min   47  length  24  starts ending here:   283,857 (28.3857%)
+      (47, 71, 107, 161, 242, 121, 182, 91, 137, 206, 103, 155, 233, 350, 175, 263, 395, 593, 890, 445, 668, 1002, 501, 752)
+  longest walk before dropping below its start / closing a cycle: 65,754 steps
+  largest value met: 492 bits (from start 523,560)
+
+T_S, S = {3}: starts 1 <= n < 1,000,000  (1.1 s)
+  distinct cycles found: 3   unresolved starts: 0
+  min    1  length   2  starts ending here:   305,109 (30.5109%)
+      (1, 2)
+  min    3  length   4  starts ending here:   269,799 (26.9799%)
+      (3, 5, 8, 12)
+  min  103  length  39  starts ending here:   425,091 (42.5091%)
+      (103, 155, 233, 350, 175, 263, 395, 593, 890, 445, 668, 167, 251, 377, 566, 283, 425, 638, 319, 479, 719, 1079, 1619, 2429, 3644, 911, 1367, 2051, 3077, 4616, 6924, 1731, 2597, 3896, 5844, 1461, 2192, 137, 206)
+  longest walk before dropping below its start / closing a cycle: 268 steps
+  largest value met: 38 bits (from start 471,291)
+
+wrote vasilyev_results/cycles_T_below_1e6.json
