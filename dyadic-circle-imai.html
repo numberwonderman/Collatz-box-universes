@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dyadic Circle (Imai)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --surface-0: #111827;
+            --surface-1: #1a1a19;
+            --surface-2: #26262a;
+            --border: #3a3a40;
+            --text-primary: #ffffff;
+            --text-secondary: #c3c2b7;
+            --text-muted: #8c8b84;
+            --grid: #34343a;
+            --series-pos: #3987e5;
+            --series-neg: #e5484d;
+            --series-cycle: #f5b041;
+            --series-scale: #b04fc7;
+        }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            background: var(--surface-0);
+            color: var(--text-primary);
+        }
+        .panel { background: var(--surface-1); border: 1px solid var(--border); border-radius: 0.5rem; }
+        .muted { color: var(--text-muted); }
+        .secondary { color: var(--text-secondary); }
+        select, input[type=number] {
+            background: var(--surface-2); color: var(--text-primary);
+            border: 1px solid var(--border); border-radius: 0.375rem; padding: 0.25rem 0.5rem;
+        }
+        button.btn {
+            background: var(--series-pos); color: #fff; border-radius: 0.375rem;
+            padding: 0.35rem 0.9rem; font-weight: 600;
+        }
+        #circle-wrap { display: flex; justify-content: center; }
+        #circle { display: block; max-width: 100%; border-radius: 0.5rem; background: #0b0f17; }
+        .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+        code { color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+<div class="max-w-7xl mx-auto px-4 py-4">
+    <header class="mb-3">
+        <h1 class="text-2xl font-bold">Dyadic Circle (Imai)</h1>
+        <p class="secondary text-sm mt-1">
+            Signed dyadic circular embedding after Y. Imai, <em>Geometric Extensions of Dyadic Circular
+            Embeddings to the Integers</em> (2026, HAL hal-05858260v1, CC BY 4.0). For n &gt; 0,
+            θ(n) = π(n − 2<sup>k</sup>)/2<sup>k</sup> with k = ⌊log₂ n⌋, and θ(−n) = θ(n) + π, so each
+            negative integer sits antipodal to its positive counterpart. The paper's map is
+            T<sub>m</sub>(n) = n/2 (n even), m·n (n odd), with no additive term; set c = 1 for the
+            Collatz-type map 3n+1. Definitions and caveats: <code>docs/imai-embedding-notes.md</code>.
+        </p>
+    </header>
+
+    <div class="flex flex-wrap gap-3 items-end mb-3 text-sm">
+        <label>View
+            <select id="inMode" class="ml-1">
+                <option value="chords" selected>Map chords P(n) → P(T(n)) (§3, Fig. 2)</option>
+                <option value="line">Circle ↔ number line (§4 / §6, Figs. 3, 4, 6)</option>
+                <option value="scaling">Angular scaling P_nat → P_α (§6, Fig. 5)</option>
+            </select>
+        </label>
+        <label>Range N
+            <input id="inN" type="number" min="1" max="16383" value="511" class="w-24 ml-1">
+        </label>
+        <label>Odd multiplier m
+            <input id="inM" type="number" min="1" max="99" step="2" value="3" class="w-16 ml-1">
+        </label>
+        <label>Additive term c
+            <input id="inC" type="number" min="-99" max="99" value="0" class="w-16 ml-1">
+        </label>
+        <label class="flex items-center gap-2">Scaling α
+            <input id="inAlpha" type="range" min="0" max="1" step="0.01" value="0.5">
+            <span id="alphaOut" class="w-10">0.50</span>
+        </label>
+        <button id="btnCollatz" class="btn" title="m = 3, c = 1, α = 1/2, N = 511">Collatz 3n+1 preset</button>
+        <button id="btnPaper" class="btn" title="m = 3, c = 0, α = 1/2, all chords as in eq. 3.1 / Fig. 2">Paper T₃ preset</button>
+        <button id="btnPng" class="btn">Save PNG</button>
+    </div>
+    <div class="flex flex-wrap gap-4 items-center mb-3 text-sm">
+        <label class="flex items-center gap-1"><input id="inInRange" type="checkbox" checked>
+            only chords with |T(n)| ≤ N</label>
+        <label class="flex items-center gap-1"><input id="inCycles" type="checkbox" checked>
+            highlight cycles inside [−N, N]</label>
+        <label class="flex items-center gap-1"><input id="inDyadic" type="checkbox" checked>
+            colour number-line segments by dyadic interval</label>
+        <span id="status" class="muted"></span>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-3">
+        <div class="lg:col-span-3 panel p-2">
+            <div id="circle-wrap"><canvas id="circle"></canvas></div>
+            <div id="legend" class="flex flex-wrap gap-4 text-xs px-2 pt-2"></div>
+            <p id="caption" class="muted text-xs px-2 py-1"></p>
+        </div>
+        <div class="panel p-3 text-xs overflow-auto" style="max-height: 80vh;">
+            <div class="font-semibold text-sm mb-1">Cycles in [−N, N]</div>
+            <div id="cycleList" class="secondary"></div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import {
+    mapChords, numberLineSegments, scalingSegments, cyclesInRange, position,
+} from './js/imaiDyadicCircle.js';
+
+const $ = id => document.getElementById(id);
+const canvas = $('circle');
+const ctx = canvas.getContext('2d');
+const CSS = getComputedStyle(document.documentElement);
+const col = name => CSS.getPropertyValue(name).trim();
+
+function params() {
+    let N = Math.max(1, Math.min(16383, Math.floor(Number($('inN').value) || 1)));
+    let m = Math.floor(Number($('inM').value) || 3);
+    if (m % 2 === 0) m += 1; // the paper's m is odd
+    const c = Math.floor(Number($('inC').value) || 0);
+    const alpha = Number($('inAlpha').value);
+    return {
+        mode: $('inMode').value, N, m, c, alpha,
+        imagesInRange: $('inInRange').checked,
+        showCycles: $('inCycles').checked,
+        dyadic: $('inDyadic').checked,
+    };
+}
+
+function sizeCanvas() {
+    const wrap = $('circle-wrap');
+    const css = Math.max(280, Math.min(wrap.clientWidth || 720, 760));
+    const dpr = window.devicePixelRatio || 1;
+    canvas.style.width = css + 'px';
+    canvas.style.height = css + 'px';
+    canvas.width = Math.round(css * dpr);
+    canvas.height = Math.round(css * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return css;
+}
+
+// world (circle of radius R centred at 0, y up) -> canvas
+function makeView(size, R) {
+    const pad = 28;
+    const s = (size / 2 - pad) / R;
+    return p => [size / 2 + p.x * s, size / 2 - p.y * s];
+}
+
+function dyadicColour(level, maxLevel) {
+    // blue -> green -> orange -> red ramp across dyadic intervals (cf. Fig. 3 legend)
+    const t = maxLevel > 0 ? level / maxLevel : 0;
+    const hue = 230 - 230 * t;
+    return `hsl(${hue}, 80%, ${55 - 10 * t}%)`;
+}
+
+function line(map, a, b) {
+    const [x0, y0] = map(a);
+    const [x1, y1] = map(b);
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+}
+
+function drawCircle(map, R, size) {
+    const [cx, cy] = map({ x: 0, y: 0 });
+    const [ex] = map({ x: R, y: 0 });
+    ctx.strokeStyle = '#6b7280';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(cx, cy, ex - cx, 0, Math.PI * 2);
+    ctx.stroke();
+}
+
+function legend(items) {
+    $('legend').innerHTML = items
+        .map(([c, label]) => `<span><span class="swatch" style="background:${c}"></span>${label}</span>`)
+        .join('');
+}
+
+function render() {
+    const p = params();
+    $('alphaOut').textContent = p.alpha.toFixed(2);
+    const size = sizeCanvas();
+    ctx.fillStyle = '#0b0f17';
+    ctx.fillRect(0, 0, size, size);
+    const t0 = performance.now();
+    let caption = '';
+    let cycles = [];
+
+    if (p.mode === 'chords') {
+        const map = makeView(size, 1);
+        drawCircle(map, 1, size);
+        const chords = mapChords({ N: p.N, m: p.m, c: p.c, alpha: p.alpha, imagesInRange: p.imagesInRange });
+        const visible = chords.filter(ch => !ch.degenerate);
+        const a = Math.max(0.04, Math.min(0.6, 40 / Math.sqrt(visible.length + 1) / 4));
+        for (const [sign, colour] of [[1, col('--series-pos')], [-1, col('--series-neg')]]) {
+            ctx.strokeStyle = colour;
+            ctx.globalAlpha = a;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (const ch of visible) if (ch.sign === sign) line(map, ch.from, ch.to);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        if (p.showCycles) {
+            cycles = cyclesInRange({ N: p.N, m: p.m, c: p.c });
+            ctx.strokeStyle = col('--series-cycle');
+            ctx.fillStyle = col('--series-cycle');
+            ctx.lineWidth = 2.5;
+            ctx.font = '11px system-ui, sans-serif';
+            for (const cy of cycles) {
+                ctx.beginPath();
+                for (let i = 0; i < cy.length; i++) {
+                    line(map, position(cy[i], { alpha: p.alpha }), position(cy[(i + 1) % cy.length], { alpha: p.alpha }));
+                }
+                ctx.stroke();
+                // label each distinct circle point with its odd-part representative
+                const seen = new Set();
+                for (const v of cy) {
+                    const q = position(v, { alpha: p.alpha });
+                    const key = q.theta.toFixed(9);
+                    const [x, y] = map(q);
+                    ctx.beginPath();
+                    ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    if (seen.has(key)) continue;
+                    seen.add(key);
+                    const [lx, ly] = map({ x: q.x * 1.07, y: q.y * 1.07 });
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const sameSpot = cy.filter(w => position(w, { alpha: p.alpha }).theta.toFixed(9) === key);
+                    ctx.fillText(sameSpot.join(','), lx, ly);
+                }
+            }
+        }
+        const nOdd = visible.length;
+        caption = `${chords.length} chords for n in [−${p.N}, ${p.N}]${p.imagesInRange ? ' with |T(n)| ≤ N' : ''}; ` +
+            `${nOdd} odd-step chords are visible. Even steps n → n/2 are points, since θ(2n) = θ(n) (eq. 2.8). ` +
+            `Map: n/2 (even), ${p.m}n${p.c ? (p.c > 0 ? ' + ' : ' − ') + Math.abs(p.c) : ''} (odd).`;
+        legend([[col('--series-pos'), 'n > 0'], [col('--series-neg'), 'n < 0'],
+            ...(p.showCycles ? [[col('--series-cycle'), 'cycle (closed loop)']] : [])]);
+    } else if (p.mode === 'line') {
+        const R = p.N;
+        const map = makeView(size, R);
+        drawCircle(map, R, size);
+        ctx.strokeStyle = '#6b7280';
+        ctx.beginPath();
+        line(map, { x: -R, y: 0 }, { x: R, y: 0 });
+        ctx.stroke();
+        const segs = numberLineSegments({ N: p.N, alpha: p.alpha, R });
+        const maxLevel = Math.floor(Math.log2(p.N));
+        ctx.lineWidth = 0.8;
+        ctx.globalAlpha = Math.max(0.08, Math.min(0.7, 30 / Math.sqrt(segs.length)));
+        if (p.dyadic) {
+            for (let lv = 0; lv <= maxLevel; lv++) {
+                ctx.strokeStyle = dyadicColour(lv, maxLevel);
+                ctx.beginPath();
+                for (const s of segs) if (s.level === lv) line(map, s.from, s.to);
+                ctx.stroke();
+            }
+        } else {
+            ctx.strokeStyle = '#e5e7eb';
+            ctx.beginPath();
+            for (const s of segs) line(map, s.from, s.to);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        caption = `${segs.length} segments S(n) = [P_α,R(n), (n, 0)] for 1 ≤ |n| ≤ ${p.N}, circle radius R = N (eqs. 4.3, 6.12). ` +
+            `α = 0.5 is the signed embedding; α = 1 the natural-number angles plus antipodal negatives.`;
+        legend(p.dyadic
+            ? Array.from({ length: maxLevel + 1 }, (_, lv) =>
+                [dyadicColour(lv, maxLevel), lv === 0 ? '|n| = 1' : `${2 ** lv}–${2 ** (lv + 1) - 1}`])
+            : []);
+    } else {
+        const map = makeView(size, 1);
+        drawCircle(map, 1, size);
+        const segs = scalingSegments({ N: p.N, alpha: p.alpha });
+        ctx.strokeStyle = col('--series-scale');
+        ctx.globalAlpha = Math.max(0.06, Math.min(0.7, 20 / Math.sqrt(segs.length)));
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        for (const s of segs) line(map, s.from, s.to);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        caption = `${segs.length} segments C_α(n) = [P_nat(n), P_α(n)] for positive odd n ≤ ${p.N} (eq. 6.6, Fig. 5). ` +
+            `At α = 1 every segment is a point.`;
+        legend([[col('--series-scale'), 'C_α(n)']]);
+    }
+
+    $('caption').textContent = caption;
+    $('status').textContent = `rendered in ${(performance.now() - t0).toFixed(0)} ms`;
+    $('cycleList').innerHTML = p.mode !== 'chords'
+        ? '<span class="muted">Cycles are shown in the map-chord view.</span>'
+        : !p.showCycles
+            ? '<span class="muted">Cycle highlighting is off.</span>'
+            : cycles.length === 0
+                ? '<span class="muted">No cycle lies entirely inside [−N, N]' +
+                  (p.c === 0 ? ' (T_m with c = 0 has no nonzero cycle).' : '.') + '</span>'
+                : cycles.map(cy => `<div class="mb-2"><b>length ${cy.length}</b>: ${cy.join(' → ')} → ${cy[0]}</div>`).join('');
+}
+
+function setPreset(v, inRange) {
+    for (const [id, val] of Object.entries(v)) $(id).value = val;
+    $('inInRange').checked = inRange;
+    render();
+}
+
+for (const id of ['inMode', 'inN', 'inM', 'inC', 'inInRange', 'inCycles', 'inDyadic']) $(id).addEventListener('change', render);
+$('inAlpha').addEventListener('input', render);
+$('btnCollatz').addEventListener('click', () => setPreset({ inMode: 'chords', inN: 511, inM: 3, inC: 1, inAlpha: 0.5 }, true));
+$('btnPaper').addEventListener('click', () => setPreset({ inMode: 'chords', inM: 3, inC: 0, inAlpha: 0.5 }, false));
+$('btnPng').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.download = `dyadic-circle-${$('inMode').value}.png`;
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+});
+window.addEventListener('resize', render);
+
+// URL parameters (mode, N, m, c, alpha) allow linking to a configuration
+const qs = new URLSearchParams(location.search);
+const qmap = { mode: 'inMode', N: 'inN', m: 'inM', c: 'inC', alpha: 'inAlpha' };
+for (const [k, id] of Object.entries(qmap)) if (qs.has(k)) $(id).value = qs.get(k);
+if (qs.has('all')) $('inInRange').checked = false;
+render();
+</script>
+</body>
+</html>

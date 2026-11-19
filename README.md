@@ -21,7 +21,7 @@ For any number $n$:
 *(The standard Collatz conjecture uses $X=2, Y=3, Z=1$)*
 
 ## **Exploring the Box Universe: A Multi-Level Perspective (LOD)**
-The suite comprises eleven distinct applications designed to provide a unique "Level of Detail" (LOD) for understanding generalized Collatz sequences and their chaotic properties:
+The suite comprises twelve distinct applications designed to provide a unique "Level of Detail" (LOD) for understanding generalized Collatz sequences and their chaotic properties:
 
 ### **1. index.html (Quantitative Analysis & Hub)**
 * **Focus:** Detailed analysis of individual sequences and central launcher.
@@ -60,6 +60,10 @@ The suite comprises eleven distinct applications designed to provide a unique "L
 ### **11. eoc-realizers.html (EOC Three-Class Realizer Comparison)**
 * **Focus:** Least realizers of valuation words for the accelerated map $T(m) = (3m+1)/2^{a(m)}$, comparing periodic (convergent) words, Sturmian words, extremal actual orbits and matched ordinary orbits in one Box Universe view.
 * **Key Features:** Exact BigInt realizers mod $2^{S_N+1}$, drift $R_n$ with the occupation corridor, endpoint depth $E(D)$, height amortization $\rho_N$, a check of the Sturmian depth law, and selection-effect controls (matched ordinary orbits, the residual $\log_2(m_0/r(D))$, and a near-record control matched on orbit length and seed size), a separated-returns decomposition of the occupation $O_c$ into corridor episodes (EOC Open Problem F), and a carry-walk residue tower: an empirical Fourier diagnostic, informed by De Jesús, *Exact Spectral Inheritance in Prime-Power Resolution Towers* (DOI 10.5281/zenodo.23088511), that splits each orbit's occupation of $\langle 2,3\rangle \le (\mathbb{Z}/p^e\mathbb{Z})^\times$ into inherited and new sectors. Logic lives in `js/eocRealizers.js` (tested in `js/tests/eocRealizers.test.js`). Archived as release [v1.0-eoc-realizers](https://github.com/numberwonderman/Collatz-box-universes/releases/tag/v1.0-eoc-realizers), DOI [10.5281/zenodo.23144148](https://doi.org/10.5281/zenodo.23144148); see `CITATION.cff`. Follows De Jesús, *A Global Occupation Conjecture for the Accelerated 3x+1 Map*, Rev. 7 (DOI 10.5281/zenodo.22906673), and checks the depth law of De Jesús, *The 3x+1 Conjugacy Map Sends Every Sturmian Word to an Irrational 2-adic Integer* (DOI 10.5281/zenodo.23108370).
+
+### **12. dyadic-circle-imai.html (Dyadic Circle (Imai))**
+* **Focus:** The signed dyadic circular embedding of Y. Imai, *Geometric Extensions of Dyadic Circular Embeddings to the Integers* (2026, HAL [hal-05858260v1](https://hal.science/hal-05858260v1), CC BY 4.0): $\theta(n) = \pi(n-2^k)/2^k$ with $k = \lfloor\log_2 n\rfloor$, and negative integers placed antipodally, $\theta(-n) = \theta(n) + \pi$.
+* **Key Features:** Chords $P(n) \to P(T(n))$ for the paper's maps $T_m(n) = n/2$ or $mn$ (and $mn + c$, so $c = 1$ gives $3n+1$ with its negative cycles highlighted), the circle–number-line correspondence, and the paper's continuous angular-scaling parameter $\alpha$. Logic lives in `js/imaiDyadicCircle.js` (tested in `js/tests/imaiDyadicCircle.test.js`). Extracted definitions, ambiguities and observations are in `docs/imai-embedding-notes.md`.
 
 ---
 
