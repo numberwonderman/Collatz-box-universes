@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import {
     fateLabels, cycleOf, fateShares, fateCorrelation, coSettling, blockFateCorrelation, v2,
-    residualByValuation,
+    residualByValuation, fateCodes, runLengths, histogramMedian, independentRunModel,
+    simulateIndependentRuns, f1Ladder, adjacentAgreement,
 } from '../imaiFateCorrelation.js';
+import { mulberry32 } from '../eocRealizers.js';
 import { trajectoryFate } from '../imaiFractalProbe.js';
 
 describe('fate lookup', () => {
@@ -118,5 +120,90 @@ describe('co-settling, blocks, valuation', () => {
         const g2 = res.find(x => x.v2 === 2);
         expect(g2.count).toBe(1);
         expect(g2.meanResidual).toBeCloseTo(0.2, 12);
+    });
+});
+
+describe('fate partition: compact codes and run lengths', () => {
+    it('fateCodes gives the same fates as fateLabels (|n| <= 4095)', () => {
+        const { codes, keys } = fateCodes({ N: 4095 });
+        const { labels } = fateLabels({ N: 4095, m: 3, c: 1 });
+        expect(keys).toEqual([-1, -5, -17]);
+        expect([...codes].map(c => keys[c])).toEqual(labels);
+    });
+
+    it('reproduces the known fate counts at |n| <= 16383', () => {
+        const { codes, unsettled } = fateCodes({ N: 16383 });
+        const counts = [0, 0, 0];
+        for (const c of codes) counts[c]++;
+        expect(counts).toEqual([2673, 2667, 2852]);
+        expect(unsettled).toEqual({ cap: 0, overflow: 0 });
+    });
+
+    it('runLengths on a hand-checked sequence (with an unsettled gap)', () => {
+        // runs: [0,0] [1,1,1] [2] [0] | gap | [0,0]
+        const r = runLengths(Int8Array.from([0, 0, 1, 1, 1, 2, 0, -1, 0, 0]));
+        expect(r.runs).toBe(5);
+        expect(Object.fromEntries(r.lengths)).toEqual({ 1: 2, 2: 2, 3: 1 });
+        expect(r.mean).toBeCloseTo(9 / 5, 12);
+        expect(r.median).toBe(2);
+        expect(r).toMatchObject({ max: 3, maxAt: 2, maxCode: 1 });
+        expect(Object.fromEntries(r.byCode.get(0))).toEqual({ 1: 1, 2: 2 });
+    });
+
+    it('runLengths on real fates n = -1..-9: [-1, -1, -5, -5, -5] is two runs', () => {
+        const { codes } = fateCodes({ N: 9 });
+        const r = runLengths(codes);
+        expect(r.runs).toBe(2);
+        expect(Object.fromEntries(r.lengths)).toEqual({ 2: 1, 3: 1 });
+        expect(runLengths(codes, 1, 4).runs).toBe(2); // [-1] [-5, -5]
+    });
+
+    it('histogramMedian takes the lower median for an even count', () => {
+        expect(histogramMedian(new Map([[1, 2], [5, 2]]))).toBe(1);
+        expect(histogramMedian(new Map([[1, 1], [2, 1], [7, 1]]))).toBe(2);
+    });
+
+    it('independentRunModel: exact values for a fair coin', () => {
+        const m = independentRunModel({ 0: 0.5, 1: 0.5 }, 3);
+        expect(m.expectedRuns).toBeCloseTo(2, 12);           // 1 + 2 * (1 - 1/2)
+        expect(m.pmf(1)).toBeCloseTo(0.5, 12);
+        expect(m.pmf(2)).toBeCloseTo(0.25, 12);
+        expect(m.median).toBe(1);
+        let s = 0;
+        for (let L = 1; L < 60; L++) s += m.pmf(L);
+        expect(s).toBeCloseTo(1, 12);
+    });
+
+    it('simulated independent runs: certain fate is one run; simulation matches the model', () => {
+        const one = simulateIndependentRuns({ 0: 1 }, 50, 1, mulberry32(1));
+        expect(one[0]).toMatchObject({ runs: 1, max: 50 });
+        const shares = { 0: 0.33, 1: 0.32, 2: 0.35 };
+        const sims = simulateIndependentRuns(shares, 20000, 5, mulberry32(7));
+        const model = independentRunModel(shares, 20000);
+        for (const s of sims) expect(Math.abs(s.runs - model.expectedRuns) / model.expectedRuns).toBeLessThan(0.02);
+    });
+});
+
+describe('F(1) ladder', () => {
+    it('reproduces F(1) = 0.4293 at |n| <= 16383 and 0.4696 at |n| <= 262143', () => {
+        const { codes } = fateCodes({ N: 262143 });
+        const rows = f1Ladder(codes, 14, 18);
+        expect(rows.map(r => r.N)).toEqual([16383, 32767, 65535, 131071, 262143]);
+        expect(rows[0].prefix.pairs).toBe(8191);
+        expect(rows[0].prefix.F).toBeCloseTo(0.4293, 4);
+        expect(rows[4].prefix.pairs).toBe(131071);
+        expect(rows[4].prefix.F).toBeCloseTo(0.4696, 4);
+        expect(rows[1].prefix.delta).toBeCloseTo(rows[1].prefix.F - rows[0].prefix.F, 12);
+        // block k = 14 is 8192 <= |n| < 16384 (block 13 in the earlier indexing): F(1) = 0.4374
+        expect(rows[0].block).toMatchObject({ from: 8192, to: 16383, pairs: 4095 });
+        expect(rows[0].block.F).toBeCloseTo(0.4374, 4);
+        expect(f1Ladder(codes, 18, 19).length).toBe(1); // stops at the computed range
+    });
+
+    it('adjacentAgreement on a hand-checked sequence', () => {
+        const a = adjacentAgreement(Int8Array.from([0, 0, 1, -1, 1, 1]), 0, 6);
+        // pairs: (0,0) same, (0,1) diff, (1,-1) skip, (-1,1) skip, (1,1) same
+        expect(a).toMatchObject({ pairs: 3, same: 2 });
+        expect(a.shares).toEqual([0.4, 0.6, 0]);
     });
 });

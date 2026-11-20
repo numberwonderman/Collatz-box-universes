@@ -1,0 +1,1880 @@
+{
+  "map": "T(n) = n/2 if n even, 3n + 1 if n odd; L(n) = cycle reached, labelled -1, -5, -17",
+  "stepCap": 2000,
+  "largestRange": "negative odd n, 1 <= |n| <= 67108863 (33,554,432 values)",
+  "unsettled": {
+    "cap": 0,
+    "overflow": 0
+  },
+  "blockConvention": "block k = odd n with 2^(k-1) <= |n| < 2^k (block k here = block k-1 in the earlier fate-correlation notes)",
+  "sanityChecks": {
+    "countsAt16383": [
+      2673,
+      2667,
+      2852
+    ],
+    "F1At16383": 0.4293,
+    "F1At262143": 0.4696,
+    "passed": true
+  },
+  "ladder": [
+    {
+      "k": 10,
+      "range": "|n| <= 1023",
+      "prefix": {
+        "pairs": 511,
+        "F1": 0.34247,
+        "delta": null,
+        "shares": {
+          "-1": 0.32813,
+          "-5": 0.31641,
+          "-17": 0.35547
+        },
+        "sumSquares": 0.33414
+      },
+      "block": {
+        "range": "512 <= |n| <= 1023",
+        "pairs": 255,
+        "F1": 0.39608,
+        "shares": {
+          "-1": 0.30859,
+          "-5": 0.32031,
+          "-17": 0.37109
+        },
+        "seNaive": 0.03063
+      }
+    },
+    {
+      "k": 11,
+      "range": "|n| <= 2047",
+      "prefix": {
+        "pairs": 1023,
+        "F1": 0.38807,
+        "delta": 0.04561,
+        "shares": {
+          "-1": 0.32227,
+          "-5": 0.32227,
+          "-17": 0.35547
+        },
+        "sumSquares": 0.33407
+      },
+      "block": {
+        "range": "1024 <= |n| <= 2047",
+        "pairs": 511,
+        "F1": 0.43444,
+        "shares": {
+          "-1": 0.31641,
+          "-5": 0.32813,
+          "-17": 0.35547
+        },
+        "seNaive": 0.02193
+      }
+    },
+    {
+      "k": 12,
+      "range": "|n| <= 4095",
+      "prefix": {
+        "pairs": 2047,
+        "F1": 0.42306,
+        "delta": 0.03498,
+        "shares": {
+          "-1": 0.32422,
+          "-5": 0.32422,
+          "-17": 0.35156
+        },
+        "sumSquares": 0.33383
+      },
+      "block": {
+        "range": "2048 <= |n| <= 4095",
+        "pairs": 1023,
+        "F1": 0.45846,
+        "shares": {
+          "-1": 0.32617,
+          "-5": 0.32617,
+          "-17": 0.34766
+        },
+        "seNaive": 0.01558
+      }
+    },
+    {
+      "k": 13,
+      "range": "|n| <= 8191",
+      "prefix": {
+        "pairs": 4095,
+        "F1": 0.42125,
+        "delta": -0.00181,
+        "shares": {
+          "-1": 0.32275,
+          "-5": 0.32886,
+          "-17": 0.34839
+        },
+        "sumSquares": 0.33369
+      },
+      "block": {
+        "range": "4096 <= |n| <= 8191",
+        "pairs": 2047,
+        "F1": 0.41915,
+        "shares": {
+          "-1": 0.32129,
+          "-5": 0.3335,
+          "-17": 0.34521
+        },
+        "seNaive": 0.01091
+      }
+    },
+    {
+      "k": 14,
+      "range": "|n| <= 16383",
+      "prefix": {
+        "pairs": 8191,
+        "F1": 0.42925,
+        "delta": 0.00801,
+        "shares": {
+          "-1": 0.32629,
+          "-5": 0.32556,
+          "-17": 0.34814
+        },
+        "sumSquares": 0.33366
+      },
+      "block": {
+        "range": "8192 <= |n| <= 16383",
+        "pairs": 4095,
+        "F1": 0.43736,
+        "shares": {
+          "-1": 0.32983,
+          "-5": 0.32227,
+          "-17": 0.3479
+        },
+        "seNaive": 0.00775
+      }
+    },
+    {
+      "k": 15,
+      "range": "|n| <= 32767",
+      "prefix": {
+        "pairs": 16383,
+        "F1": 0.43911,
+        "delta": 0.00986,
+        "shares": {
+          "-1": 0.33069,
+          "-5": 0.32452,
+          "-17": 0.34479
+        },
+        "sumSquares": 0.33355
+      },
+      "block": {
+        "range": "16384 <= |n| <= 32767",
+        "pairs": 8191,
+        "F1": 0.44903,
+        "shares": {
+          "-1": 0.33508,
+          "-5": 0.32349,
+          "-17": 0.34143
+        },
+        "seNaive": 0.0055
+      }
+    },
+    {
+      "k": 16,
+      "range": "|n| <= 65535",
+      "prefix": {
+        "pairs": 32767,
+        "F1": 0.44816,
+        "delta": 0.00905,
+        "shares": {
+          "-1": 0.33301,
+          "-5": 0.32153,
+          "-17": 0.34546
+        },
+        "sumSquares": 0.33362
+      },
+      "block": {
+        "range": "32768 <= |n| <= 65535",
+        "pairs": 16383,
+        "F1": 0.45718,
+        "shares": {
+          "-1": 0.33533,
+          "-5": 0.31854,
+          "-17": 0.34613
+        },
+        "seNaive": 0.00389
+      }
+    },
+    {
+      "k": 17,
+      "range": "|n| <= 131071",
+      "prefix": {
+        "pairs": 65535,
+        "F1": 0.46009,
+        "delta": 0.01193,
+        "shares": {
+          "-1": 0.33131,
+          "-5": 0.32152,
+          "-17": 0.34717
+        },
+        "sumSquares": 0.33367
+      },
+      "block": {
+        "range": "65536 <= |n| <= 131071",
+        "pairs": 32767,
+        "F1": 0.47203,
+        "shares": {
+          "-1": 0.32962,
+          "-5": 0.3215,
+          "-17": 0.34888
+        },
+        "seNaive": 0.00276
+      }
+    },
+    {
+      "k": 18,
+      "range": "|n| <= 262143",
+      "prefix": {
+        "pairs": 131071,
+        "F1": 0.46962,
+        "delta": 0.00953,
+        "shares": {
+          "-1": 0.32944,
+          "-5": 0.32188,
+          "-17": 0.34868
+        },
+        "sumSquares": 0.33372
+      },
+      "block": {
+        "range": "131072 <= |n| <= 262143",
+        "pairs": 65535,
+        "F1": 0.47916,
+        "shares": {
+          "-1": 0.32756,
+          "-5": 0.32225,
+          "-17": 0.35019
+        },
+        "seNaive": 0.00195
+      }
+    },
+    {
+      "k": 19,
+      "range": "|n| <= 524287",
+      "prefix": {
+        "pairs": 262143,
+        "F1": 0.47789,
+        "delta": 0.00826,
+        "shares": {
+          "-1": 0.32798,
+          "-5": 0.32328,
+          "-17": 0.34874
+        },
+        "sumSquares": 0.3337
+      },
+      "block": {
+        "range": "262144 <= |n| <= 524287",
+        "pairs": 131071,
+        "F1": 0.48615,
+        "shares": {
+          "-1": 0.32652,
+          "-5": 0.32467,
+          "-17": 0.34881
+        },
+        "seNaive": 0.00138
+      }
+    },
+    {
+      "k": 20,
+      "range": "|n| <= 1048575",
+      "prefix": {
+        "pairs": 524287,
+        "F1": 0.48681,
+        "delta": 0.00892,
+        "shares": {
+          "-1": 0.32776,
+          "-5": 0.324,
+          "-17": 0.34824
+        },
+        "sumSquares": 0.33367
+      },
+      "block": {
+        "range": "524288 <= |n| <= 1048575",
+        "pairs": 262143,
+        "F1": 0.49573,
+        "shares": {
+          "-1": 0.32755,
+          "-5": 0.32472,
+          "-17": 0.34773
+        },
+        "seNaive": 0.00098
+      }
+    },
+    {
+      "k": 21,
+      "range": "|n| <= 2097151",
+      "prefix": {
+        "pairs": 1048575,
+        "F1": 0.49473,
+        "delta": 0.00792,
+        "shares": {
+          "-1": 0.32767,
+          "-5": 0.32426,
+          "-17": 0.34807
+        },
+        "sumSquares": 0.33367
+      },
+      "block": {
+        "range": "1048576 <= |n| <= 2097151",
+        "pairs": 524287,
+        "F1": 0.50266,
+        "shares": {
+          "-1": 0.32758,
+          "-5": 0.32452,
+          "-17": 0.34791
+        },
+        "seNaive": 0.00069
+      }
+    },
+    {
+      "k": 22,
+      "range": "|n| <= 4194303",
+      "prefix": {
+        "pairs": 2097151,
+        "F1": 0.50185,
+        "delta": 0.00711,
+        "shares": {
+          "-1": 0.32768,
+          "-5": 0.32428,
+          "-17": 0.34804
+        },
+        "sumSquares": 0.33366
+      },
+      "block": {
+        "range": "2097152 <= |n| <= 4194303",
+        "pairs": 1048575,
+        "F1": 0.50896,
+        "shares": {
+          "-1": 0.32769,
+          "-5": 0.32431,
+          "-17": 0.34801
+        },
+        "seNaive": 0.00049
+      }
+    },
+    {
+      "k": 23,
+      "range": "|n| <= 8388607",
+      "prefix": {
+        "pairs": 4194303,
+        "F1": 0.50814,
+        "delta": 0.0063,
+        "shares": {
+          "-1": 0.32755,
+          "-5": 0.32435,
+          "-17": 0.34811
+        },
+        "sumSquares": 0.33367
+      },
+      "block": {
+        "range": "4194304 <= |n| <= 8388607",
+        "pairs": 2097151,
+        "F1": 0.51444,
+        "shares": {
+          "-1": 0.32741,
+          "-5": 0.32441,
+          "-17": 0.34818
+        },
+        "seNaive": 0.00035
+      }
+    },
+    {
+      "k": 24,
+      "range": "|n| <= 16777215",
+      "prefix": {
+        "pairs": 8388607,
+        "F1": 0.51381,
+        "delta": 0.00566,
+        "shares": {
+          "-1": 0.3274,
+          "-5": 0.32438,
+          "-17": 0.34822
+        },
+        "sumSquares": 0.33367
+      },
+      "block": {
+        "range": "8388608 <= |n| <= 16777215",
+        "pairs": 4194303,
+        "F1": 0.51947,
+        "shares": {
+          "-1": 0.32726,
+          "-5": 0.32442,
+          "-17": 0.34833
+        },
+        "seNaive": 0.00024
+      }
+    },
+    {
+      "k": 25,
+      "range": "|n| <= 33554431",
+      "prefix": {
+        "pairs": 16777215,
+        "F1": 0.5192,
+        "delta": 0.0054,
+        "shares": {
+          "-1": 0.32714,
+          "-5": 0.32439,
+          "-17": 0.34847
+        },
+        "sumSquares": 0.33368
+      },
+      "block": {
+        "range": "16777216 <= |n| <= 33554431",
+        "pairs": 8388607,
+        "F1": 0.5246,
+        "shares": {
+          "-1": 0.32687,
+          "-5": 0.3244,
+          "-17": 0.34872
+        },
+        "seNaive": 0.00017
+      }
+    },
+    {
+      "k": 26,
+      "range": "|n| <= 67108863",
+      "prefix": {
+        "pairs": 33554431,
+        "F1": 0.52454,
+        "delta": 0.00533,
+        "shares": {
+          "-1": 0.32698,
+          "-5": 0.32448,
+          "-17": 0.34854
+        },
+        "sumSquares": 0.33368
+      },
+      "block": {
+        "range": "33554432 <= |n| <= 67108863",
+        "pairs": 16777215,
+        "F1": 0.52987,
+        "shares": {
+          "-1": 0.32683,
+          "-5": 0.32457,
+          "-17": 0.34861
+        },
+        "seNaive": 0.00012
+      }
+    }
+  ],
+  "ladderFit": {
+    "kind": "FIT, not a measured limit: linear least squares of block F(1) against k (k = log2 of the range)",
+    "kRange": [
+      18,
+      26
+    ],
+    "slopePerDoubling": 0.00629,
+    "intercept": 0.3684,
+    "maxAbsResidual": 0.00246
+  },
+  "ladderBlockDifferences": [
+    {
+      "k": 11,
+      "delta": 0.03836
+    },
+    {
+      "k": 12,
+      "delta": 0.02401
+    },
+    {
+      "k": 13,
+      "delta": -0.03931
+    },
+    {
+      "k": 14,
+      "delta": 0.01821
+    },
+    {
+      "k": 15,
+      "delta": 0.01167
+    },
+    {
+      "k": 16,
+      "delta": 0.00815
+    },
+    {
+      "k": 17,
+      "delta": 0.01485
+    },
+    {
+      "k": 18,
+      "delta": 0.00713
+    },
+    {
+      "k": 19,
+      "delta": 0.00698
+    },
+    {
+      "k": 20,
+      "delta": 0.00958
+    },
+    {
+      "k": 21,
+      "delta": 0.00692
+    },
+    {
+      "k": 22,
+      "delta": 0.0063
+    },
+    {
+      "k": 23,
+      "delta": 0.00548
+    },
+    {
+      "k": 24,
+      "delta": 0.00503
+    },
+    {
+      "k": 25,
+      "delta": 0.00514
+    },
+    {
+      "k": 26,
+      "delta": 0.00526
+    }
+  ],
+  "runs": {
+    "range": "|n| <= 262,143",
+    "values": 131072,
+    "observed": {
+      "runs": 69518,
+      "meanLength": 1.8854,
+      "medianLength": 1,
+      "maxLength": 24,
+      "longestRun": {
+        "fate": -17,
+        "from": -123491,
+        "to": -123537
+      }
+    },
+    "independent": {
+      "note": "exact i.i.d. model with the observed fate shares; max from simulation (mulberry32 seed 2026, 20 runs)",
+      "expectedRuns": 87331.6,
+      "meanLength": 1.5009,
+      "medianLength": 1,
+      "simulatedMaxLength": {
+        "min": 9,
+        "mean": 11.35,
+        "max": 13
+      },
+      "simulatedRuns": {
+        "min": 86939,
+        "max": 87631
+      }
+    },
+    "perFate": [
+      {
+        "fate": -1,
+        "runs": 22855,
+        "meanLength": 1.889,
+        "independentMeanLength": 1.491,
+        "maxLength": 23
+      },
+      {
+        "fate": -5,
+        "runs": 22476,
+        "meanLength": 1.877,
+        "independentMeanLength": 1.475,
+        "maxLength": 22
+      },
+      {
+        "fate": -17,
+        "runs": 24187,
+        "meanLength": 1.89,
+        "independentMeanLength": 1.535,
+        "maxLength": 24
+      }
+    ],
+    "histogram": [
+      {
+        "L": 1,
+        "observed": 40860,
+        "independentExpected": 58204.68,
+        "independentSimMean": 58242.35
+      },
+      {
+        "L": 2,
+        "observed": 14589,
+        "independentExpected": 19401.3,
+        "independentSimMean": 19435.05
+      },
+      {
+        "L": 3,
+        "observed": 6874,
+        "independentExpected": 6474.42,
+        "independentSimMean": 6464.8
+      },
+      {
+        "L": 4,
+        "observed": 2967,
+        "independentExpected": 2163.09,
+        "independentSimMean": 2147.5
+      },
+      {
+        "L": 5,
+        "observed": 1761,
+        "independentExpected": 723.53,
+        "independentSimMean": 720.5
+      },
+      {
+        "L": 6,
+        "observed": 947,
+        "independentExpected": 242.3,
+        "independentSimMean": 245.15
+      },
+      {
+        "L": 7,
+        "observed": 508,
+        "independentExpected": 81.24,
+        "independentSimMean": 79.05
+      },
+      {
+        "L": 8,
+        "observed": 306,
+        "independentExpected": 27.27,
+        "independentSimMean": 26.5
+      },
+      {
+        "L": 9,
+        "observed": 200,
+        "independentExpected": 9.17,
+        "independentSimMean": 9.65
+      },
+      {
+        "L": 10,
+        "observed": 158,
+        "independentExpected": 3.08,
+        "independentSimMean": 3
+      },
+      {
+        "L": 11,
+        "observed": 108,
+        "independentExpected": 1.04,
+        "independentSimMean": 1
+      },
+      {
+        "L": 12,
+        "observed": 58,
+        "independentExpected": 0.35,
+        "independentSimMean": 0.55
+      },
+      {
+        "L": 13,
+        "observed": 52,
+        "independentExpected": 0.12,
+        "independentSimMean": 0.15
+      },
+      {
+        "L": 14,
+        "observed": 42,
+        "independentExpected": 0.04,
+        "independentSimMean": 0
+      },
+      {
+        "L": 15,
+        "observed": 29,
+        "independentExpected": 0.01,
+        "independentSimMean": 0
+      },
+      {
+        "L": 16,
+        "observed": 14,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 17,
+        "observed": 14,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 18,
+        "observed": 7,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 19,
+        "observed": 6,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 20,
+        "observed": 5,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 21,
+        "observed": 5,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 22,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 23,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 24,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      }
+    ]
+  },
+  "runsFullRange": {
+    "range": "|n| <= 67,108,863",
+    "values": 33554432,
+    "observed": {
+      "runs": 15953921,
+      "meanLength": 2.1032,
+      "medianLength": 1,
+      "maxLength": 160,
+      "longestRun": {
+        "fate": -17,
+        "from": -31446361,
+        "to": -31446679
+      }
+    },
+    "independent": {
+      "note": "exact i.i.d. model with the observed fate shares; max from simulation (mulberry32 seed 11, 3 runs)",
+      "expectedRuns": 22357879.8,
+      "meanLength": 1.5008,
+      "medianLength": 1,
+      "simulatedMaxLength": {
+        "min": 16,
+        "mean": 16.33,
+        "max": 17
+      },
+      "simulatedRuns": {
+        "min": 22353480,
+        "max": 22361233
+      }
+    },
+    "perFate": [
+      {
+        "fate": -1,
+        "runs": 5246248,
+        "meanLength": 2.091,
+        "independentMeanLength": 1.486,
+        "maxLength": 102
+      },
+      {
+        "fate": -5,
+        "runs": 5223299,
+        "meanLength": 2.084,
+        "independentMeanLength": 1.48,
+        "maxLength": 99
+      },
+      {
+        "fate": -17,
+        "runs": 5484374,
+        "meanLength": 2.132,
+        "independentMeanLength": 1.535,
+        "maxLength": 160
+      }
+    ],
+    "histogram": [
+      {
+        "L": 1,
+        "observed": 9052518,
+        "independentExpected": 14901425.36,
+        "independentSimMean": 14899924
+      },
+      {
+        "L": 2,
+        "observed": 3210992,
+        "independentExpected": 4967057.77,
+        "independentSimMean": 4967253
+      },
+      {
+        "L": 3,
+        "observed": 1610010,
+        "independentExpected": 1657395.42,
+        "independentSimMean": 1656579.67
+      },
+      {
+        "L": 4,
+        "observed": 727017,
+        "independentExpected": 553626.86,
+        "independentSimMean": 554369.33
+      },
+      {
+        "L": 5,
+        "observed": 460708,
+        "independentExpected": 185131.37,
+        "independentSimMean": 185139
+      },
+      {
+        "L": 6,
+        "observed": 281859,
+        "independentExpected": 61975.72,
+        "independentSimMean": 61941.67
+      },
+      {
+        "L": 7,
+        "observed": 175313,
+        "independentExpected": 20770.54,
+        "independentSimMean": 20769
+      },
+      {
+        "L": 8,
+        "observed": 108444,
+        "independentExpected": 6968.89,
+        "independentSimMean": 7057
+      },
+      {
+        "L": 9,
+        "observed": 76359,
+        "independentExpected": 2340.84,
+        "independentSimMean": 2320.33
+      },
+      {
+        "L": 10,
+        "observed": 58208,
+        "independentExpected": 787.19,
+        "independentSimMean": 794.67
+      },
+      {
+        "L": 11,
+        "observed": 42710,
+        "independentExpected": 265.02,
+        "independentSimMean": 284
+      },
+      {
+        "L": 12,
+        "observed": 29176,
+        "independentExpected": 89.33,
+        "independentSimMean": 89
+      },
+      {
+        "L": 13,
+        "observed": 25615,
+        "independentExpected": 30.14,
+        "independentSimMean": 29.33
+      },
+      {
+        "L": 14,
+        "observed": 17828,
+        "independentExpected": 10.18,
+        "independentSimMean": 8
+      },
+      {
+        "L": 15,
+        "observed": 15849,
+        "independentExpected": 3.44,
+        "independentSimMean": 4.33
+      },
+      {
+        "L": 16,
+        "observed": 9942,
+        "independentExpected": 1.17,
+        "independentSimMean": 1
+      },
+      {
+        "L": 17,
+        "observed": 8045,
+        "independentExpected": 0.4,
+        "independentSimMean": 0.33
+      },
+      {
+        "L": 18,
+        "observed": 7016,
+        "independentExpected": 0.13,
+        "independentSimMean": 0
+      },
+      {
+        "L": 19,
+        "observed": 5597,
+        "independentExpected": 0.05,
+        "independentSimMean": 0
+      },
+      {
+        "L": 20,
+        "observed": 4558,
+        "independentExpected": 0.02,
+        "independentSimMean": 0
+      },
+      {
+        "L": 21,
+        "observed": 4123,
+        "independentExpected": 0.01,
+        "independentSimMean": 0
+      },
+      {
+        "L": 22,
+        "observed": 2941,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 23,
+        "observed": 2967,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 24,
+        "observed": 2202,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 25,
+        "observed": 1815,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 26,
+        "observed": 1698,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 27,
+        "observed": 1564,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 28,
+        "observed": 1184,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 29,
+        "observed": 868,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 30,
+        "observed": 776,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 31,
+        "observed": 866,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 32,
+        "observed": 582,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 33,
+        "observed": 422,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 34,
+        "observed": 474,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 35,
+        "observed": 454,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 36,
+        "observed": 376,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 37,
+        "observed": 323,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 38,
+        "observed": 237,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 39,
+        "observed": 217,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 40,
+        "observed": 207,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 41,
+        "observed": 194,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 42,
+        "observed": 218,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 43,
+        "observed": 150,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 44,
+        "observed": 111,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 45,
+        "observed": 108,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 46,
+        "observed": 91,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 47,
+        "observed": 107,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 48,
+        "observed": 83,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 49,
+        "observed": 94,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 50,
+        "observed": 66,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 51,
+        "observed": 60,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 52,
+        "observed": 59,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 53,
+        "observed": 47,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 54,
+        "observed": 36,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 55,
+        "observed": 40,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 56,
+        "observed": 36,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 57,
+        "observed": 31,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 58,
+        "observed": 29,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 59,
+        "observed": 23,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 60,
+        "observed": 14,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 61,
+        "observed": 6,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 62,
+        "observed": 20,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 63,
+        "observed": 21,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 64,
+        "observed": 15,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 65,
+        "observed": 14,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 66,
+        "observed": 14,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 67,
+        "observed": 12,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 68,
+        "observed": 10,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 69,
+        "observed": 16,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 70,
+        "observed": 13,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 71,
+        "observed": 8,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 72,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 73,
+        "observed": 5,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 74,
+        "observed": 15,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 75,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 76,
+        "observed": 7,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 77,
+        "observed": 4,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 78,
+        "observed": 8,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 79,
+        "observed": 4,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 80,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 81,
+        "observed": 4,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 82,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 83,
+        "observed": 5,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 84,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 85,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 86,
+        "observed": 5,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 87,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 88,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 89,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 90,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 91,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 92,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 93,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 94,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 95,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 96,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 97,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 98,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 99,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 100,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 101,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 102,
+        "observed": 3,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 103,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 104,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 105,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 106,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 107,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 108,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 109,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 110,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 111,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 112,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 113,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 114,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 115,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 116,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 117,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 118,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 119,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 120,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 121,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 122,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 123,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 124,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 125,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 126,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 127,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 128,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 129,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 130,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 131,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 132,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 133,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 134,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 135,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 136,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 137,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 138,
+        "observed": 2,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 139,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 140,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 141,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 142,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 143,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 144,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 145,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 146,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 147,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 148,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 149,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 150,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 151,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 152,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 153,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 154,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 155,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 156,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 157,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 158,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 159,
+        "observed": 0,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      },
+      {
+        "L": 160,
+        "observed": 1,
+        "independentExpected": 0,
+        "independentSimMean": 0
+      }
+    ]
+  },
+  "voids262143": [
+    {
+      "fate": -1,
+      "longestGap": 92,
+      "gapFrom": -231371,
+      "gapTo": -231553,
+      "independentSimulated": {
+        "min": 23,
+        "max": 33,
+        "sims": 20,
+        "seed": 99
+      }
+    },
+    {
+      "fate": -5,
+      "longestGap": 121,
+      "gapFrom": -165175,
+      "gapTo": -165415,
+      "independentSimulated": {
+        "min": 23,
+        "max": 39,
+        "sims": 20,
+        "seed": 99
+      }
+    },
+    {
+      "fate": -17,
+      "longestGap": 49,
+      "gapFrom": -213351,
+      "gapTo": -213447,
+      "independentSimulated": {
+        "min": 22,
+        "max": 32,
+        "sims": 20,
+        "seed": 99
+      }
+    }
+  ],
+  "longestRuns262143": [
+    {
+      "len": 24,
+      "from": -123491,
+      "to": -123537,
+      "fate": -17
+    },
+    {
+      "len": 24,
+      "from": -185255,
+      "to": -185301,
+      "fate": -17
+    },
+    {
+      "len": 23,
+      "from": -219555,
+      "to": -219599,
+      "fate": -17
+    },
+    {
+      "len": 23,
+      "from": -226371,
+      "to": -226415,
+      "fate": -1
+    },
+    {
+      "len": 23,
+      "from": -246999,
+      "to": -247043,
+      "fate": -17
+    },
+    {
+      "len": 22,
+      "from": -180631,
+      "to": -180673,
+      "fate": -5
+    },
+    {
+      "len": 22,
+      "from": -222559,
+      "to": -222601,
+      "fate": -17
+    },
+    {
+      "len": 22,
+      "from": -253741,
+      "to": -253783,
+      "fate": -5
+    },
+    {
+      "len": 21,
+      "from": -142717,
+      "to": -142757,
+      "fate": -5
+    },
+    {
+      "len": 21,
+      "from": -194861,
+      "to": -194901,
+      "fate": -1
+    }
+  ],
+  "zoomWindows": [
+    {
+      "file": "strip-zoom-first-512.png",
+      "from": -1,
+      "to": -1023,
+      "runs": 337,
+      "maxRun": 6,
+      "F1": 0.3425
+    },
+    {
+      "file": "strip-zoom-mid-512.png",
+      "from": -131073,
+      "to": -132095,
+      "runs": 269,
+      "maxRun": 15,
+      "F1": 0.4755
+    },
+    {
+      "file": "strip-zoom-longest-run-512.png",
+      "from": -122979,
+      "to": -124001,
+      "runs": 247,
+      "maxRun": 24,
+      "F1": 0.5186
+    }
+  ]
+}

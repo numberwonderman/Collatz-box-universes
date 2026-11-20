@@ -757,3 +757,203 @@ the question anticipated:
   orbits typically shrink. A meaningful cross-m comparison of F(r) would need maps
   that settle, for example accelerated maps (mn + 1)/2^v with the right growth rate,
   or a different additive term. That is a separate study and was not attempted.
+
+---
+
+## Fate partition portrait and F(1) convergence (Nov 2026)
+
+This section follows Imai's reply of 20 Nov 2026. He asked for two things:
+
+- A picture of the fate partition itself, **with no dyadic structure**: negative odd
+  integers on a plain axis, each marked by the cycle it reaches.
+- A check of whether F(1) converges as the range grows.
+
+**Status: exploratory.**
+
+Where things are:
+
+- Code: new functions in `js/imaiFateCorrelation.js` (`fateCodes`, `runLengths`,
+  `independentRunModel`, `simulateIndependentRuns`, `f1Ladder`, `adjacentAgreement`).
+  Fates come from the unchanged `trajectoryFate`, and `fateCodes` is tested equal to
+  `fateLabels`.
+- Script: `scripts/imai-fate-partition.mjs` (about 6.5 minutes for the full range).
+  An optional `FATE_CACHE` file lets it re-render without recomputing.
+- Outputs, all in **`docs/fate-partition/`**: `fate-partition.json` and the PNGs
+  named below.
+
+**Definitions.**
+
+- The map is T(n) = n/2 for even n and 3n + 1 for odd n.
+- L(n) is the cycle reached, with labels −1, −5, −17. Step cap 2000.
+- F(1) = P[L(n) = L(n + 2)] over adjacent odd pairs.
+- **Block convention here:** block k = the odd n with 2^(k−1) ≤ |n| < 2^k. This is
+  block k − 1 in the "Fate correlation F(r)" section above.
+
+**Range reached.** Every negative odd n down to −67,108,863 (k = 26), which is
+33,554,432 values, computed once; every smaller range is a prefix of it.
+
+- **Every one settled within 2000 steps.** The longest took 612 steps to enter its
+  cycle, and none overflowed.
+- **Sanity checks passed before any plot was made.** At |n| ≤ 16,383 the fate counts
+  are −1: 2673, −5: 2667, −17: 2852. F(1) is 0.4293 at |n| ≤ 16,383 and 0.4696 at
+  |n| ≤ 262,143. All three are also unit tests.
+
+### Study 1: the fate partition portrait
+
+In every strip, |n| grows to the right, so n = −1 is at the left edge. There are
+three rows, one per fate, and each odd n is a mark in its fate's row.
+
+| File | What |
+|---|---|
+| `strip-full-262143.png` | \|n\| ≤ 262,143. **Rendering compromise:** about 100 odd n per pixel column, so each column is shaded by the share of its odd n in the row's fate. Individual integers are not resolved. |
+| `strip-16383.png` | \|n\| ≤ 16,383. Same shading, about 6.3 odd n per column. |
+| `strip-zoom-first-512.png` | The first 512 negative odd n (n = −1 to −1,023), one mark each. |
+| `strip-zoom-mid-512.png` | A mid-range window of the same width, n = −131,073 to −132,095 (the first 512 odd n of block 18). |
+| `strip-zoom-longest-run-512.png` | The 512-wide window around the longest run below 262,144 (n = −122,979 to −124,001). |
+| `run-lengths-262143.png` | Run-length histogram, observed against independent fates (log scale). |
+
+**Runs.** A run is a maximal stretch of consecutive odd negatives that share a fate.
+Over |n| ≤ 262,143 (131,072 values):
+
+| | observed | independent fates with the same shares |
+|---|---|---|
+| number of runs | **69,518** | 87,331.6 expected (20 simulations: 86,939 to 87,631) |
+| mean run length | **1.885** | 1.501 |
+| median run length | 1 | 1 |
+| longest run | **24** (−17, n = −123,491 to −123,537; another 24 at n = −185,255 to −185,301) | 9 to 13 in 20 simulations |
+| runs of length 1 | 40,860 | 58,205 expected |
+| runs of length ≥ 4 | 7,195 | 3,251 expected |
+
+- The independent baseline is exact: an i.i.d. sequence with the observed shares
+  (−1: 0.328, −5: 0.323, −17: 0.349), where each fate's run length is geometric.
+  Only the longest run comes from simulation (mulberry32, seed 2026).
+- **The clustering is symmetric across fates.** Mean run lengths are −1: 1.889,
+  −5: 1.877, −17: 1.890, against independent 1.491, 1.475, 1.535.
+- The histogram shows a deficit of runs of length 1 and 2. From length 3 up there is
+  a growing excess. Beyond length 11 the independent expectation is 0.5 runs in
+  total, while 240 such runs are observed. That is a heavy tail, not a shifted
+  geometric.
+- **Over the full range** (|n| ≤ 67,108,863):
+  - There are 15,953,921 runs against 22,357,880 expected, with mean length 2.103
+    against 1.501.
+  - **The longest run is 160** consecutive odd n reaching −17 (n = −31,446,361 to
+    −31,446,679). Three independent simulations gave 16 to 17.
+  - The longest runs per fate are −1: 102, −5: 99, −17: 160.
+  - The mean run length rose from 1.885 to 2.103 over the larger range, consistent with
+    the growth of F(1) in Study 2.
+
+**Voids.** The longest gap between consecutive members of each fate over
+|n| ≤ 262,143, against 20 independent simulations (seed 99):
+
+| fate | longest gap (consecutive odd n without that fate) | where | independent |
+|---|---|---|---|
+| −1 | 92 | n = −231,371 to −231,553 | 23 to 33 |
+| −5 | **121** | n = −165,175 to −165,415 | 23 to 39 |
+| −17 | 49 | n = −213,351 to −213,447 | 22 to 32 |
+
+**What is visible in the strips.**
+
+- **The full-range and 16,383 strips show no large-scale structure.** The shading looks
+  like uniform texture at every position, with no visible drift in shares along the
+  axis. That matches the shares measured in Study 2, which hold within about 0.006 of
+  their final values at every k ≥ 14.
+- **The structure is local**, and only the zooms show it.
+  - **First window** (n = −1 to −1,023): it looks close to random. It has 337 runs
+    (a longest of 6), and F(1) in the window is 0.342, near independence.
+  - **Mid-range window** (n = −131,073 to −132,095): the picture is clumpy. There are
+    269 runs (a longest of 15) and F(1) is 0.476. There is a dense burst of −17: 28 of
+    the 40 odd n from n = −131,763 to −131,841. −5 is absent for 35 consecutive odd n
+    (n = −131,259 to −131,327).
+  - **Longest-run window:** −5 is sparse for its right half. Only 28 of the 256 odd n
+    from n = −123,491 to −124,001 reach −5, against about 82 at the overall share.
+    −5 is also absent for 39 consecutive odd n just before the long −17 run
+    (n = −123,411 to −123,487). Long blocks of −1 and −17 alternate there.
+  - All of these were checked against the computed fates, not read off the images.
+- The pattern is runs and voids: stretches where one or two fates take over, followed
+  by a switch. It is not periodic; no repeating spacing is visible at these zooms.
+
+### Study 2: F(1) convergence
+
+There is one computation, with prefixes |n| ≤ 2^k − 1 and blocks
+2^(k−1) ≤ |n| < 2^k. Shares are of the prefix.
+
+| k | range \|n\| ≤ | pairs | F(1) prefix | change | shares −1 / −5 / −17 | F(1) block k |
+|---|---|---|---|---|---|---|
+| 10 | 1,023 | 511 | 0.3425 | — | 0.328 / 0.316 / 0.355 | 0.396 |
+| 11 | 2,047 | 1,023 | 0.3881 | +0.0456 | 0.322 / 0.322 / 0.355 | 0.434 |
+| 12 | 4,095 | 2,047 | 0.4231 | +0.0350 | 0.324 / 0.324 / 0.352 | 0.458 |
+| 13 | 8,191 | 4,095 | 0.4213 | −0.0018 | 0.323 / 0.329 / 0.348 | 0.419 |
+| 14 | 16,383 | 8,191 | **0.4293** | +0.0080 | 0.326 / 0.326 / 0.348 | 0.437 |
+| 15 | 32,767 | 16,383 | 0.4391 | +0.0099 | 0.331 / 0.325 / 0.345 | 0.449 |
+| 16 | 65,535 | 32,767 | 0.4482 | +0.0091 | 0.333 / 0.322 / 0.345 | 0.457 |
+| 17 | 131,071 | 65,535 | 0.4601 | +0.0119 | 0.331 / 0.322 / 0.347 | 0.472 |
+| 18 | 262,143 | 131,071 | **0.4696** | +0.0095 | 0.329 / 0.322 / 0.349 | 0.479 |
+| 19 | 524,287 | 262,143 | 0.4779 | +0.0083 | 0.328 / 0.323 / 0.349 | 0.486 |
+| 20 | 1,048,575 | 524,287 | 0.4868 | +0.0089 | 0.328 / 0.324 / 0.348 | 0.496 |
+| 21 | 2,097,151 | 1,048,575 | 0.4947 | +0.0079 | 0.328 / 0.324 / 0.348 | 0.503 |
+| 22 | 4,194,303 | 2,097,151 | 0.5019 | +0.0071 | 0.328 / 0.324 / 0.348 | 0.509 |
+| 23 | 8,388,607 | 4,194,303 | 0.5081 | +0.0063 | 0.328 / 0.324 / 0.348 | 0.514 |
+| 24 | 16,777,215 | 8,388,607 | 0.5138 | +0.0057 | 0.327 / 0.324 / 0.348 | 0.519 |
+| 25 | 33,554,431 | 16,777,215 | 0.5192 | +0.0054 | 0.327 / 0.324 / 0.348 | 0.525 |
+| 26 | 67,108,863 | 33,554,431 | **0.5245** | +0.0053 | 0.327 / 0.324 / 0.349 | 0.530 |
+
+Plot: `f1-ladder.png`.
+
+**Why the prefix value moves.**
+
+- The newest block is half of every prefix, so prefix F(1) is roughly the average of
+  the previous prefix and the new block.
+- From k = 14 on, every block's F(1) is higher than the prefix before it, and block
+  F(1) itself rises at every step from k = 14 to 26.
+- So the prefix moves because **new blocks have higher F(1)**, not because of
+  fluctuation within blocks.
+- Shares are flat: Σp² stays between 0.33355 and 0.33372 from k = 14 on, so the rise
+  is not caused by one fate taking over.
+- The block naive standard errors fall from 0.008 (k = 14) to 0.0001 (k = 26), much
+  smaller than the block-to-block steps. These errors ignore dependence between
+  overlapping pairs, so they are optimistic, but the steps are many times larger.
+
+**Fluctuation, at small k only.**
+
+- Blocks 10 to 13 jump around: 0.396, 0.434, 0.458, **0.419**.
+- The k = 13 dip is the only decrease on the whole ladder, and the prefix also dips
+  there (−0.0018).
+- With only 255 to 2,047 pairs per block, these are within a few naive standard
+  errors.
+- From k = 14 on, both curves rise at every step.
+
+**A fit, labelled as one.** A least-squares line of block F(1) against k over
+k = 18 to 26 has slope +0.0063 per doubling, with a maximum residual of 0.0025. **This
+is a fit, not a measured limit.**
+
+- It is not a good model of the trend's shape. The block-to-block increments shrink
+  from about +0.0096 (k = 20) to +0.0050–0.0053 at k = 24, 25 and 26.
+- So the rise is decelerating, while the last three steps are nearly equal.
+- Nothing here supports extrapolating to a limiting value.
+
+**Verdict.** F(1) is **still rising** at the largest range reached (|n| ≤ 67,108,863),
+and there is **no sign of levelling yet**.
+
+- The prefix increments have shrunk from about +0.010 per doubling of the range
+  (k = 15 to 18) to +0.0053 (k = 26).
+- The last three increments (+0.0057, +0.0054, +0.0053) are almost the same size,
+  so the slowdown itself is levelling off.
+- Above k = 13 there is no fluctuation: every block rises, and the steps are far
+  larger than the sampling noise.
+- The data are compatible with slow continued growth, for example roughly a constant
+  increment per doubling, which would mean F(1) growing like log |n|. That cannot
+  continue forever, since F ≤ 1. The data are equally compatible with very slow
+  convergence to a limit well above 0.53.
+- They do not force a limit, and none is claimed. Distinguishing these cases needs
+  ranges far beyond 2²⁶. Since the computation is linear, about 2³⁰ (roughly 1 hour
+  here) would add four more doublings.
+
+**What surprised me.**
+
+- F(1) passes 0.5 between k = 21 and 22. From there, more than half of adjacent
+  negative odd integers share their 3n + 1 fate, against ⅓ for independent fates.
+- The longest run grows quickly with the range: 24 at |n| ≤ 262,143 and 160 at
+  |n| ≤ 67,108,863. Independent fates would give about 11 and 16.
+- The first 512 negative odd n look nearly independent (F(1) = 0.342 in that window),
+  so the clustering is a large-|n| phenomenon. That is consistent with the growth of
+  F with |n| reported in the F(r) section above.
