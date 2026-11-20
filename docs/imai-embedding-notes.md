@@ -378,3 +378,182 @@ on the circle.
 - Answer to Imai's question, as far as this probe goes: the one-step chord diagrams
   are not fractal. Fate colourings over many steps might be, and are the better
   candidate.
+
+---
+
+## Other geometries (Nov 2026)
+
+Imai asked whether the dyadic circular embedding could be generalised to other
+geometries. This section builds two:
+
+- a **cylinder**, which keeps the dyadic block visible as height;
+- a **sphere**, where the antipodal rule is a symmetry of the space itself.
+
+Where the code lives:
+
+- Module: `js/imaiGeometries.js` (tests: `js/tests/imaiGeometries.test.js`).
+- Browser: the **Cylinder** and **Sphere** modes of `dyadic-circle-imai.html`.
+- Renders: `scripts/imai-geometries.mjs` writes to `docs/geometries/`, about 7 s.
+  Chords are rasterised in Node; headless Chromium only adds titles, axes and
+  legends.
+- Every count quoted below is in `docs/geometries/geometry-numbers.json`.
+
+θ(n), k(n) and T(n) = n/2 | mn + c are reused from `js/imaiDyadicCircle.js`. m = 3
+throughout.
+
+### Definitions
+
+**Cylinder.**
+
+- Placement: C(n) = (cos θ(n), h(n), sin θ(n)), with h(n) = sign(n) · k(|n|). The
+  unit circle lies in the XZ plane and y is vertical.
+- Chords [C(n), C(T(n))] are straight 3D segments.
+- In the unrolled view, u = θ/2π is the horizontal axis and h the vertical. Positives
+  fill u ∈ [0, ½) at h ≥ 0, negatives u ∈ [½, 1) at h ≤ 0.
+
+**Sphere.**
+
+- For n > 0 in block k: longitude λ = θ(n) ∈ [0, π), latitude
+  lat = π/2 − (k + 1)π / (2(K + 2)), with K the largest block in the rendered range.
+- S(n) = (cos lat cos λ, sin lat, cos lat sin λ).
+- For n < 0, S(n) = −S(−n), computed as the antipode, not from a formula.
+
+### What holds, and corrections to the brief
+
+All of the following are tested.
+
+**Doubling on the cylinder** is a pure vertical step at fixed angle: θ(2n) = θ(n), and
+h(2n) = h(n) + 1 for n > 0, or −1 for n < 0. The circle's invisible identification
+θ(2n) = θ(n) becomes a visible unit move. Every even-step chord is a vertical unit
+segment in the unrolled view.
+
+**C(−n) is C(n) turned by π about the vertical axis with height negated.** That is
+exactly C(−n) = −C(n). So the antipodal rule is already native on the cylinder, not
+only on the sphere.
+
+**Even steps (correction).** The brief expected even steps to "drop exactly 1 level".
+That is true for n > 0. For n < 0, halving *raises* h by 1, because h = −k(|n|) moves
+toward 0. Both are exact, and there are no exceptions: n/2 never leaves [−N, N]. Only
+odd-step images can leave the range.
+
+**Sphere checks.** |S(n)| = 1 and S(−n) = −S(n) hold exactly (bitwise negation) for
+1 ≤ |n| ≤ 4096. Doubling keeps longitude and moves exactly one band, π/(2(K + 2)),
+toward the equator, on both hemispheres.
+
+**Distinctness.** For 1 ≤ |n| ≤ 4095, no two integers share a point, on either the
+sphere or the cylinder (8190 points each, no coincidences).
+
+- The closest pairs are adjacent integers in the top block: S(−3633) and S(−3632) at
+  distance 0.00152 on the sphere, and C(−3434) and C(−3433) at 0.00153 on the cylinder.
+- By construction: λ fixes the odd part, because θ(o) = π(o − 2^k)/2^k is a reduced
+  dyadic fraction for odd o. The band fixes k. Odd part and k fix n. That is also
+  checked directly for 1 ≤ n ≤ 4095.
+
+**Out-of-range images on the sphere (caveat).** With K fixed by the rendered range,
+the images of odd steps (3n or 3n + 1) often land one or two blocks above K. The same
+formula then puts block K + 1 exactly on the equator and block K + 2 *south* of it.
+
+- At N = 1023 (K = 9), c = 1: 171 positive chords end on the equator and 171 end in
+  the southern hemisphere.
+- At N = 4095: 683 and 683.
+
+So "northern hemisphere = positive" holds for the points in range, but a third of
+positive chords cross into the south. The renders keep these chords. The browser mode
+says so in its caption.
+
+### Chord height changes Δh = h(T(n)) − h(n), |n| ≤ 4095, m = 3
+
+| | n > 0, odd | n < 0, odd | n > 0, even | n < 0, even |
+|---|---|---|---|---|
+| c = 0 (Imai's T₃) | +1: 683, +2: 1365 | −1: 683, −2: 1365 | −1: 2047 | +1: 2047 |
+| c = 1 (3n + 1) | +1: 677, +2: 1371 | −1: 683, −2: 1365 | −1: 2047 | +1: 2047 |
+| images outside ±N | 1365 (c = 0), 1366 (c = 1) | 1365 | 0 | 0 |
+
+At N = 1023 the same pattern holds: odd n > 0 gives +1: 171, +2: 341 for c = 0, and
++1: 166, +2: 346 for c = 1. Even steps give ∓1 for all 511 n of each sign.
+
+- **Odd steps split exactly ⅓ / ⅔.** For c = 0, Δh = +1 exactly when the dyadic
+  position x = n/2^k − 1 is below ⅓, and +2 otherwise. This is the same x < ⅓ break as
+  the fractal probe's chord function g(x), now readable as height.
+- **The +1 of Collatz** changes the climb for exactly 6 positive n:
+  n = 1, 5, 21, 85, 341, 1365, where 3n + 1 = 4^i jumps one extra block. For
+  negatives, |3n + 1| = 3|n| − 1 never crosses a power of two that 3|n| does not
+  already cross, so the c = 1 negatives match c = 0.
+- **Leaving the range.** No Δh value is caused by leaving the range; leaving is
+  tabulated separately. Two thirds of odd chords (|3n| > N) end outside ±N.
+
+### Renders (`docs/geometries/`)
+
+| File | What |
+|---|---|
+| `cylinder-unrolled-m3-c0-N1023.png`, `cylinder-unrolled-m3-c1-N1023.png` | Unrolled cylinder, labelled axes. Odd steps coloured by sign, even steps grey. |
+| `cylinder-projected-m3-c1-N1023.png` | Oblique orthographic view (yaw 0.55, pitch 0.42). Height drawn at 0.127 per level so the barrel fits; far side dimmed; rings at h = 0, ±9, ±11. |
+| `sphere-front-m3-c1-N1023.png`, `sphere-back-m3-c1-N1023.png` | Orthographic views from +z and −z, tilted 20°. Chords coloured by sign; far side dimmed. |
+| `sphere-fate-front-m3-c1-N4095.png` | As requested: fate colouring, front view. |
+| `sphere-fate-back-m3-c1-N4095.png` | Added: the back view, where the n < 0 chords face the viewer. The front view mostly shows n > 0, which all reach 1 and are all one colour. |
+
+Display notes:
+
+- Front and back orthographic views of straight chords through a ball are mirror
+  images except for depth. The far side is dimmed (weight 0.15 → 1), and the 3D views
+  get a display-only gamma lift (0.5), which weakens that depth cue somewhat.
+- Unrolled chords are drawn straight between unrolled endpoints. They are not the
+  unrolled images of the 3D chords.
+
+### Fates on the sphere
+
+Fates were counted for all |n| ≤ 4095:
+
+- All 4095 positive n reach 1.
+- Negatives split −1: 1350, −5: 1313, −17: 1432.
+
+What the sphere adds over the circle is separation by block, so fate shares were
+checked per latitude band:
+
+- Every band from k = 4 to k = 11 splits close to ⅓ each. For example, band 11 has
+  −1: 664, −5: 664, −17: 720, and band 10 has 330 / 330 / 364.
+- −17 is slightly ahead in the higher bands.
+
+Within a band, the probability that an odd negative n has the same fate as its
+longitude neighbour (by circle order) is:
+
+| band k | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+|---|---|---|---|---|---|---|---|
+| same fate as neighbour | 0.07 | 0.29 | 0.14 | 0.38 | 0.40 | 0.43 | 0.46 |
+
+The baseline for independent fates is about 0.33. The low bands have only 8 to 64
+points, so their values are noisy. The fate views look like an even blend of the
+three negative colours, as on the circle. Splitting the circle into bands did not
+reveal arcs, caps or zones of one fate.
+
+### What each geometry shows that the circle hides, and what it does not
+
+**The cylinder** is the clear gain.
+
+- The circle puts n and 2n on the same point. That hides every even step, and it
+  stacks all dyadic blocks on top of each other. On the cylinder, the even steps
+  become a visible ladder of vertical unit moves, and each odd step becomes a
+  readable climb of +1 or +2 levels.
+- The ⅓ / ⅔ split of those climbs, and its six exceptions under 3n + 1, can be read
+  straight off the unrolled view. The circle drew the same chords as one flat family.
+- Collatz dynamics shows up as a walk on this lattice: up 1 or 2 levels per odd step,
+  down 1 per even step. That is the familiar picture of an orbit's height, now drawn
+  on the dyadic geometry.
+- It does **not** change the angular story. Every block still draws the same family of
+  chords, now in separate layers. The cylinder doubles the information shown, but the
+  new information is the block index, which can be computed directly from n.
+
+**The sphere** makes the antipodal rule a symmetry of the space, S(−n) = −S(n). It
+gives every integer a distinct point, with blocks in bands. But:
+
+- The cylinder already has C(−n) = −C(n), so antipodality is not new to the sphere.
+- Positives use only half the longitudes, λ ∈ [0, π), so half of each hemisphere is
+  empty of points.
+- Out-of-range images break the hemisphere-by-sign picture for a third of the chords.
+- The banding is a re-drawing of the cylinder's heights on curved bands. It carries no
+  extra arithmetic information.
+
+The sphere is the more striking picture. It is not the more informative one, and for
+the interleaved fates of negative integers under 3n + 1 it shows nothing new. Fates
+stay mixed in every band. Whatever structure they have is not organised by dyadic
+position or block at this resolution, on either surface.

@@ -64,6 +64,8 @@
                 <option value="line">Circle ↔ number line (§4 / §6, Figs. 3, 4, 6)</option>
                 <option value="scaling">Angular scaling P_nat → P_α (§6, Fig. 5)</option>
                 <option value="fractal">Fractal probe (exploratory)</option>
+                <option value="cylinder">Cylinder, unrolled (height = signed dyadic block)</option>
+                <option value="sphere">Sphere (latitude = dyadic block, S(−n) = −S(n))</option>
             </select>
         </label>
         <label>Range N
@@ -99,6 +101,13 @@
                 <option value="fate">Chords coloured by fate of n (500 steps)</option>
             </select>
         </label>
+        <label>Sphere colour
+            <select id="inGeoColour" class="ml-1">
+                <option value="sign" selected>by sign of n</option>
+                <option value="fate">by fate of n (500 steps)</option>
+            </select>
+        </label>
+        <button id="btnSpin" class="btn" type="button">Pause rotation</button>
         <span id="status" class="muted"></span>
     </div>
 
@@ -124,6 +133,7 @@ import {
     logNormalise, toRGBA, colourToRGBA,
 } from './js/imaiFractalProbe.js';
 import { dyadicLevel } from './js/imaiDyadicCircle.js';
+import { geometryChords, project, topBlock } from './js/imaiGeometries.js';
 
 const $ = id => document.getElementById(id);
 const canvas = $('circle');
@@ -195,6 +205,7 @@ function legend(items) {
 }
 
 function render() {
+    if (spin.raf) { cancelAnimationFrame(spin.raf); spin.raf = null; }
     const p = params();
     $('alphaOut').textContent = p.alpha.toFixed(2);
     const size = sizeCanvas();
@@ -290,6 +301,10 @@ function render() {
             : []);
     } else if (p.mode === 'fractal') {
         caption = renderFractalProbe(p, size);
+    } else if (p.mode === 'cylinder') {
+        caption = renderUnrolledCylinder(p, size);
+    } else if (p.mode === 'sphere') {
+        caption = renderSphere(p, size);
     } else {
         const map = makeView(size, 1);
         drawCircle(map, 1, size);
@@ -393,13 +408,127 @@ function renderFractalProbe(p, size) {
     return `Chords coloured by where n ends up under ${map} within 500 steps. Exploratory.`;
 }
 
+// ---------- Cylinder and sphere (see "Other geometries" in docs/imai-embedding-notes.md) ----------
+const GEO_POS = '#3987e5', GEO_NEG = '#e5484d', GEO_EVEN = '#bdbdbd';
+const GEO_FATE = { 1: '#3987e5', [-1]: '#33bf59', [-5]: '#f5b041', [-17]: '#e5484d' };
+const spin = { on: true, yaw: 0.4, raf: null, key: '', chords: null, colours: null };
+
+function renderUnrolledCylinder(p, size) {
+    const K = topBlock(p.N), hmax = K + 2;
+    const L = 44, R = 12, T = 14, B = 34;
+    const X = u => L + u * (size - L - R);
+    const Y = h => T + (hmax - h) / (2 * hmax) * (size - T - B);
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillStyle = '#9ca3af';
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    for (let h = -hmax; h <= hmax; h++) {
+        ctx.beginPath(); ctx.moveTo(X(0), Y(h)); ctx.lineTo(X(1), Y(h)); ctx.stroke();
+        if (h % 2 === 0 || hmax <= 12) { ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(String(h), L - 6, Y(h)); }
+    }
+    for (const u of [0, 0.25, 0.5, 0.75, 1]) {
+        ctx.strokeStyle = u === 0.5 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.12)';
+        ctx.beginPath(); ctx.moveTo(X(u), Y(hmax)); ctx.lineTo(X(u), Y(-hmax)); ctx.stroke();
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(String(u), X(u), size - B + 4);
+    }
+    ctx.fillText('u = θ(n)/2π', X(0.5), size - B + 18);
+    ctx.save(); ctx.translate(10, Y(0)); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'top';
+    ctx.fillText('h = sign(n)·k(|n|)', 0, 0); ctx.restore();
+    const chords = geometryChords({ N: p.N, m: p.m, c: p.c, geometry: 'unrolled' });
+    const groups = [[GEO_EVEN, ch => !ch.odd], [GEO_POS, ch => ch.odd && ch.sign > 0], [GEO_NEG, ch => ch.odd && ch.sign < 0]];
+    ctx.lineWidth = 1;
+    ctx.globalAlpha = Math.max(0.05, Math.min(0.6, 30 / Math.sqrt(chords.length + 1)));
+    for (const [colour, pick] of groups) {
+        ctx.strokeStyle = colour;
+        ctx.beginPath();
+        for (const ch of chords) {
+            if (!pick(ch)) continue;
+            ctx.moveTo(X(ch.from.u), Y(ch.from.h));
+            ctx.lineTo(X(ch.to.u), Y(ch.to.h));
+        }
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    legend([[GEO_POS, 'odd step, n > 0'], [GEO_NEG, 'odd step, n < 0'], [GEO_EVEN, 'even step (vertical: θ(2n) = θ(n))']]);
+    const off = chords.filter(ch => !ch.inRange).length;
+    return `${chords.length} chords for 1 ≤ |n| ≤ ${p.N}, drawn straight between unrolled endpoints (${off} images lie outside ±N and are still drawn). ` +
+        `Map: n/2 | ${p.m}n${p.c ? (p.c > 0 ? ' + ' : ' − ') + Math.abs(p.c) : ''}.`;
+}
+
+function sphereFrame(p, size) {
+    ctx.fillStyle = '#0b0f17';
+    ctx.fillRect(0, 0, size, size);
+    const r = size / 2 - 28, cx = size / 2, cy = size / 2;
+    ctx.strokeStyle = '#4b5563'; ctx.lineWidth = 1; ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, 2 * Math.PI); ctx.stroke();
+    const view = { yaw: spin.yaw, pitch: 0.35 };
+    // equator
+    ctx.beginPath();
+    for (let i = 0; i <= 96; i++) {
+        const a = (i * 2 * Math.PI) / 96;
+        const q = project({ x: Math.cos(a), y: 0, z: Math.sin(a) }, view);
+        if (i === 0) ctx.moveTo(cx + q.x * r, cy - q.y * r); else ctx.lineTo(cx + q.x * r, cy - q.y * r);
+    }
+    ctx.stroke();
+    // chords bucketed by colour and depth (4 bands, far = faint)
+    const buckets = new Map();
+    const { chords, colours } = spin;
+    for (let i = 0; i < chords.length; i++) {
+        const a = project(chords[i].from, view), b = project(chords[i].to, view);
+        const band = Math.max(0, Math.min(3, Math.floor(((a.depth + b.depth) / 2 + 1) * 2)));
+        const key = colours[i] + '|' + band;
+        if (!buckets.has(key)) buckets.set(key, []);
+        buckets.get(key).push(a.x, a.y, b.x, b.y);
+    }
+    const base = Math.max(0.05, Math.min(0.7, 30 / Math.sqrt(chords.length + 1)));
+    for (const [key, xs] of buckets) {
+        const [colour, band] = key.split('|');
+        ctx.strokeStyle = colour;
+        ctx.globalAlpha = base * [0.2, 0.4, 0.75, 1][+band];
+        ctx.beginPath();
+        for (let i = 0; i < xs.length; i += 4) {
+            ctx.moveTo(cx + xs[i] * r, cy - xs[i + 1] * r);
+            ctx.lineTo(cx + xs[i + 2] * r, cy - xs[i + 3] * r);
+        }
+        ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+}
+
+function renderSphere(p, size) {
+    const colourBy = $('inGeoColour').value;
+    const key = [p.N, p.m, p.c, colourBy].join(',');
+    if (spin.key !== key) {
+        spin.chords = geometryChords({ N: p.N, m: p.m, c: p.c, geometry: 'sphere' });
+        spin.colours = spin.chords.map(ch => {
+            if (colourBy === 'sign') return ch.sign > 0 ? GEO_POS : GEO_NEG;
+            const f = trajectoryFate(ch.n, { m: p.m, c: p.c, maxSteps: 500 });
+            return f.fate === 'cycle' ? (GEO_FATE[f.key] ?? `hsl(${(Math.abs(f.key) * 47) % 360}, 70%, 55%)`) : '#ffffff';
+        });
+        spin.key = key;
+    }
+    const tick = () => {
+        sphereFrame(p, size);
+        if (spin.on) { spin.yaw += 0.004; spin.raf = requestAnimationFrame(tick); }
+    };
+    tick();
+    $('btnSpin').textContent = spin.on ? 'Pause rotation' : 'Resume rotation';
+    legend(colourBy === 'sign'
+        ? [[GEO_POS, 'n > 0'], [GEO_NEG, 'n < 0']]
+        : [[GEO_FATE[1], '→ 1'], [GEO_FATE[-1], '→ −1'], [GEO_FATE[-5], '→ −5'], [GEO_FATE[-17], '→ −17'], ['#ffffff', 'unsettled / other']]);
+    const K = topBlock(p.N);
+    return `${spin.chords.length} straight 3D chords on the unit sphere, K = ${K}: block k at latitude ` +
+        `π/2 − (k+1)π/(2(K+2)), S(−n) = −S(n). Images one or two blocks above K land on or below the equator. Far chords are fainter.`;
+}
+
 function setPreset(v, inRange) {
     for (const [id, val] of Object.entries(v)) $(id).value = val;
     $('inInRange').checked = inRange;
     render();
 }
 
-for (const id of ['inMode', 'inN', 'inM', 'inC', 'inInRange', 'inCycles', 'inDyadic', 'inProbe']) $(id).addEventListener('change', render);
+for (const id of ['inMode', 'inN', 'inM', 'inC', 'inInRange', 'inCycles', 'inDyadic', 'inProbe', 'inGeoColour']) $(id).addEventListener('change', render);
+$('btnSpin').addEventListener('click', () => { spin.on = !spin.on; render(); });
 $('inAlpha').addEventListener('input', render);
 $('btnCollatz').addEventListener('click', () => setPreset({ inMode: 'chords', inN: 511, inM: 3, inC: 1, inAlpha: 0.5 }, true));
 $('btnPaper').addEventListener('click', () => setPreset({ inMode: 'chords', inM: 3, inC: 0, inAlpha: 0.5 }, false));
@@ -413,7 +542,8 @@ window.addEventListener('resize', render);
 
 // URL parameters (mode, N, m, c, alpha) allow linking to a configuration
 const qs = new URLSearchParams(location.search);
-const qmap = { mode: 'inMode', N: 'inN', m: 'inM', c: 'inC', alpha: 'inAlpha', probe: 'inProbe' };
+const qmap = { mode: 'inMode', N: 'inN', m: 'inM', c: 'inC', alpha: 'inAlpha', probe: 'inProbe', colour: 'inGeoColour' };
+if (qs.has('still')) spin.on = false;
 for (const [k, id] of Object.entries(qmap)) if (qs.has(k)) $(id).value = qs.get(k);
 if (qs.has('all')) $('inInRange').checked = false;
 render();

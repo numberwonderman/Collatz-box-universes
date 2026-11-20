@@ -1,0 +1,270 @@
+{
+  "notes": "m = 3 throughout; chords for every n with 1 <= |n| <= N (images outside [-N, N] kept and placed by the same formula).",
+  "heightChanges": {
+    "N4095_c0": {
+      "odd": {
+        "pos": {
+          "total": 2048,
+          "outOfRange": 1365,
+          "dh": {
+            "1": 683,
+            "2": 1365
+          }
+        },
+        "neg": {
+          "total": 2048,
+          "outOfRange": 1365,
+          "dh": {
+            "-2": 1365,
+            "-1": 683
+          }
+        }
+      },
+      "even": {
+        "pos": {
+          "total": 2047,
+          "outOfRange": 0,
+          "dh": {
+            "-1": 2047
+          }
+        },
+        "neg": {
+          "total": 2047,
+          "outOfRange": 0,
+          "dh": {
+            "1": 2047
+          }
+        }
+      }
+    },
+    "N4095_c1": {
+      "odd": {
+        "pos": {
+          "total": 2048,
+          "outOfRange": 1366,
+          "dh": {
+            "1": 677,
+            "2": 1371
+          }
+        },
+        "neg": {
+          "total": 2048,
+          "outOfRange": 1365,
+          "dh": {
+            "-2": 1365,
+            "-1": 683
+          }
+        }
+      },
+      "even": {
+        "pos": {
+          "total": 2047,
+          "outOfRange": 0,
+          "dh": {
+            "-1": 2047
+          }
+        },
+        "neg": {
+          "total": 2047,
+          "outOfRange": 0,
+          "dh": {
+            "1": 2047
+          }
+        }
+      }
+    },
+    "N1023_c0": {
+      "odd": {
+        "pos": {
+          "total": 512,
+          "outOfRange": 341,
+          "dh": {
+            "1": 171,
+            "2": 341
+          }
+        },
+        "neg": {
+          "total": 512,
+          "outOfRange": 341,
+          "dh": {
+            "-2": 341,
+            "-1": 171
+          }
+        }
+      },
+      "even": {
+        "pos": {
+          "total": 511,
+          "outOfRange": 0,
+          "dh": {
+            "-1": 511
+          }
+        },
+        "neg": {
+          "total": 511,
+          "outOfRange": 0,
+          "dh": {
+            "1": 511
+          }
+        }
+      }
+    },
+    "N1023_c1": {
+      "odd": {
+        "pos": {
+          "total": 512,
+          "outOfRange": 342,
+          "dh": {
+            "1": 166,
+            "2": 346
+          }
+        },
+        "neg": {
+          "total": 512,
+          "outOfRange": 341,
+          "dh": {
+            "-2": 341,
+            "-1": 171
+          }
+        }
+      },
+      "even": {
+        "pos": {
+          "total": 511,
+          "outOfRange": 0,
+          "dh": {
+            "-1": 511
+          }
+        },
+        "neg": {
+          "total": 511,
+          "outOfRange": 0,
+          "dh": {
+            "1": 511
+          }
+        }
+      }
+    }
+  },
+  "distinctness": {
+    "sphere_N4095": {
+      "points": 8190,
+      "minDistance": 0.0015227961915259443,
+      "closest": [
+        -3633,
+        -3632
+      ],
+      "collisions": [],
+      "searchRadius": 0.02
+    },
+    "cylinder_N4095": {
+      "points": 8190,
+      "minDistance": 0.0015339806374845754,
+      "closest": [
+        -3434,
+        -3433
+      ],
+      "collisions": [],
+      "searchRadius": 0.05
+    }
+  },
+  "sphereOutOfRangeImages": {
+    "N1023_c0": {
+      "K": 9,
+      "chords": 2046,
+      "positiveChords": 1023,
+      "positiveImagesOnEquator": 170,
+      "positiveImagesSouthOfEquator": 171,
+      "imagesOutsideRange": 682
+    },
+    "N1023_c1": {
+      "K": 9,
+      "chords": 2046,
+      "positiveChords": 1023,
+      "positiveImagesOnEquator": 171,
+      "positiveImagesSouthOfEquator": 171,
+      "imagesOutsideRange": 683
+    },
+    "N4095_c1": {
+      "K": 11,
+      "chords": 8190,
+      "positiveChords": 4095,
+      "positiveImagesOnEquator": 683,
+      "positiveImagesSouthOfEquator": 683,
+      "imagesOutsideRange": 2731
+    }
+  },
+  "fates": {
+    "allNInRangeN4095": {
+      "1": 4095,
+      "-17": 1432,
+      "-1": 1350,
+      "-5": 1313
+    },
+    "negativeShareByBlock": {
+      "0": {
+        "-1": 1
+      },
+      "1": {
+        "-1": 2
+      },
+      "2": {
+        "-1": 2,
+        "-5": 2
+      },
+      "3": {
+        "-1": 4,
+        "-5": 4
+      },
+      "4": {
+        "-1": 5,
+        "-17": 5,
+        "-5": 6
+      },
+      "5": {
+        "-1": 10,
+        "-17": 12,
+        "-5": 10
+      },
+      "6": {
+        "-1": 25,
+        "-17": 21,
+        "-5": 18
+      },
+      "7": {
+        "-1": 50,
+        "-17": 41,
+        "-5": 37
+      },
+      "8": {
+        "-1": 89,
+        "-17": 87,
+        "-5": 80
+      },
+      "9": {
+        "-1": 168,
+        "-17": 182,
+        "-5": 162
+      },
+      "10": {
+        "-1": 330,
+        "-17": 364,
+        "-5": 330
+      },
+      "11": {
+        "-1": 664,
+        "-17": 720,
+        "-5": 664
+      }
+    },
+    "negativeOddSameFateAsLongitudeNeighbour": {
+      "5": 0.067,
+      "6": 0.29,
+      "7": 0.143,
+      "8": 0.378,
+      "9": 0.396,
+      "10": 0.434,
+      "11": 0.458
+    }
+  }
+}
