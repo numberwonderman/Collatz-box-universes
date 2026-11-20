@@ -1,0 +1,505 @@
+{
+  "density": [
+    {
+      "file": "density-m3-c0-N1023.png",
+      "N": 1023,
+      "c": 0,
+      "chords": 1024,
+      "epsPx": 1.907,
+      "mode": "gaussian"
+    },
+    {
+      "file": "density-m3-c0-N4095.png",
+      "N": 4095,
+      "c": 0,
+      "chords": 4096,
+      "epsPx": 0.476,
+      "mode": "length"
+    },
+    {
+      "file": "density-m3-c0-N16383.png",
+      "N": 16383,
+      "c": 0,
+      "chords": 16384,
+      "epsPx": 0.119,
+      "mode": "length"
+    },
+    {
+      "file": "density-m3-c1-N1023.png",
+      "N": 1023,
+      "c": 1,
+      "chords": 1022,
+      "epsPx": 1.907,
+      "mode": "gaussian"
+    },
+    {
+      "file": "density-m3-c1-N4095.png",
+      "N": 4095,
+      "c": 1,
+      "chords": 4094,
+      "epsPx": 0.476,
+      "mode": "length"
+    },
+    {
+      "file": "density-m3-c1-N16383.png",
+      "N": 16383,
+      "c": 1,
+      "chords": 16382,
+      "epsPx": 0.119,
+      "mode": "length"
+    }
+  ],
+  "selfSimilarity": [
+    {
+      "c": 0,
+      "N": 4095,
+      "topBlock": 11,
+      "fullChords": 4096,
+      "topChords": 2048,
+      "fullVsTopDoubled": {
+        "corr": 0.006,
+        "iou": 0
+      },
+      "fullVsTopUndoubled": {
+        "corr": 0.997,
+        "iou": 0.976
+      },
+      "topVsPreviousBlockUndoubled": {
+        "corr": 0.967,
+        "iou": 0.921
+      }
+    },
+    {
+      "c": 1,
+      "N": 4095,
+      "topBlock": 11,
+      "fullChords": 4094,
+      "topChords": 2048,
+      "fullVsTopDoubled": {
+        "corr": 0.007,
+        "iou": 0
+      },
+      "fullVsTopUndoubled": {
+        "corr": 0.989,
+        "iou": 0.813
+      },
+      "topVsPreviousBlockUndoubled": {
+        "corr": 0.966,
+        "iou": 0.835
+      }
+    }
+  ],
+  "blockCrossings": {
+    "c0": [
+      {
+        "k": 0,
+        "chords": 2,
+        "odd": 2,
+        "crossing": 2,
+        "oddCrossing": 2
+      },
+      {
+        "k": 1,
+        "chords": 4,
+        "odd": 2,
+        "crossing": 4,
+        "oddCrossing": 2
+      },
+      {
+        "k": 2,
+        "chords": 8,
+        "odd": 4,
+        "crossing": 8,
+        "oddCrossing": 4
+      },
+      {
+        "k": 3,
+        "chords": 16,
+        "odd": 8,
+        "crossing": 16,
+        "oddCrossing": 8
+      },
+      {
+        "k": 4,
+        "chords": 32,
+        "odd": 16,
+        "crossing": 32,
+        "oddCrossing": 16
+      },
+      {
+        "k": 5,
+        "chords": 64,
+        "odd": 32,
+        "crossing": 64,
+        "oddCrossing": 32
+      },
+      {
+        "k": 6,
+        "chords": 128,
+        "odd": 64,
+        "crossing": 128,
+        "oddCrossing": 64
+      },
+      {
+        "k": 7,
+        "chords": 256,
+        "odd": 128,
+        "crossing": 256,
+        "oddCrossing": 128
+      },
+      {
+        "k": 8,
+        "chords": 512,
+        "odd": 256,
+        "crossing": 512,
+        "oddCrossing": 256
+      },
+      {
+        "k": 9,
+        "chords": 1024,
+        "odd": 512,
+        "crossing": 1024,
+        "oddCrossing": 512
+      },
+      {
+        "k": 10,
+        "chords": 2048,
+        "odd": 1024,
+        "crossing": 2048,
+        "oddCrossing": 1024
+      },
+      {
+        "k": 11,
+        "chords": 4096,
+        "odd": 2048,
+        "crossing": 4096,
+        "oddCrossing": 2048
+      }
+    ],
+    "c1": [
+      {
+        "k": 0,
+        "chords": 2,
+        "odd": 2,
+        "crossing": 2,
+        "oddCrossing": 2
+      },
+      {
+        "k": 1,
+        "chords": 4,
+        "odd": 2,
+        "crossing": 4,
+        "oddCrossing": 2
+      },
+      {
+        "k": 2,
+        "chords": 8,
+        "odd": 4,
+        "crossing": 8,
+        "oddCrossing": 4
+      },
+      {
+        "k": 3,
+        "chords": 16,
+        "odd": 8,
+        "crossing": 16,
+        "oddCrossing": 8
+      },
+      {
+        "k": 4,
+        "chords": 32,
+        "odd": 16,
+        "crossing": 32,
+        "oddCrossing": 16
+      },
+      {
+        "k": 5,
+        "chords": 64,
+        "odd": 32,
+        "crossing": 64,
+        "oddCrossing": 32
+      },
+      {
+        "k": 6,
+        "chords": 128,
+        "odd": 64,
+        "crossing": 128,
+        "oddCrossing": 64
+      },
+      {
+        "k": 7,
+        "chords": 256,
+        "odd": 128,
+        "crossing": 256,
+        "oddCrossing": 128
+      },
+      {
+        "k": 8,
+        "chords": 512,
+        "odd": 256,
+        "crossing": 512,
+        "oddCrossing": 256
+      },
+      {
+        "k": 9,
+        "chords": 1024,
+        "odd": 512,
+        "crossing": 1024,
+        "oddCrossing": 512
+      },
+      {
+        "k": 10,
+        "chords": 2048,
+        "odd": 1024,
+        "crossing": 2048,
+        "oddCrossing": 1024
+      },
+      {
+        "k": 11,
+        "chords": 4096,
+        "odd": 2048,
+        "crossing": 4096,
+        "oddCrossing": 2048
+      }
+    ]
+  },
+  "fates": {
+    "chordSources": {
+      "neg": {
+        "-17": 720,
+        "-1": 663,
+        "-5": 664
+      },
+      "pos": {
+        "1": 2047
+      }
+    },
+    "allN": {
+      "pos": {
+        "1": 4095
+      },
+      "neg": {
+        "-17": 1432,
+        "-1": 1350,
+        "-5": 1313
+      }
+    }
+  },
+  "boxCounting": [
+    {
+      "c": 0,
+      "N": 16383,
+      "threshold": 0.3,
+      "filledFraction": 0.3162,
+      "slope": 1.797,
+      "r2": 0.9987,
+      "counts": [
+        85368,
+        22142,
+        5880,
+        1644,
+        476,
+        146,
+        50
+      ]
+    },
+    {
+      "c": 0,
+      "N": 16383,
+      "threshold": 0.5,
+      "filledFraction": 0.0645,
+      "slope": 1.537,
+      "r2": 0.9954,
+      "counts": [
+        18158,
+        5012,
+        1490,
+        508,
+        188,
+        70,
+        30
+      ]
+    },
+    {
+      "c": 0,
+      "N": 16383,
+      "threshold": 0.7,
+      "filledFraction": 0.0096,
+      "slope": 1.165,
+      "r2": 0.9968,
+      "counts": [
+        3236,
+        1180,
+        490,
+        224,
+        112,
+        54,
+        22
+      ]
+    },
+    {
+      "c": 0,
+      "N": 4095,
+      "threshold": 0.3,
+      "filledFraction": 0.3146,
+      "slope": 1.807,
+      "r2": 0.9988,
+      "counts": [
+        87850,
+        22982,
+        6076,
+        1696,
+        482,
+        146,
+        50
+      ]
+    },
+    {
+      "c": 0,
+      "N": 4095,
+      "threshold": 0.5,
+      "filledFraction": 0.0636,
+      "slope": 1.533,
+      "r2": 0.9953,
+      "counts": [
+        18792,
+        5284,
+        1578,
+        530,
+        196,
+        74,
+        32
+      ]
+    },
+    {
+      "c": 0,
+      "N": 4095,
+      "threshold": 0.7,
+      "filledFraction": 0.0095,
+      "slope": 1.184,
+      "r2": 0.9969,
+      "counts": [
+        3234,
+        1178,
+        484,
+        220,
+        110,
+        52,
+        20
+      ]
+    },
+    {
+      "c": 0,
+      "N": 1023,
+      "threshold": 0.3,
+      "filledFraction": 0.3856,
+      "slope": 1.839,
+      "r2": 0.9988,
+      "counts": [
+        102086,
+        26014,
+        6748,
+        1810,
+        508,
+        156,
+        50
+      ]
+    },
+    {
+      "c": 0,
+      "N": 1023,
+      "threshold": 0.5,
+      "filledFraction": 0.1588,
+      "slope": 1.689,
+      "r2": 0.9973,
+      "counts": [
+        42772,
+        11284,
+        3100,
+        920,
+        304,
+        104,
+        38
+      ]
+    },
+    {
+      "c": 0,
+      "N": 1023,
+      "threshold": 0.7,
+      "filledFraction": 0.037,
+      "slope": 1.428,
+      "r2": 0.9936,
+      "counts": [
+        10532,
+        3024,
+        964,
+        346,
+        140,
+        62,
+        26
+      ]
+    },
+    {
+      "c": 1,
+      "N": 16383,
+      "threshold": 0.3,
+      "filledFraction": 0.3224,
+      "slope": 1.813,
+      "r2": 0.9989,
+      "counts": [
+        89246,
+        23527,
+        6260,
+        1731,
+        488,
+        146,
+        50
+      ]
+    },
+    {
+      "c": 1,
+      "N": 16383,
+      "threshold": 0.5,
+      "filledFraction": 0.0671,
+      "slope": 1.534,
+      "r2": 0.9949,
+      "counts": [
+        19400,
+        5425,
+        1616,
+        539,
+        197,
+        76,
+        33
+      ]
+    },
+    {
+      "c": 1,
+      "N": 16383,
+      "threshold": 0.7,
+      "filledFraction": 0.0101,
+      "slope": 1.176,
+      "r2": 0.9965,
+      "counts": [
+        3389,
+        1211,
+        500,
+        225,
+        112,
+        54,
+        22
+      ]
+    }
+  ],
+  "boxSizes": [
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    128
+  ],
+  "imageSize": 1024,
+  "eps": "eps = 4/N (unit circle), i.e. eps = 4 at R = N"
+}

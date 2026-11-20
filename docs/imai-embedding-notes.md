@@ -214,3 +214,167 @@ therefore visits only 7 distinct circle points, one per odd element (−17, −2
 −55, −41, −61, −91). The 5-cycle visits 2 points (−5 and −7), and the 2-cycle visits
 1 (the point θ = π). The loop is closed, but on the circle the 2-cycle is a single
 point.
+
+---
+
+## Fractal probe (Nov 2026)
+
+**Status: exploratory.** These are pictures and one rough measurement, made in
+response to Yusuke Imai's question: "Do you think that generalized Collatz maps
+represented on the dyadic circle could generate interesting fractal structures?"
+Nothing here is a proof.
+
+- Code: `js/imaiFractalProbe.js` (pure functions, tested in
+  `js/tests/imaiFractalProbe.test.js`), the "Fractal probe" mode of
+  `dyadic-circle-imai.html`, and `scripts/imai-fractal-probe.mjs`.
+- Outputs: `docs/fractal-probe/`. Every number below is in
+  `docs/fractal-probe/probe-numbers.json`.
+- To regenerate, run `node scripts/imai-fractal-probe.mjs` from the repo root
+  (about 22 s).
+
+All renders use the map chords [P(n), P(T(n))] for **every** n with 1 ≤ |n| ≤ N, as in
+eq. (3.1) and Fig. 2. There is no |T(n)| ≤ N filter. Even-step chords have zero length
+and are left out. Images are 1024 × 1024 and cover [−1.05, 1.05]².
+
+### What was rendered
+
+**1. Density.** Files: `density-m3-c{0,1}-N{1023,4095,16383}.png`.
+
+- These use the kernel of eq. (4.4), G = Σ exp(−d²/2ε²). The paper applies that
+  kernel to the circle–number-line segments S_R(n). **Here it is applied to the map
+  chords**, which is a deliberate change.
+- ε = 4/N in unit-circle units. That is the paper's R = N with a fixed ε = 4, so the
+  renders are comparable across scales. Each map (c = 0, c = 1) uses one shared
+  log(1 + G) colour scale across its three N.
+- At 1024 px, ε falls below half a pixel for N ≥ 4095 (0.48 px and 0.12 px). There the
+  code switches to the pixel average of the same Gaussian line (chord length per pixel
+  × √(2π)ε). A point-sampled Gaussian would alias at that size. Both modes integrate to
+  the same total, which is tested. So in practice the N = 4095 and N = 16383 images are
+  line-length densities.
+- **The renders were done in a Node script, not the browser.** N = 16383 also works in
+  the browser view (under 1 s at 512 px).
+
+**2. Self-similarity.** Files: `selfsim-m3-c{0,1}-N4095.png`. There are four panels:
+
+- (a) the full chord set for N = 2¹² − 1;
+- (b) the chords from the top block 2¹¹ ≤ |n| < 2¹² only, with θ → 2θ;
+- (c) (a) in grey with (b) overlaid in orange;
+- (d) (a) with the top block overlaid **without** doubling.
+
+Comparison on log line density at 1024 px (IoU = intersection over union of the masks
+at 0.5):
+
+| map | full vs top block, θ doubled | full vs top block, θ unchanged | top block vs block below, θ unchanged |
+|---|---|---|---|
+| c = 0 | corr 0.006, IoU 0.000 | corr 0.997, IoU 0.976 | corr 0.967, IoU 0.921 |
+| c = 1 | corr 0.007, IoU 0.000 | corr 0.989, IoU 0.813 | corr 0.966, IoU 0.835 |
+
+**The doubled overlay does not match at all. The undoubled one matches almost
+exactly.** The reason is exact, not a numerical accident:
+
+- Write n = 2^k(1 + x) with x ∈ [0, 1). Then θ(n) = πx.
+- 3n = 2^k · 3(1 + x) with 3(1 + x) ∈ [3, 6). So θ(3n) = g(x), where
+  g(x) = π(3(1 + x)/2 − 1) for x < 1/3 and π(3(1 + x)/4 − 1) otherwise.
+- That is the same function in every block (tested for all odd n ≤ 4095).
+
+So every block draws the **same one-parameter family of chords**, x ↦ [P(πx), P(g(x))],
+sampled on a grid twice as fine as the block below. The relation (2.9),
+θ(2^k + n) = θ(n)/2, is true, but it maps block k onto the *lower half* of block k + 1.
+It does not map block k onto the whole picture, so doubling angles throws the top block
+off the full set. For c = 1, the +1 moves each image by at most π/2^k. The exceptions are
+n = 5, 21, 85, 341, 1365 (3n + 1 a power of two), whose image jumps to θ = 0 (tested).
+
+**Block crossings** (N = 4095, both c = 0 and c = 1): every chord leaves its dyadic
+block, for every k from 0 to 11. The counts are 2·2^k chords out of 2·2^k in each block,
+half of them odd steps. That is forced by the map, since an odd step 3n (+1) climbs one
+or two blocks and an even step n/2 drops one. So block crossing does not explain the
+failed doubled overlay; the sampling argument above does.
+
+**3. Colour probes** (N = 4095, m = 3, c = 1).
+
+`colour-block-m3-c1-N4095.png` colours chords by the dyadic block of n:
+
+- All blocks lie on the same curves, so the hues mix everywhere.
+- The top block (half of all chords) dominates.
+- No block owns a region of its own.
+
+`colour-fate-m3-c1-N4095.png` colours chords by where n ends up within 500 steps:
+
+- Colours: 1-cycle blue, −1 green, −5 amber, −17 red.
+- Every n with |n| ≤ 4095 settles within 500 steps.
+- All 4095 positive n reach 1.
+- Negative n split as follows: −1: 1350, −5: 1313, −17: 1432.
+- The lower half shows a mixed, roughly even blend of the three negative colours, with
+  no arcs or bands of a single fate.
+
+A check at N = 16383 (odd negatives only, run in a one-off script, not saved):
+
+- Neighbouring odd n and n − 2 share a fate 43% of the time, against 33% if fates were
+  independent.
+- Sorting the top block by angle instead gives 44%.
+- Each of eight equal angle bins splits about ⅓ / ⅓ / ⅓, within ±0.05.
+
+So fate is slightly correlated between neighbours, but it is not organized by position
+on the circle.
+
+**4. Box counting (exploratory).** The headline number comes from:
+
+- the N = 16383 density render for m = 3, c = 0;
+- normalised as log(1 + G) / log(1 + max G);
+- **thresholded at 0.5**: pixels at or above half the maximum log-density are set. The
+  mask is `boxcount-mask-m3-c0-N16383-t0.5.png`, 6.5% of pixels.
+- boxes of 2, 4, 8, 16, 32, 64 and 128 px on the 1024 px grid.
+
+| N | c | threshold | pixels set | slope (box dimension) | R² | local slopes, small → large boxes |
+|---|---|---|---|---|---|---|
+| 16383 | 0 | 0.3 | 31.6% | 1.80 | 0.999 | 1.95 1.91 1.84 1.79 1.70 1.55 |
+| **16383** | **0** | **0.5** | **6.5%** | **1.54** | **0.995** | 1.86 1.75 1.55 1.43 1.43 1.22 |
+| 16383 | 0 | 0.7 | 1.0% | 1.17 | 0.997 | 1.46 1.27 1.13 1.00 1.05 1.30 |
+| 4095 | 0 | 0.5 | 6.4% | 1.53 | 0.995 | |
+| 1023 | 0 | 0.5 | 15.9% | 1.69 | 0.997 | |
+| 16383 | 1 | 0.5 | 6.7% | 1.53 | 0.995 | |
+
+**Caveats.**
+
+- **The number depends heavily on the threshold:** 1.80, 1.54 and 1.17 at thresholds
+  0.3, 0.5 and 0.7.
+- The local slopes drift steadily with box size instead of settling. So the high R² is
+  misleading: there is no single power law here.
+- The mask is thick bands (dimension 2 at small boxes) bent along curves (dimension 1 at
+  large boxes). A fit over a range that mixes the two will report something in between.
+  That is what a smooth density with sharp edges looks like, not a fractal.
+- Between N = 4095 and N = 16383 the numbers barely move (1.53 vs 1.54). That is
+  consistent with the picture having converged.
+- The box-counting code itself is tested on a filled square (2), lines (1), a point (0)
+  and a Sierpiński carpet (1.893, exact).
+
+### Did anything visibly self-similar or fractal-like show up, and where?
+
+**Self-similar, yes, but in a simple way. Fractal, no, not in these renders.**
+
+- The chord pictures are self-similar across dyadic scales in the sense the
+  computation predicts. Every block draws the same continuous family of chords
+  [P(πx), P(g(x))], just sampled more finely. The top block alone reproduces the full
+  picture (correlation 0.997), and adding blocks only fills it in.
+- That limit is a smooth line density whose bright curves are envelopes (caustics) of
+  a piecewise-linear chord family. It has no detail at every scale. The density renders
+  at N = 1023, 4095 and 16383 look the same apart from sharpness.
+- The box-counting slope (about 1.5 at threshold 0.5) depends on the threshold and is
+  not a stable power law. It reflects bands and curves, not a fractal.
+- For the paper's T_m (c = 0) this is structural. Because θ(3n) depends only on the
+  dyadic position x, an odd multiplier just reparametrises one circle map. The paper's
+  maps are a sampling of a single smooth chord diagram.
+- The +1 of the Collatz map (c = 1) breaks this only by O(2^−k) shifts. It adds visible
+  hatching at small N that fades as N grows. The jumps where 3n + 1 is a power of two
+  (n = 5, 21, 85, …) are one chord per dyadic block, a set too sparse to show.
+- The one place that could plausibly hold fractal structure is **dynamics, not
+  single-step geometry**: which cycle a negative n eventually falls into under 3n+1.
+  Those fates are finely interleaved around the circle, with no arcs or regions at this
+  resolution. Their boundary in the 2-adic or dyadic-position sense is the natural next
+  thing to probe, for example by colouring each x ∈ [0, 1) by the fate of 2^k(1 + x)
+  for a large k and measuring how that colouring refines as k grows. That would ask
+  whether the basin partition converges to something with a fractal boundary. These
+  renders do not answer it.
+- Answer to Imai's question, as far as this probe goes: the one-step chord diagrams
+  are not fractal. Fate colourings over many steps might be, and are the better
+  candidate.

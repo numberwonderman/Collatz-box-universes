@@ -63,7 +63,7 @@ The suite comprises twelve distinct applications designed to provide a unique "L
 
 ### **12. dyadic-circle-imai.html (Dyadic Circle (Imai))**
 * **Focus:** The signed dyadic circular embedding of Y. Imai, *Geometric Extensions of Dyadic Circular Embeddings to the Integers* (2026, HAL [hal-05858260v1](https://hal.science/hal-05858260v1), CC BY 4.0): $\theta(n) = \pi(n-2^k)/2^k$ with $k = \lfloor\log_2 n\rfloor$, and negative integers placed antipodally, $\theta(-n) = \theta(n) + \pi$.
-* **Key Features:** Chords $P(n) \to P(T(n))$ for the paper's maps $T_m(n) = n/2$ or $mn$ (and $mn + c$, so $c = 1$ gives $3n+1$ with its negative cycles highlighted), the circle–number-line correspondence, and the paper's continuous angular-scaling parameter $\alpha$. Logic lives in `js/imaiDyadicCircle.js` (tested in `js/tests/imaiDyadicCircle.test.js`). Extracted definitions, ambiguities and observations are in `docs/imai-embedding-notes.md`.
+* **Key Features:** Chords $P(n) \to P(T(n))$ for the paper's maps $T_m(n) = n/2$ or $mn$ (and $mn + c$, so $c = 1$ gives $3n+1$ with its negative cycles highlighted), the circle–number-line correspondence, and the paper's continuous angular-scaling parameter $\alpha$. Logic lives in `js/imaiDyadicCircle.js` (tested in `js/tests/imaiDyadicCircle.test.js`). Extracted definitions, ambiguities and observations are in `docs/imai-embedding-notes.md`. An exploratory "Fractal probe" mode (chord density, dyadic-block overlays, colouring by cycle reached, box counting) is in `js/imaiFractalProbe.js`, with static renders made by `scripts/imai-fractal-probe.mjs` in `docs/fractal-probe/`.
 
 ---
 
