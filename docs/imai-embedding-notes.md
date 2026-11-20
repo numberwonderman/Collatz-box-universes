@@ -557,3 +557,203 @@ The sphere is the more striking picture. It is not the more informative one, and
 the interleaved fates of negative integers under 3n + 1 it shows nothing new. Fates
 stay mixed in every band. Whatever structure they have is not organised by dyadic
 position or block at this resolution, on either surface.
+
+---
+
+## Fate correlation F(r) and other multipliers (Nov 2026)
+
+This section follows two suggestions from Yusuke Imai (reply of 20 Nov 2026):
+
+- Study **F(r)**, the probability that n and n + 2r reach the same periodic orbit,
+  as a function of r.
+- Compare the fate partition for other odd multipliers, especially **m = 2^k ± 1**.
+
+**Status: exploratory.** These are measurements, not proofs.
+
+Where things are:
+
+- Code: `js/imaiFateCorrelation.js` (tests: `js/tests/imaiFateCorrelation.test.js`)
+  and `scripts/imai-fate-correlation.mjs` (about 4 s).
+- A slow robustness check: `scripts/imai-fate-bigint-check.mjs` (about 8 min).
+- Outputs, all in **`docs/fate-correlation/`**:
+  - `fate-correlation.json`: every F(r) row with pair counts, baselines, block
+    tables and the per-m tables;
+  - `bigint-check.json`;
+  - `fate-correlation-m3.png` and `fate-correlation-m3-by-block.png`.
+
+**Map and fates.**
+
+- The map is T(n) = n/2 for even n and m·n + 1 for odd n. That is the existing T_m
+  of `js/imaiDyadicCircle.js` with additive term c = 1, for every m.
+- With c = 0 (Imai's T_m) there is nothing to study: an odd n maps to the odd number
+  mn, so no nonzero orbit ever reaches a cycle (this was tested earlier).
+- L(n) is the cycle that n reaches, labelled by its element of least |value|. It
+  comes from the existing `trajectoryFate` with a **step cap of 2000**.
+- An orbit that hits the cap or exceeds 2⁵³ is "unsettled". It gets no fate, and any
+  pair involving it is skipped. `trajectoryFate` now also reports which of the two
+  happened (`reason: 'cap' | 'overflow'`). Its fates are unchanged.
+
+### F(r) for 3n + 1 on negative odd n
+
+**Range.** There are two samples:
+
+| sample | n | settled within 2000 steps | fates |
+|---|---|---|---|
+| \|n\| ≤ 16,383 | 8,192 | all | −1: 2,673, −5: 2,667, −17: 2,852 |
+| \|n\| ≤ 262,143 | 131,072 | all | −1: 43,180, −5: 42,190, −17: 45,702 |
+
+In both samples the baseline Σp² is 0.3337, within 0.0004 of the equal-shares value
+⅓, so the two dashed lines in the plot nearly coincide.
+
+**Sanity check.** F(1) = 0.4293 over 8,191 pairs in the smaller sample. This
+reproduces the fractal probe's 43%, and it is a unit test.
+
+Selected values of F(r). The ± is a naive binomial standard error; it ignores overlap
+between pairs, so it understates the true uncertainty.
+
+| r | 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 |
+|---|---|---|---|---|---|---|---|---|
+| \|n\| ≤ 16,383 (±0.005) | 0.429 | 0.408 | 0.396 | 0.377 | 0.358 | 0.346 | 0.322 | 0.318 |
+| \|n\| ≤ 262,143 (±0.0014) | 0.470 | 0.448 | 0.426 | 0.410 | 0.393 | 0.381 | 0.370 | 0.357 |
+
+**What the curve does.**
+
+- **It decays, without settling at the baseline within r ≤ 128.** F(r) falls steadily
+  from r = 1, fastest over the first few r.
+- **In the larger sample** it is still 0.357 at r = 128, about 17 standard errors
+  above Σp². Every r from 1 to 128 lies more than 2 standard errors above the
+  baseline.
+- **In the smaller sample** it crosses the baseline near r ≈ 40. From r = 60 on it
+  sits slightly *below* it: 35 values of r are more than 2 naive standard errors
+  below, with F ≈ 0.32 against 0.334. This dip does not appear in the larger sample.
+  I can't separate it from range effects (pairs straddling dyadic blocks near the top
+  of a small range) or from the understated error bars, so it is reported, not
+  interpreted.
+- **No isolated spikes.** In the larger sample, all 18 values of r flagged as local
+  peaks (beyond 2 standard errors of both neighbours) are even, and all 15 flagged
+  dips are odd. That is a parity pattern, not a set of special r values.
+- **The pattern follows the 2-adic valuation of r.** Compare F(r) with the mean of
+  F(r ± 1) and F(r ± 2), then average by v₂(r) in the larger sample:
+
+  | v₂(r) | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+  |---|---|---|---|---|---|---|---|
+  | mean residual | −0.0017 | −0.0004 | +0.0020 | +0.0030 | +0.0038 | +0.0070 | +0.0081 |
+  | number of r | 62 | 31 | 16 | 8 | 4 | 2 | 1 |
+
+  The residual rises steadily: pairs whose distance 2r is divisible by a higher power
+  of two are slightly more likely to share a fate. A plausible mechanism is that n and
+  n + 2r agree modulo 2^(v₂(r)+1), and by Terras's theorem the first parity steps of
+  an orbit are fixed by n modulo a power of two. So such pairs follow the same early
+  path for longer. **This is a hypothesis, not a proof.**
+
+  The effect is under one percentage point. The v₂ ≥ 5 groups contain only 1 or 2
+  values of r. In the smaller sample the residuals show no trend at all (noise of
+  about ±0.005 swamps it). So this pattern needs the larger sample to be seen at all.
+
+**F grows with |n|, so it is not a function of r alone.** Within single dyadic blocks
+(larger sample; both |n| and |n| + 2r in [2^k, 2^(k+1))), F at fixed r rises with the
+block:
+
+| block k | r = 1 | r = 4 | r = 16 | r = 64 |
+|---|---|---|---|---|
+| 13 | 0.437 | 0.413 | 0.377 | 0.330 |
+| 17 | 0.479 | 0.434 | 0.400 | 0.381 |
+
+Each block's baseline is 0.3337 to 0.3338, so the rise is not a drift in shares.
+
+- Doubling both the block and r (the same *relative* distance on the dyadic circle)
+  changes F by 0.009 on average.
+- Keeping r and moving up one block changes it by 0.011.
+- So the correlation length grows with |n|, somewhere between not at all and in
+  proportion to |n|. These data cannot pin the rate down.
+- In the top block, F falls by about 0.015 per doubling of r, steadily from r = 1 to
+  r = 64 (`fate-correlation-m3-by-block.png`). That is an observation over one
+  decade of r, not a decay law.
+
+### Other multipliers m = 2^k ± 1 (c = 1)
+
+The maps used were T(n) = n/2 | mn + 1 for m = 5, 7, 9, 15 and 17. Sample: the odd n
+with 1 ≤ |n| ≤ 16,383, each sign separately (8,192 per side), cap 2000.
+
+**No −1 / −5 / −17 cycles were assumed.** The cycles below are the ones actually
+reached:
+
+| m | negative odd n: settled | cycles reached (negative) | positive odd n: settled | cycles reached (positive) |
+|---|---|---|---|---|
+| 3 = 2²−1 = 2¹+1 | 8,192 / 8,192 | −1 (length 2): 2,673; −5 (5): 2,667; −17 (18): 2,852 | 8,192 / 8,192 | 1 (length 3): all |
+| 5 = 2²+1 | 586 / 8,192 | −1 (length 3: −1, −4, −2): 586 | 349 / 8,192 | 1 (length 7): 113; 13 (10): 197; 17 (10): 39 |
+| 7 = 2³−1 | 0 | none | 18 / 8,192 | 1 (length 4: 1, 8, 4, 2): 18 |
+| 9 = 2³+1 | 5 / 8,192 | −1 (length 4: −1, −8, −4, −2): 5 | 0 | none |
+| 15 = 2⁴−1 | 0 | none | 8 / 8,192 | 1 (length 5): 8 |
+| 17 = 2⁴+1 | 2 / 8,192 | −1 (length 5): 2 | 0 | none |
+
+**The unsettled orbits overflow; they do not just hit the cap.** All of them exceed
+2⁵³, none reaches 2000 steps. `bigint-check.json` continues every one in BigInt for
+up to 5000 steps:
+
+- **No orbit settled after passing 2⁵³.**
+- After 5000 steps the unsettled orbits had reached 342 to 810 bits (m = 5) and up to
+  about 3,800 bits (m = 17).
+- That is consistent with a typical growth factor of about m/4 per odd step plus two
+  halvings, which exceeds 1 for every m ≥ 5. None is assigned a fate.
+- Limitation: above 64 bits the check does not keep a visited set, so a cycle made
+  entirely of numbers above 2⁶⁴ would be missed.
+
+**The 2^k ± 1 structure is visible, but only in the trivial cycles.** Under mn + 1,
+the start n = ±1 reaches a power of two in one step exactly when m = 2^j ∓ 1:
+
+- For m = 2^j − 1 (7, 15), the only cycle found is 1 → 2^j → … → 1, on the positive
+  side.
+- For m = 2^j + 1 (5, 9, 17), the only negative cycle is −1 → −2^j → … → −1.
+- m = 3 is both 2² − 1 and 2¹ + 1, so it has the trivial cycle on each side.
+- Only m = 3 has more than one negative cycle. Only m = 3 and m = 5 (positive side:
+  1, 13, 17) have more than one cycle on any side.
+
+**What F(r) looks like for the other m.**
+
+- On the negative side, F(r) is trivially 1 for m = 5, 9 and 17: one cycle, every
+  settled pair agrees. It is undefined for m = 7 and 15: nothing settles.
+- The only multi-cycle partition outside m = 3 is m = 5 on the positive side, but
+  only 349 of 8,192 n settle there. So each r has about 18 pairs where both members
+  settle. Its F(r), stored in the JSON, ranges from 0.08 to 0.85 over r ≤ 64 against
+  Σp² = 0.436: too few pairs to read.
+- As the closest available analogue, the JSON gives the **co-settling** probability
+  S(r) = P[n + 2r settles | n settles]:
+  - for m = 5, negative side: S(1) = 0.126 and S averages 0.081 over r ≤ 64, against
+    a settled share of 0.072;
+  - for m = 5, positive side: S averages 0.053, against 0.043.
+- So whether an orbit settles is mildly clustered among neighbours, as fate is for
+  m = 3. With so few settled n this is weak evidence.
+
+### Did the correlations decay, oscillate, or persist, and did any other multiplier look different?
+
+**For m = 3 they decay, with a slight 2-adic modulation, and they are still above
+baseline at r = 128 in the larger sample.**
+
+- F(r) falls from 0.43–0.47 at r = 1 toward the ⅓ baseline, steadily rather than
+  abruptly, with no oscillation. In the top block it drops by about 0.015 per doubling
+  of r.
+- On top of the decay there is a small, consistent preference for even r, increasing
+  with the 2-adic valuation of r (about +0.007 for r = 32 and 96, +0.008 for r = 64).
+  r = 128 is the edge of the range and gets no residual. That fits
+  trajectories that share their early parity steps. It shows up as a parity pattern,
+  not as spikes at powers of two.
+- The correlation is not a function of r alone. At fixed r it is stronger for larger
+  |n|, and it scales partly with relative (dyadic) distance. In the smaller range the
+  curve even dips slightly below baseline for large r, which the larger range does not
+  reproduce.
+
+**Every other multiplier tested looks completely different**, though not in the way
+the question anticipated:
+
+- For m = 5, 7, 9, 15 and 17 with c = 1, at least 92.8% of orbits on each side grow past
+  2⁵³ and are still growing after 5000 steps (bits climbing into the hundreds or
+  thousands).
+- Negative n have at most one cycle (−1, for m = 2^j + 1), so a fate partition to
+  correlate barely exists.
+- The m = 2^k ± 1 structure appears only in which side carries the trivial cycle
+  ±1 → ±2^j.
+- So m = 3 is special here simply because it is the only one of these maps under which
+  orbits typically shrink. A meaningful cross-m comparison of F(r) would need maps
+  that settle, for example accelerated maps (mn + 1)/2^v with the right growth rate,
+  or a different additive term. That is a separate study and was not attempted.

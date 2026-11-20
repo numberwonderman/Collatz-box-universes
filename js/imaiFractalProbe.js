@@ -158,8 +158,8 @@ export function blockCrossings({ N, m = 3, c = 0 }) {
  * Fate of n under T(n) = n/2 | m n + c, within maxSteps steps.
  * Returns { fate: 'cycle', key, steps } where key is the cycle element of least
  * |value| (ties: the negative one), { fate: 'zero' } if it hits 0, or
- * { fate: 'unsettled' } if no repeat is seen within maxSteps steps or a value
- * leaves the safe-integer range.
+ * { fate: 'unsettled', reason } if no repeat is seen within maxSteps steps
+ * (reason 'cap') or a value leaves the safe-integer range (reason 'overflow').
  */
 export function trajectoryFate(n, { m = 3, c = 1, maxSteps = 500 } = {}) {
     const seen = new Map();
@@ -176,10 +176,10 @@ export function trajectoryFate(n, { m = 3, c = 1, maxSteps = 500 } = {}) {
         }
         seen.set(x, s);
         const next = m * Math.abs(x) + Math.abs(c);
-        if (!Number.isSafeInteger(next)) return { fate: 'unsettled', steps: s };
+        if (!Number.isSafeInteger(next)) return { fate: 'unsettled', reason: 'overflow', steps: s };
         x = step(x, m, c);
     }
-    return { fate: 'unsettled', steps: maxSteps };
+    return { fate: 'unsettled', reason: 'cap', steps: maxSteps };
 }
 
 /** Normalise a density grid to [0, 1] on a log(1 + G) scale (vmax: shared maximum, optional). */

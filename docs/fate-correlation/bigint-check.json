@@ -1,0 +1,154 @@
+{
+  "stepCap": 5000,
+  "firstPassCap": 2000,
+  "results": [
+    {
+      "m": 5,
+      "c": 1,
+      "side": "negative odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "-1": 586,
+        "unsettled": 7606
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        342,
+        810
+      ]
+    },
+    {
+      "m": 5,
+      "c": 1,
+      "side": "positive odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "1": 113,
+        "13": 197,
+        "17": 39,
+        "unsettled": 7843
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        344,
+        780
+      ]
+    },
+    {
+      "m": 7,
+      "c": 1,
+      "side": "negative odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "unsettled": 8192
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        1128,
+        1609
+      ]
+    },
+    {
+      "m": 7,
+      "c": 1,
+      "side": "positive odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "1": 18,
+        "unsettled": 8174
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        1117,
+        1626
+      ]
+    },
+    {
+      "m": 9,
+      "c": 1,
+      "side": "negative odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "-1": 5,
+        "unsettled": 8187
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        1673,
+        2216
+      ]
+    },
+    {
+      "m": 9,
+      "c": 1,
+      "side": "positive odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "unsettled": 8192
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        1643,
+        2277
+      ]
+    },
+    {
+      "m": 15,
+      "c": 1,
+      "side": "negative odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "unsettled": 8192
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        2811,
+        3493
+      ]
+    },
+    {
+      "m": 15,
+      "c": 1,
+      "side": "positive odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "1": 8,
+        "unsettled": 8184
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        2864,
+        3541
+      ]
+    },
+    {
+      "m": 17,
+      "c": 1,
+      "side": "negative odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "-1": 2,
+        "unsettled": 8190
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        3138,
+        3845
+      ]
+    },
+    {
+      "m": 17,
+      "c": 1,
+      "side": "positive odd",
+      "range": "1 <= |n| <= 16383",
+      "fates": {
+        "unsettled": 8192
+      },
+      "settledOnlyAfter2pow53": 0,
+      "unsettledBitLengthAfterCap": [
+        3117,
+        3818
+      ]
+    }
+  ]
+}
