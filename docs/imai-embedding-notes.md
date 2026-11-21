@@ -1138,3 +1138,180 @@ not been edited; this paragraph records the qualification.
   vary much more than independent sampling allows, which shows as banding in Map B.
   The share fluctuation grows with |n|. This domain structure looks like the most
   promising direction for the scale-dependence part of the study.
+
+---
+
+## Fate partition in Imai's angular placement (Nov 2026)
+
+This section answers Imai's reply of 21 Nov 2026. He sent a script, `dyadic_fate.py`,
+that places each negative odd integer on a circle coloured by its 3n + 1 cycle, and
+asked whether that geometric representation might offer another way to investigate
+the scale-dependent organisation of the fate partition. **Status: exploratory.**
+
+Where things are:
+
+- Code: `js/imaiAngularFate.js` (tests: `js/tests/imaiAngularFate.test.js`) and
+  `scripts/imai-angular-fate.mjs` (about 100 s).
+- Outputs, all in **`docs/angular-fate/`**:
+  - `angular-fate.json`: the Part 1 grids, the equivalence check, the Part 2 statistics
+    for K = 15, 18 and 21, the sanity checks, and two identity checks;
+  - `mapC-angular-blocks-raw.png` and `mapC-angular-blocks-excess.png`;
+  - `imai-circle-k15.png`.
+- **Imai's `dyadic_fate.py` itself was not available in this session.** The placement
+  is ported from its formula as given in the task. His printed counts are reproduced
+  exactly (sanity check 1). His script is not stored in the repo, and no copy was
+  fetched.
+
+### Definitions
+
+- **Placement.** For odd negative n = −(2j + 1), with k = ⌊log₂ max(j, 1)⌋:
+  θ = (2(j − 2^k) + 1)π / 2^k for j ≥ 1, and θ(−1) = 0.
+- **j-block** B^j_k = {2^k ≤ j < 2^(k+1)}. This is the odd n with
+  2^(k+1) < |n| < 2^(k+2), so j-block k = block B_(k+1) of the colour-map section.
+- **Fates** come from the unchanged fate table (odd n, |n| ≤ 2²² − 1, so j ≤ 2,097,151;
+  all settled).
+- **Baseline and excess:** Σp_i² over the set, and agreement minus baseline, as before.
+
+**The overlay is a uniform grid (tested).**
+
+- j-block k occupies exactly the odd multiples of π/2^k. So the overlay of all
+  j < 2^K is the grid tπ/2^(K−1), t = 0 … 2^K − 1.
+- **Point t of the overlay is the odd part of 2^K + t** (unit test, and checked at
+  every point for K = 15, 18, 21).
+- So **Imai's circle, read in angular order, lists the fates of the consecutive
+  negative integers −2^K, −(2^K + 1), …, −(2^(K+1) − 1), of both parities.** An even
+  integer appears as its odd part, which reaches the same cycle, since even steps only
+  halve.
+- Consequently every angular-neighbour pair joins an odd n of the top block with the
+  odd part of the *even* integer |n| ± 1 next to it.
+
+### Sanity checks (all passed before any analysis)
+
+1. **Imai's own run (N = 2¹⁵ − 1, 16,384 odd negatives):** the repo gives −1: 5,418,
+   −5: 5,317, −17: 5,649, **exactly his printed counts**. ✔
+2. **Angles:** θ = 0, π, π/2, 3π/2, π/4 for j = 0 to 4 (unit tests). ✔
+3. **Existing checks:** global F(1) = 0.4293 over 8,191 pairs, and counts −1: 2673,
+   −5: 2667, −17: 2852 at |n| ≤ 16,383. ✔
+4. **Hand-checked synthetic case:** j = 0 to 7 with fates set by hand. The per-block
+   agreement for block 2 (m = 1, 2, 3), the overlay order, the cyclic neighbour
+   agreement (2/8), the pair types and the cyclic runs are all worked out by hand in
+   the test. ✔
+
+### Part 1: per-block angular agreement (Map C)
+
+A_k(m) is the fraction of pairs (i, i + m) in angular order, both within j-block k,
+that share a fate. The order is linear, not cyclic. Blocks k = 10 to 20, m = 1 to 128.
+
+**It coincides with the earlier per-block results, as it must.** Within a block,
+angular order is j order, and j, j + m are n and n − 2m.
+
+- The stored `fate-map.json` grid equals a fresh recomputation.
+- A_k(m) differs from it by **exactly m boundary pairs** in every cell. Here both
+  points must be in the block; the fate-map convention lets the m lowest-|n| points
+  pair into the block below. Every difference is within the bound m/pairs.
+- **At m = 1** the largest discrepancy is **0.00045**, within the documented 0.00085.
+  A_k(1) reproduces the fate-partition study's within-block F(1) exactly, for example
+  0.45846 for j-block 10.
+- **Over m = 1 to 128** the raw maximum is **0.0202**, at k = 10 and m = 114, where the
+  fate-map value includes 114 extra pairs on about 1,024 points. It is larger than
+  0.00085 only because the boundary effect grows with m.
+- So Map C is Map A's information in angular coordinates. The excess at m = 1 rises
+  from 0.116 (k = 13) to 0.175 (k = 20). There is no negative excess from k = 13 on,
+  and blocks 10–12 are noisy (51–90 negative cells).
+
+### Part 2: the full overlay (the geometric part)
+
+| K | points | agreement between angular neighbours | baseline | excess | odd-only line F(1) in the top block, for contrast |
+|---|---|---|---|---|---|
+| 15 | 32,768 | 0.600 | 0.334 | +0.267 | 0.457 |
+| 18 | 262,144 | 0.624 | 0.334 | +0.291 | 0.486 |
+| 21 | 2,097,152 | **0.639** | 0.334 | **+0.305** | 0.509 |
+
+**(b) Pair types.**
+
+- **Same-block pairs: 0 at every K.** This is structural, since every pair (t, t + 1)
+  contains exactly one odd t, which is a top-block point.
+- All 2^K neighbour pairs are cross-block, so the cross-block agreement equals the
+  overall agreement.
+- **(d) as specified, grouped by the larger k,** has a single group, k = K − 1, for the
+  same reason (recorded in the JSON).
+- The informative split is by the **other** point's block. That block is
+  K − 1 − v, where v = v₂(|n| ± 1) is how far down the dyadic hierarchy the neighbour
+  sits.
+
+**Agreement by depth v** (the independent expectation for each group is 0.333–0.334):
+
+| v | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| share of pairs | ½ | ¼ | ⅛ | 1/16 | 1/32 | 1/64 | 1/128 | 1/256 |
+| K = 15 | 0.649 | 0.730 | 0.382 | 0.404 | 0.322 | 0.342 | 0.250 | 0.352 |
+| K = 18 | 0.671 | 0.748 | 0.429 | 0.435 | 0.341 | 0.338 | 0.302 | 0.299 |
+| K = 21 | 0.684 | **0.760** | 0.447 | 0.457 | 0.366 | 0.369 | 0.333 | 0.332 |
+
+- **Angular neighbours from different scales agree far more than chance.** v = 1 and 2
+  account for ¾ of all pairs, and there agreement is 0.68–0.76 at K = 21, against
+  0.334.
+- **The agreement decays with depth in pairs of v:** (1, 2) high, (3, 4) moderate,
+  (5, 6) weak, (7, 8) at baseline for K = 21. Within the pairs (1, 2) and (3, 4), the
+  even v is higher at every K. For (5, 6) this is mixed: at K = 18, 0.338 < 0.341.
+  The pairing is the same at every K, but **its mechanism has not been examined**.
+- **At every depth v the agreement grows with K** (for v = 1: 0.649, 0.671, 0.684).
+  That is the same scale dependence as the F(n, r) colour maps.
+- At K = 18 the v = 7 and v = 8 groups (2,048 and 1,024 pairs) sit below baseline,
+  at 0.302 and 0.299. That is 2–3 naive standard errors. At K = 21, with 16,384 and
+  8,192 pairs, the same depths are at baseline (0.333, 0.332).
+
+**(c) Same-fate arcs.** These are maximal runs in the cyclic angular order, compared
+with 20 shuffles of the same fate multiset over the circle (mulberry32 seeds 1015,
+1018, 1021).
+
+| K | arcs | mean length | longest arc | shuffled arcs | shuffled longest |
+|---|---|---|---|---|---|
+| 15 | 13,102 | 2.50 | 34 (−5, from n = −56,735) | 21,611–21,931 | 9–15 |
+| 18 | 98,507 | 2.66 | 80 (−17, from n = −495,621) | 174,240–175,001 | 11–17 |
+| 21 | 757,202 | 2.77 | **117** (−1, from n = −134,151) | 1,396,543–1,398,633 | 12–21 |
+
+The arcs are far longer than independence allows, and they grow with K. The longest
+arc is 2.3 times the largest shuffled value at K = 15, 4.7 times at K = 18, and 5.6
+times at K = 21.
+
+### Part 3: the figure
+
+`imai-circle-k15.png` reproduces Imai's figure at K = 15: unit circle, one spoke per
+point, coloured −1 green, −5 orange, −17 blue, titled "Basins of the Negative Collatz
+Map".
+
+- Spokes are drawn one at a time in angular order, so no fate is systematically
+  painted last. An earlier draft drew fate by fate, which let blue cover the centre.
+- **Rendering compromise:** 32,768 spokes overlap heavily toward the centre. Individual
+  spokes are resolved only near the rim, where the long same-fate arcs show as
+  single-colour wedges.
+- I have not compared it pixel for pixel with Imai's image. The figure is for visual
+  comparison.
+
+### Answer to Imai's question
+
+**Does the angular representation show the same scale-dependent organisation as the
+F(n, r) colour maps? Yes, and the overlay adds one genuinely new measurement.**
+
+- **Within a dyadic block it shows exactly the same thing.** Angular order there is
+  just the order of |n|, so Map C reproduces Map A, up to the measured boundary
+  convention.
+- **The new part is the overlay of all blocks.** Read around the circle, it is the
+  sequence of fates of *all* consecutive negative integers in one dyadic octave
+  [2^K, 2^(K+1)), with even integers represented by their odd parts. So each angular
+  neighbour pair joins an odd n with the even integer beside it, a pairing the
+  odd-only line analyses never measured.
+- **Those cross-scale neighbours agree far more than chance and more than odd
+  neighbours on the line:** 0.639 against a baseline of 0.334, and against 0.509 for
+  odd pairs (n, n + 2) in the same range (K = 21).
+- **The agreement depends on how far down the dyadic hierarchy the neighbour lies**
+  (v₂ of |n| ± 1). It is highest for v = 1 and 2, decays in pairs of v, and reaches
+  baseline by v ≈ 7.
+- **It shows the same scale dependence as the colour maps.** At every depth the
+  agreement grows with K, and the same-fate arcs lengthen with K (longest 34, 80, 117).
+- **What it does not show:** no structure that is not already a property of the
+  integer sequence. The geometry re-orders the integers but adds no information
+  beyond the identity above.
+- **The open question is why agreement pairs up by v.** As far as these data go, that
+  is the most specific new pattern the angular picture has revealed.
