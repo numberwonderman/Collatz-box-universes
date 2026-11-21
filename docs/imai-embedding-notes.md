@@ -957,3 +957,184 @@ and there is **no sign of levelling yet**.
 - The first 512 negative odd n look nearly independent (F(1) = 0.342 in that window),
   so the clustering is a large-|n| phenomenon. That is consistent with the growth of
   F with |n| reported in the F(r) section above.
+
+---
+
+## F as a function of n and r: colour map (Nov 2026)
+
+This section responds to Imai's reply of 21 Nov 2026, which asked for a colour map of
+F against both position n and separation r. **Status: exploratory.** It describes only
+what the maps and data show.
+
+Where things are:
+
+- Code: `js/imaiFateMap.js` (tests: `js/tests/imaiFateMap.test.js`) and
+  `scripts/imai-fate-map.mjs` (about 30 s).
+- Outputs, all in **`docs/fate-map/`**:
+  - `fate-map.json`: both grids with F, baseline and excess per cell, the window and
+    block definitions, the settle report, the sanity-check outcomes, and the summaries
+    quoted below;
+  - `mapA-blocks-raw.png` and `mapA-blocks-excess.png`;
+  - `mapB-sliding-raw.png` and `mapB-sliding-excess.png`.
+
+### Conventions
+
+- **Fate table:** every odd n with −4,194,303 ≤ n ≤ −1 (2²² − 1; 2,097,152 values),
+  computed with the unchanged `trajectoryFate` via `fateCodes`, step cap 2000.
+  **All settled.**
+- **F_W(r)** = #{n ∈ W : n + 2r in the table and L(n + 2r) = L(n)} /
+  #{n ∈ W : n + 2r in the table}.
+  - For negative n, the partner n + 2r is *closer to zero*, so it may lie outside W
+    (below W's lower |n| edge). It must still be in the table.
+  - **This differs from the fate-partition study's block F(1)**, which counted only
+    pairs with both members inside the block. For a dyadic block at r = 1 it adds
+    exactly one pair. See sanity check 2.
+- **Baseline:** Σp_i² over the fate shares within W. **Excess:** F_W(r) − baseline.
+- **Map A:** rows are dyadic blocks B_k = odd n with 2^k ≤ |n| < 2^(k+1), for
+  k = 10 to 21 (all complete blocks). Columns are r = 1 to 128.
+  - Note the numbering: block B_k here is block k + 1 in the fate-partition section,
+    and block k in the fate-correlation section.
+- **Map B:** 508 windows of 16,384 consecutive odd n, moving by 4,096. They start at
+  |n| = 8,193 and the last ends at |n| = 4,194,303; adjacent windows overlap by 75%.
+  Columns are r = 1 to 64.
+- **Colours:**
+  - Raw maps use a single-hue blue ramp interpolated in OKLab, a perceptually even
+    sequential scale. Each row's baseline is drawn as a separate column in the same
+    scale and marked on the colour bar.
+  - Excess maps use a blue–grey–red diverging scale, symmetric about 0, with **grey = 0**.
+
+### Sanity checks (all run before any analysis)
+
+1. **Global F(r)** over |n| ≤ 16,383 reproduces `docs/fate-correlation/` exactly:
+   F(1) = 0.4293 over 8,191 pairs, and all 128 values of F(r) agree with identical
+   pair counts. ✔
+2. **Block F(1) against `docs/fate-partition/`.**
+   - With pairs restricted to the block (that study's convention), all 12 shared blocks
+     reproduce the stored values exactly. ✔
+   - With this study's convention, each block has **exactly one extra pair**, and Map
+     A's F(1) differs by at most that pair's weight: −0.00085 for B₁₀, under 10⁻⁵ from
+     B₁₇ on. At 4 decimals, B₁₀–B₁₂ read differently: 0.4336, 0.4580 and 0.4194,
+     against 0.4344, 0.4585 and 0.4192.
+   - Both values are recorded per block in the JSON. The difference comes entirely
+     from the convention, and no earlier number was changed.
+3. **Fate counts** at |n| ≤ 16,383 are −1: 2673, −5: 2667, −17: 2852. ✔
+4. **Hand-checked case:** a 10-element fate array, with F_W(r) for r = 1, 2, 3 worked
+   out by hand for the whole array and for a sub-window, is a unit test. ✔
+
+### Map A: dyadic blocks
+
+| block | excess at r = 1 | r = 8 | r = 32 | r = 128 | mean excess, r = 1–128 | first r where excess < ½ of its r = 1 value |
+|---|---|---|---|---|---|---|
+| B₁₄ | 0.115 | 0.066 | 0.034 | 0.003 | 0.024 | 5 |
+| B₁₅ | 0.123 | 0.064 | 0.036 | 0.029 | 0.030 | 9 |
+| B₁₆ | 0.138 | 0.077 | 0.057 | 0.026 | 0.033 | 9 |
+| B₁₇ | 0.145 | 0.085 | 0.051 | 0.027 | 0.040 | 10 |
+| B₁₈ | 0.152 | 0.091 | 0.059 | 0.039 | 0.046 | 13 |
+| B₁₉ | 0.162 | 0.102 | 0.069 | 0.040 | 0.053 | 13 |
+| B₂₀ | 0.169 | 0.110 | 0.077 | 0.048 | 0.061 | 13 |
+| B₂₁ | 0.175 | 0.118 | 0.085 | 0.057 | 0.069 | 19 |
+
+- **The excess is not spread evenly across scales.** It is concentrated at small r in
+  every block, but it **grows with the block at every r**, and its reach extends. The
+  half-height point moves from r = 5 (B₁₄) to r = 19 (B₂₁). The excess at r = 128
+  goes from 0.003 to 0.057, and the mean over r = 1–128 roughly triples (0.024 to
+  0.069).
+- **B₁₄ to B₂₁ have no negative excess at any r** (0 of 128 in each).
+- **B₁₀ to B₁₃ are noisy.** Negative excess appears at 69, 54, 88 and 50 of the 128
+  values of r. The minimum is −0.088 in B₁₀ at r = 16, and the excess map shows blue
+  patches there. These blocks have 512 to 4,096 values, so this looks like sampling
+  noise in small blocks, but that is not tested.
+- **The 2-adic modulation appears in every block from B₁₄ on, and not in B₁₀–B₁₃.**
+  Measured as each r's excess minus the mean of its four neighbours, averaged by
+  v₂(r):
+  - **Odd r:** −0.0017 to −0.0021 in B₁₄–B₂₁.
+  - **v₂ = 2 and 3:** +0.0015 to +0.0044.
+  - **v₂ = 5 and 6** (two values of r and one value respectively): +0.003 to +0.013.
+  - **Shape:** strictly increasing in v₂ in B₁₉, B₂₀ and B₂₁. Elsewhere there are small
+    reversals at v₂ ≥ 3, where each group has only 1–8 values of r.
+  - **Even minus odd r** (mean excess): +0.0019 to +0.0030 in every block B₁₄–B₂₁, but
+    negative (−0.0058 to −0.0009) in B₁₀–B₁₃.
+  - The modulation (0.002 to 0.013) is a few percent of the r = 1 excess (0.115 to
+    0.175). In the colour map it shows
+    as faint vertical striping at the small-r end of the higher rows; it is not a
+    dominant visual feature.
+
+### Map B: sliding windows
+
+**Windowed F(1)** ranges from 0.448 (first window) to 0.536. Its mean by dyadic block
+of the window start rises with |n|:
+
+| block of start | 16 | 17 | 18 | 19 | 20 | 21 |
+|---|---|---|---|---|---|---|
+| windows | 8 | 16 | 32 | 64 | 128 | 253 |
+| mean F(1) | 0.474 | 0.480 | 0.487 | 0.496 | 0.503 | 0.509 |
+| sd of F(1) | 0.0037 | 0.0025 | 0.0034 | 0.0050 | 0.0067 | 0.0088 |
+
+- **Local F(1) scatter grows with |n|.** The naive binomial standard error for one
+  window is 0.0039. Windows overlap by 75%, so their scatter is not independent;
+  still, by block 21 the spread is more than twice that.
+- **The largest local excursions** (F(1) above the mean of non-overlapping
+  neighbouring windows) are hot spots:
+  - n ≈ −4,161,537 and −4,153,345, with F(1) ≈ 0.536 (+0.034);
+  - n ≈ −3,694,593, with 0.536 (+0.030);
+  - a cluster near n ≈ −3,121,153, with 0.530 (+0.029).
+  All of them are in block 21.
+- **Correlation range.** For every window starting from block 17 on, the excess stays
+  above 0.02 out to r = 64. For the windows in blocks 13–15, it drops below 0.02 at
+  r = 35–49 (median).
+- **Visible pattern: horizontal banding.** In both Map B images, from about
+  |n| ≈ 10⁶ down, rows of noticeably higher or lower F appear, spanning all r. That is
+  a property of position, not of separation.
+
+### Local fate shares fluctuate strongly, and increasingly with |n|
+
+The banding has a measured cause. **Each window's own baseline Σp² varies from 0.333
+to 0.363** (median 0.338), so local fate shares are far from ⅓. Here is the standard
+deviation of each fate's share across *disjoint* windows inside each block, averaged
+over the three fates:
+
+| window size | binomial sd (independent fates) | B₁₅ | B₁₇ | B₁₉ | B₂₁ |
+|---|---|---|---|---|---|
+| 1,024 | 0.015 | 0.032 | 0.079 | 0.096 | 0.115 |
+| 4,096 | 0.007 | 0.008 | 0.028 | 0.063 | 0.083 |
+| 16,384 | 0.004 | — | 0.008 | 0.024 | 0.052 |
+
+- **Extreme windows.** In block 21, individual 1,024-wide windows range from 4.5% to
+  68.5% of a single fate. For example, one 16,384-wide window starting at
+  n = −4,161,537 has shares −1: 0.338, −5: 0.227, −17: 0.436.
+- **Growth with |n|.** At fixed window size the fluctuation grows with |n|, reaching 8
+  to 14 times the binomial value in block 21. At a fixed *relative* width of about
+  |n|/64 (B₁₇ at 1,024, B₁₉ at 4,096, B₂₁ at 16,384), the sd is 0.079, 0.063 and
+  0.052.
+- **What this suggests (not measured directly):** the fate partition has
+  fate-dominated domains whose typical size grows with |n|, but somewhat more slowly
+  than in proportion to |n|. A direct domain-size measurement was not made.
+- **How this relates to F.**
+  - Map A measures excess against each *block's* baseline, which averages out the
+    swings (the baselines of B₁₄–B₂₁ are 0.3335–0.3338). So part of Map A's slowly decaying
+    large-r excess may reflect these domains rather than pair-level structure.
+  - Map B measures against each *window's* own baseline, which removes share variation
+    on scales above 16,384.
+  - Separating the two contributions is not done here.
+
+**Tension with an earlier statement (left unchanged, as instructed).** The fate
+partition section says the overplotted full-range strips "look like uniform texture at
+every position, with no visible drift in shares along the axis". That was a visual
+description of strips extending only to |n| = 262,143, about 100 values per pixel
+column. These window shares show that at |n| ≥ 2¹⁷ the shares vary substantially over
+stretches of a few thousand to tens of thousands of integers. The earlier section has
+not been edited; this paragraph records the qualification.
+
+### What the maps show, in short
+
+- **Distance dependence.** The excess is largest at r = 1 and decays with r in every
+  block from B₁₄ on, without changing sign up to r = 128.
+- **Scale dependence.** At every r, the excess is larger in higher blocks, and its
+  reach in r grows: the half-height point moves from r ≈ 5 to r ≈ 19 between B₁₄ and
+  B₂₁.
+- **2-adic structure.** It is present, consistently, in every block from B₁₄ on, but
+  small (thousandths).
+- **Position dependence.** Within the higher blocks, local F and the local fate shares
+  vary much more than independent sampling allows, which shows as banding in Map B.
+  The share fluctuation grows with |n|. This domain structure looks like the most
+  promising direction for the scale-dependence part of the study.
