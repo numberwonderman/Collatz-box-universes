@@ -1315,3 +1315,212 @@ F(n, r) colour maps? Yes, and the overlay adds one genuinely new measurement.**
   beyond the identity above.
 - **The open question is why agreement pairs up by v.** As far as these data go, that
   is the most specific new pattern the angular picture has revealed.
+
+---
+
+## Fate-dominated domains: sizes and their contribution to F (Nov 2026)
+
+This section follows up the colour-map study. Franklin's 21 Nov 2026 email to Imai
+named two next steps:
+
+1. measure the domain-size distribution directly, as a function of |n|;
+2. separate the domain contribution to F from the pair-level structure.
+
+**Status: exploratory.**
+
+Where things are:
+
+- Code: `js/imaiDomains.js` (tests: `js/tests/imaiDomains.test.js`) and
+  `scripts/imai-domains.mjs` (about 25 s).
+- Outputs, all in **`docs/domains/`**: `domains.json`, `domain-size-vs-scale.png` and
+  `domain-contribution.png`.
+
+### Operational definition (fixed before any result)
+
+- **Fates:** L(n) for odd negative n with |n| ≤ 2²² − 1, from the unchanged fate
+  table. All settled.
+- **Blocks:** B_k = odd n with 2^k ≤ |n| < 2^(k+1).
+- **Windows:** within one block, non-overlapping tiles of w consecutive odd integers,
+  in increasing |n|, starting at the block's lowest |n|. The primary width is
+  **w = 1,024**; w = 256 and w = 4,096 are robustness checks. The share-sd table also
+  uses 16,384.
+- **Dominated window:** one fate's share is ≥ τ. Primary **τ = 0.5**; robustness
+  τ = 0.45 and 0.55.
+- **Domain:** a maximal run of consecutive windows *within one block*, all dominated
+  by the same fate.
+  - **Runs stop at block boundaries**, even if the neighbouring block continues the
+    same fate.
+  - Length is counted in odd integers (windows × w), so **lengths are whole multiples
+    of w**.
+- **F, baseline and excess** are as in the colour-map study (fate-map pair convention).
+- **Domain-only prediction:** A_dom(r) = mean over pairs (n, n + 2r) of
+  Σ_i p_i(W(n)) p_i(W(n + 2r)), where W(x) is the w-window containing x. That is the
+  agreement expected if fates were independent given their windows' shares.
+  E_dom = A_dom − baseline.
+- **Which blocks each analysis uses:**
+  - Domain statistics: every complete block with at least one window.
+  - Scaling fits: k = 14 to 21, restricted to blocks with **≥ 10 domains**.
+  - Part 2: k = 14 to 21. Partners below B₁₄ fall in B₁₃, which is tiled the same way.
+
+### Sanity checks (all passed before any analysis)
+
+1. **Fate table:** F(1) = 0.4293 over 8,191 pairs; counts −1: 2673, −5: 2667,
+   −17: 2852; 0 unsettled. ✔
+2. **The colour map's window numbers, recomputed:**
+   - Map B's per-window Σp² spans [0.33334, 0.36313], identical to the stored values. ✔
+   - In B₂₁ at w = 1,024, single-fate shares span [0.045, 0.685] with mean sd 0.1152,
+     against 0.0147 for independent fates, identical to the stored values. ✔
+3. **Hand-checked synthetic case:** 16 + 8 entries at w = 4. Domain extraction, the
+   length list, the τ dependence and A_dom(1) = 6.5/16 are all worked out by hand in
+   the test. ✔
+4. Also checked: **E_k(r) equals `fate-map.json`'s Map A excess exactly** (all of
+   B₁₄–B₂₁, r = 1–128, at 5 decimals). ✔
+
+### Part 1: domain sizes
+
+**Primary setting (w = 1,024, τ = 0.5):**
+
+| block | B₁₄ | B₁₅ | B₁₆ | B₁₇ | B₁₈ | B₁₉ | B₂₀ | B₂₁ |
+|---|---|---|---|---|---|---|---|---|
+| domains | **0** | **0** | **0** | 1 | 12 | 34 | 99 | 205 |
+| one-window domains | — | — | — | 1 | 12 | 25 | 80 | 138 |
+| mean length | — | — | — | 1,024 | 1,024 | 1,295 | 1,334 | 1,424 |
+| median length | — | — | — | 1,024 | 1,024 | 1,024 | 1,024 | 1,024 |
+| longest | — | — | — | 1,024 | 1,024 | 2,048 | 3,072 | 4,096 |
+| fraction of block in domains | 0 | 0 | 0 | 0.016 | 0.094 | 0.168 | 0.252 | 0.278 |
+
+**By fate, B₂₁:**
+
+| fate | domains | mean length | longest |
+|---|---|---|---|
+| −1 | 66 | 1,148 | 2,048 |
+| −5 | 60 | 1,604 | 4,096 |
+| −17 | 79 | 1,517 | 4,096 |
+
+**Scaling of typical domain size** (size ∝ |n|^α, fitted as log₂ size against k over
+blocks with ≥ 10 domains):
+
+| setting | blocks fitted | α from mean size | R² | α from median |
+|---|---|---|---|---|
+| **w = 1,024, τ = 0.5 (primary)** | B₁₈–B₂₁ | **0.147** | 0.84 | 0 (floor) |
+| w = 256, τ = 0.5 | B₁₆–B₂₁ | 0.128 | 0.87 | 0 (floor) |
+| w = 4,096, τ = 0.5 | only B₂₁ has ≥ 10 | no fit | — | — |
+| w = 1,024, τ = 0.45 | B₁₇–B₂₁ | 0.218 | 0.98 | 0 (floor) |
+| w = 1,024, τ = 0.55 | B₂₀–B₂₁ (two points) | 0.185 | 1 (trivial) | 0 (floor) |
+
+**What this shows, plainly:**
+
+- **The requested fit over k = 14–21 is not possible with this definition.** At the
+  primary setting, B₁₄–B₁₆ contain no domains at all, and B₁₇ contains one. The fit
+  can use only B₁₈–B₂₁.
+- **The median is pinned at one window (1,024) in every block, by construction.** In
+  B₂₁, 138 of the 205 domains are a single window. So the median carries no
+  information about growth, and the mean grows only through a minority of multi-window
+  domains.
+- **The fitted α is small (0.13–0.22), poorly determined and not robust.** It changes
+  with (w, τ), rests on 2–6 blocks, and at w = 4,096 cannot be computed. **I do not
+  regard it as a measurement of how domain size grows with |n|.**
+- **What does grow strongly** is the *fraction* of each block inside domains: from 0
+  (B₁₆) to 0.28 (B₂₁), about +0.53 in log₂ per doubling of |n| over B₁₈–B₂₁. At a
+  fixed (w, τ), this definition mostly counts how often windows cross the threshold,
+  which tracks the growing share fluctuations. It does not track how long the
+  correlated stretches are.
+
+**Share fluctuation against window width** (sd of window shares, mean over fates;
+independent fates give w^(−½)):
+
+| block | decay exponent of sd vs w | variance inflation (sd / independent sd)² at w = 256 / 1,024 / 4,096 / 16,384 |
+|---|---|---|
+| B₁₄ | −0.97 (2 widths) | 8.7 / 2.4 / — / — |
+| B₁₆ | −0.71 | 12.1 / 21.4 / 3.8 / — |
+| B₁₈ | −0.54 | 17.3 / 31.5 / 55.8 / 9.7 |
+| B₁₉ | −0.40 | 20.2 / 42.0 / 72.0 / 41.8 |
+| B₂₀ | −0.27 | 23.2 / 51.2 / 89.0 / 158.1 |
+| B₂₁ | **−0.25** | 26.1 / 61.2 / 128.3 / **196.8** |
+
+The full table is in the JSON.
+
+- **In the high blocks the sd decays far more slowly than w^(−½).** The exponent is
+  −0.25 in B₂₁, against −0.5 for independence.
+- **In B₂₀ and B₂₁ the variance inflation is still rising at w = 16,384.** So fates
+  stay correlated over stretches longer than 16,384 odd integers there. That is an
+  order of magnitude beyond the operational domain lengths (mean 1,424).
+- **Suggestive, not measured:** the width at which the variance inflation peaks moves
+  up with the block. It peaks at about 1,024 (B₁₆–B₁₇), at about 4,096 (B₁₈–B₁₉), and
+  beyond 16,384 (B₂₀–B₂₁). That would mean the correlated stretches grow about
+  fourfold per two doublings of |n|, i.e. **roughly in proportion to |n| (α ≈ 1)**.
+  The peaks at large w rest on only 4–16 windows. The fall after the peak in B₁₇–B₁₉
+  (for example 55.8 to 9.7 in B₁₈) is not what a stationary process would show, so
+  this indicator is noisy, possibly non-stationary, and **not a measurement of α**.
+
+**Contradiction with the colour-map study, stated plainly.** The colour-map section
+suggested domains grow "somewhat more slowly than |n|". This study does not confirm
+it, and does not measure α reliably:
+
+- the threshold-run definition gives α ≈ 0.13–0.22, but that number is dominated by
+  the window quantization and is not robust;
+- the variance-inflation peaks loosely suggest α ≈ 1;
+- the colour map's own evidence (share sd decreasing at fixed relative width) is
+  consistent with α < 1.
+
+These three indicators disagree. **The growth law of domain size remains unmeasured.**
+A definition that does not quantize at w, such as the autocorrelation length of the
+fate indicator, would be needed to measure it. That has not been done.
+
+### Part 2: how much of F do the domains explain?
+
+**At r = 1, primary w = 1,024:**
+
+| block | measured excess E | domain-only E_dom | share explained | residual E − E_dom | rough SE of the residual* | E_dom with shuffled fates |
+|---|---|---|---|---|---|---|
+| B₁₄ | 0.115 | 0.0014 | 1.2% | 0.114 | 0.009 | 0.0006 |
+| B₁₆ | 0.138 | 0.0136 | 9.9% | 0.125 | 0.013 | 0.0007 |
+| B₁₈ | 0.152 | 0.0207 | 13.6% | 0.132 | 0.008 | 0.0006 |
+| B₁₉ | 0.162 | 0.0274 | 16.9% | 0.135 | 0.006 | 0.0007 |
+| B₂₀ | 0.169 | 0.0334 | 19.8% | 0.136 | 0.005 | 0.0007 |
+| **B₂₁** | **0.175** | **0.0398** | **22.7%** | **0.135** | 0.004 | 0.0007 |
+
+\* The naive binomial SE of F(1), times √(variance inflation at w = 1,024). This is
+rough, since pairs are not independent.
+
+- **In the largest block, the domains account for 23% of the r = 1 excess.** The
+  remaining 77%, a residual of 0.135, is pair-level structure. It is about 35 rough
+  standard errors from zero, so it is clearly distinguishable from zero.
+- **The shuffled-fate floor of E_dom is 0.0006–0.0008.** That is the positive value
+  the prediction gives even for independent fates, because a window's shares include
+  the pair itself. It is negligible beside E_dom from B₁₆ up, but it is half of
+  B₁₄'s E_dom.
+- **The share explained grows with r.** In B₂₁ it is 23% at r = 1, 34% at r = 8, 46%
+  at r = 32, 55% at r = 64 and **65% at r = 128**. Averaged over r = 1–128 it is 61%.
+  So the long-range tail of F is mostly domains, and the short-range peak is mostly
+  pair-level structure (`domain-contribution.png`). In small blocks the ratio is
+  unstable at large r because E is near zero there; for example B₁₄ at r = 128 has
+  E = 0.0034.
+- **The growth of the r = 1 excess with |n| is mostly domain growth.**
+  - From B₁₆ to B₂₁, E rises by 0.037. E_dom rises by 0.026 (71% of that), while the
+    residual rises only by 0.011.
+  - The residual is nearly flat at 0.135–0.136 across B₁₉–B₂₁.
+  - That is with w = 1,024, and the split depends on w (next point).
+- **Robustness: the split depends on the window width.** In B₂₁ the share of the r = 1
+  excess explained is **38.7% at w = 256, 22.7% at w = 1,024 and 11.9% at w = 4,096**.
+  - Smaller windows attribute more to "domains", partly because a 256-wide window
+    begins to absorb genuine short-range pair structure.
+  - So "domain" against "pair-level" is not a scale-free decomposition, and the 23%
+    figure belongs to w = 1,024.
+  - At every width tested, **at least about 60% of the r = 1 excess is not explained
+    by window shares**.
+
+### Summary
+
+1. **Operational domains** (1,024-wide windows, ≥ 50% one fate, within blocks) exist
+   only from about |n| ≈ 2¹⁷ up. They are mostly a single window. They cover a rapidly
+   growing fraction of each block, 28% in B₂₁, while their measured length grows only
+   weakly (α ≈ 0.15, not robust). **The domain-size growth law is not measured by this
+   definition.**
+2. **Share fluctuations show correlated stretches longer than 16,384 odd integers in
+   the largest blocks**, far longer than the operational domains.
+3. **Fates independent given their local 1,024-window shares would explain 23% of the
+   r = 1 excess in B₂₁, and 65% at r = 128.** Most of the growth of the r = 1 excess
+   with |n| is attributable to that domain component. The pair-level residual (0.135)
+   is large, clearly non-zero, and roughly constant over the largest blocks.
+4. **These splits depend on the window width** and should be quoted with it.
