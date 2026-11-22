@@ -1784,3 +1784,133 @@ escaped. c = −1 and c = −3 have a single fate and did not qualify.
   keeps the dynamics contracting.
 - The strong neighbour clustering studied in Builds 4–8 appears here only in c = +1
   and its disguises. It is not a general feature of 3n + c.
+
+---
+
+## Does the domain component saturate? (Nov 2026)
+
+**This build was Franklin's own question, testing his own synthesis. It was not an
+Imai request.**
+
+On 22 Nov 2026 Franklin summarised Build 8 like this:
+
+- the pair-level residual of F(1) is already flat (about 0.135) across the three
+  largest blocks measured (B₁₉–B₂₁);
+- about 71% of F(1)'s growth is domain-driven;
+- so whether F(1) converges is largely whether the domain contribution saturates.
+
+This build tests that over a longer ladder. Imai agreed to leave the domain growth law
+open in the joint note. This study is for Franklin's own understanding, and **nothing
+from it goes to Imai unasked**.
+
+Where things are:
+
+- Code: `js/imaiDomainSaturation.js` (tests: `js/tests/imaiDomainSaturation.test.js`)
+  and `scripts/imai-domain-saturation.mjs`.
+- Output: **`docs/domain-saturation/domain-saturation.json`**.
+
+### Settings
+
+- **Blocks** B_k = odd n with 2^k ≤ |n| < 2^(k+1) (the Builds 6–8 convention), for
+  k = 14 to 26.
+  - Under this convention B₂₆ runs to |n| = 2²⁷ − 1, beyond Build 5's
+    |n| ≤ 2²⁶ − 1 (Build 5 numbered blocks one higher).
+  - So fates were computed for **every odd negative n down to −(2²⁷ − 1), 67,108,864
+    values**, with the unchanged fate code and a 2,000-step cap. **All settled.**
+  - The sweep took 929 s. No 2²⁰-value chunk came near the 60-second tripwire.
+- **F(1)** uses the fate-map pair convention: each n in B_k is paired with n + 2.
+- **Decomposition:** Build 8's primary setting, block-internal windows w = 1,024.
+  E = F(1) − Σp² (block shares), E_dom = A_dom(1) − Σp², residual = E − E_dom.
+- **Lean computation.** Build 8's per-integer share table would need about 1.6 GB at
+  this range. So `blockSplit` computes the r = 1 split block by block from window
+  shares, and the tests prove it gives **identical** results to Build 8's functions
+  (blocks 14–18, w = 256, 1,024 and 4,096).
+
+### Sanity checks (all passed)
+
+1. **Build 8's B₂₁ decomposition, reproduced:** domains explain **22.73%**, and the
+   residual is **0.13545**, an exact match. ✔
+2. **Build 5's ladder:**
+   - F(1) = **0.4293 over 8,191 pairs** at |n| ≤ 16,383;
+   - cumulative F(1) = **0.5245** at |n| ≤ 2²⁶ − 1;
+   - at every overlapping block (B₁₄–B₂₅ here, Build 5's blocks 15–26), the
+     inside-block F(1) equals Build 5's stored value exactly. ✔
+3. **Components sum:** E_dom + residual = E at every block, exactly by construction,
+   and within 1.5 × 10⁻⁵ after rounding. ✔
+
+### The ladder (w = 1,024)
+
+| block | F(1) | baseline | excess E | domain part E_dom | residual | domain share |
+|---|---|---|---|---|---|---|
+| B₁₄ | 0.44897 | 0.33350 | 0.11548 | 0.00139 | 0.11409 | 1.2% |
+| B₁₅ | 0.45721 | 0.33372 | 0.12349 | 0.00285 | 0.12064 | 2.3% |
+| B₁₆ | 0.47202 | 0.33373 | 0.13829 | 0.01363 | 0.12465 | 9.9% |
+| B₁₇ | 0.47916 | 0.33377 | 0.14538 | 0.01845 | 0.12693 | 12.7% |
+| B₁₈ | 0.48615 | 0.33369 | 0.15246 | 0.02067 | 0.13179 | 13.6% |
+| B₁₉ | 0.49574 | 0.33365 | 0.16209 | 0.02744 | 0.13464 | 16.9% |
+| B₂₀ | 0.50266 | 0.33366 | 0.16900 | 0.03340 | 0.13560 | 19.8% |
+| B₂₁ | 0.50896 | 0.33366 | 0.17530 | 0.03984 | 0.13545 | 22.7% |
+| B₂₂ | 0.51444 | 0.33367 | 0.18077 | 0.04725 | 0.13352 | 26.1% |
+| B₂₃ | 0.51947 | 0.33367 | 0.18579 | 0.05416 | 0.13163 | 29.2% |
+| B₂₄ | 0.52460 | 0.33369 | 0.19091 | 0.06116 | 0.12975 | 32.0% |
+| B₂₅ | 0.52987 | 0.33369 | 0.19618 | 0.06821 | 0.12798 | 34.8% |
+| B₂₆ | 0.53439 | 0.33368 | 0.20072 | 0.07494 | 0.12577 | 37.3% |
+
+**Increments per doubling (top of the range):**
+
+| step | ΔE | ΔE_dom | Δresidual |
+|---|---|---|---|
+| B₁₉ → B₂₀ | +0.00691 | +0.00596 | +0.00095 |
+| B₂₀ → B₂₁ | +0.00630 | +0.00644 | −0.00014 |
+| B₂₁ → B₂₂ | +0.00548 | +0.00741 | −0.00193 |
+| B₂₂ → B₂₃ | +0.00502 | +0.00691 | −0.00189 |
+| B₂₃ → B₂₄ | +0.00512 | +0.00699 | −0.00188 |
+| B₂₄ → B₂₅ | +0.00527 | +0.00705 | −0.00178 |
+| B₂₅ → B₂₆ | +0.00453 | +0.00674 | −0.00220 |
+
+All increments from B₁₄ are in the JSON.
+
+**w-sensitivity at the largest block, B₂₆:**
+
+| window w | E_dom | residual | domain share of E |
+|---|---|---|---|
+| 256 | 0.10176 | 0.09895 | 50.7% |
+| 1,024 | 0.07494 | 0.12577 | 37.3% |
+| 4,096 | 0.05216 | 0.14855 | 26.0% |
+
+At B₂₁ the corresponding shares were 38.7%, 22.7% and 11.9%.
+
+### What the increments do at the top of the range
+
+**The domain component does not saturate over the measured range.** Its increment per
+doubling is +0.0064 to +0.0074 at every step from B₂₀→B₂₁ to B₂₅→B₂₆. The last
+increment (+0.0067) is no smaller than the first. There is no shrinking toward zero
+anywhere in B₂₀–B₂₆.
+
+**The residual is not flat beyond B₂₁.** It peaks at B₂₀–B₂₁ (0.1356, 0.1355) and then
+falls at every step, by about 0.0019 per doubling, to 0.1258 at B₂₆. The "flat at about
+0.135" in the synthesis was true only of the three blocks Build 8 measured. It does not
+hold beyond them.
+
+**So the synthesis's two premises do not hold over the longer range.**
+
+- E still grows (+0.0045 to +0.0055 per doubling over B₂₁–B₂₆), slowly decelerating.
+- That growth is **more than entirely** domain-driven: the domain part accounts for
+  134–149% of each increment from B₂₁→B₂₂ on, while the residual subtracts.
+- The "71% domain-driven" figure belonged to B₁₆→B₂₁.
+
+**Strength of the conclusion.** This is a measurement over 13 dyadic blocks, at one
+window width, of a decomposition that depends strongly on the window.
+
+- The split is window-dependent and grows more so: at B₂₆ the domain share is 51%,
+  37% or 26% depending on w.
+- **Part of the residual's decline may be an artefact of keeping w fixed** while the
+  domain scale grows with |n|. A 1,024-wide window samples a smaller fraction of a
+  larger domain, so more of the domain structure looks local, and the split shifts
+  toward "domain". This has not been tested. A window that scales with |n| would be
+  needed.
+- **What the data do support:** at w = 1,024, the domain component shows no sign of
+  saturating up to |n| = 2²⁷, and the residual is not constant there.
+- **What they do not support:** any statement about convergence or non-convergence of
+  F(1). Saturation would not have proved convergence, and its absence over this range
+  does not prove divergence.

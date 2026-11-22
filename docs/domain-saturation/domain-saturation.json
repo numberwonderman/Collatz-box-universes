@@ -1,0 +1,438 @@
+{
+ "note": "Build 11 is Franklin's own question, testing his own synthesis (21-22 Nov 2026); not an Imai request. Imai agreed to leave the domain growth law open in the joint note.",
+ "settings": {
+  "fates": "odd n, -134217727 <= n <= -1 (67108864 values), 3n + 1, step cap 2000, all settled",
+  "blocks": "B_k = odd n with 2^k <= |n| < 2^(k+1) (Builds 6-8); k = 14..26",
+  "F1": "fate-map convention (each n in B_k with n + 2; the lowest-|n| element pairs into B_(k-1))",
+  "decomposition": "Build 8 primary setting: block-internal windows w = 1024, tau = 0.5 (tau only enters domain counting, not the split); E_dom = A_dom(1) - baseline; residual = E - E_dom"
+ },
+ "sanityChecks": {
+  "build8B21": {
+   "residual": 0.13545,
+   "ratio": 0.2273,
+   "expected": {
+    "residual": 0.13545,
+    "ratio": 0.2273
+   },
+   "passed": true
+  },
+  "build5Ladder": {
+   "F1At16383": 0.4293,
+   "pairsAt16383": 8191,
+   "cumulativeF1At2pow26m1": 0.5245,
+   "cumulativePairs": 33554431,
+   "overlappingBlocks": [
+    {
+     "k": 14,
+     "fatePartitionBlock": 15,
+     "F1InsideBlock": 0.44903,
+     "fatePartition": 0.44903
+    },
+    {
+     "k": 15,
+     "fatePartitionBlock": 16,
+     "F1InsideBlock": 0.45718,
+     "fatePartition": 0.45718
+    },
+    {
+     "k": 16,
+     "fatePartitionBlock": 17,
+     "F1InsideBlock": 0.47203,
+     "fatePartition": 0.47203
+    },
+    {
+     "k": 17,
+     "fatePartitionBlock": 18,
+     "F1InsideBlock": 0.47916,
+     "fatePartition": 0.47916
+    },
+    {
+     "k": 18,
+     "fatePartitionBlock": 19,
+     "F1InsideBlock": 0.48615,
+     "fatePartition": 0.48615
+    },
+    {
+     "k": 19,
+     "fatePartitionBlock": 20,
+     "F1InsideBlock": 0.49573,
+     "fatePartition": 0.49573
+    },
+    {
+     "k": 20,
+     "fatePartitionBlock": 21,
+     "F1InsideBlock": 0.50266,
+     "fatePartition": 0.50266
+    },
+    {
+     "k": 21,
+     "fatePartitionBlock": 22,
+     "F1InsideBlock": 0.50896,
+     "fatePartition": 0.50896
+    },
+    {
+     "k": 22,
+     "fatePartitionBlock": 23,
+     "F1InsideBlock": 0.51444,
+     "fatePartition": 0.51444
+    },
+    {
+     "k": 23,
+     "fatePartitionBlock": 24,
+     "F1InsideBlock": 0.51947,
+     "fatePartition": 0.51947
+    },
+    {
+     "k": 24,
+     "fatePartitionBlock": 25,
+     "F1InsideBlock": 0.5246,
+     "fatePartition": 0.5246
+    },
+    {
+     "k": 25,
+     "fatePartitionBlock": 26,
+     "F1InsideBlock": 0.52987,
+     "fatePartition": 0.52987
+    }
+   ],
+   "passed": true,
+   "note": "Build 5 numbers blocks one higher (its block k is 2^(k-1) <= |n| < 2^k). Its block values use pairs inside the block; this build's F(1) uses the fate-map convention, one extra pair per block, so the inside-block value is the one compared."
+  },
+  "componentsSum": {
+   "statement": "E_dom + residual = E at every block (exact by construction; rounded values within 1.5e-5)",
+   "passed": true
+  }
+ },
+ "blocks": [
+  {
+   "k": 14,
+   "size": 8192,
+   "pairs": 8192,
+   "F1": 0.44897,
+   "baseline": 0.3335,
+   "shares": [
+    0.33508,
+    0.32349,
+    0.34143
+   ],
+   "E": 0.11548,
+   "Edom": 0.00139,
+   "residual": 0.11409,
+   "domainShareOfE": 0.012
+  },
+  {
+   "k": 15,
+   "size": 16384,
+   "pairs": 16384,
+   "F1": 0.45721,
+   "baseline": 0.33372,
+   "shares": [
+    0.33533,
+    0.31854,
+    0.34613
+   ],
+   "E": 0.12349,
+   "Edom": 0.00285,
+   "residual": 0.12064,
+   "domainShareOfE": 0.0231
+  },
+  {
+   "k": 16,
+   "size": 32768,
+   "pairs": 32768,
+   "F1": 0.47202,
+   "baseline": 0.33373,
+   "shares": [
+    0.32962,
+    0.3215,
+    0.34888
+   ],
+   "E": 0.13829,
+   "Edom": 0.01363,
+   "residual": 0.12465,
+   "domainShareOfE": 0.0986
+  },
+  {
+   "k": 17,
+   "size": 65536,
+   "pairs": 65536,
+   "F1": 0.47916,
+   "baseline": 0.33377,
+   "shares": [
+    0.32756,
+    0.32225,
+    0.35019
+   ],
+   "E": 0.14538,
+   "Edom": 0.01845,
+   "residual": 0.12693,
+   "domainShareOfE": 0.1269
+  },
+  {
+   "k": 18,
+   "size": 131072,
+   "pairs": 131072,
+   "F1": 0.48615,
+   "baseline": 0.33369,
+   "shares": [
+    0.32652,
+    0.32467,
+    0.34881
+   ],
+   "E": 0.15246,
+   "Edom": 0.02067,
+   "residual": 0.13179,
+   "domainShareOfE": 0.1356
+  },
+  {
+   "k": 19,
+   "size": 262144,
+   "pairs": 262144,
+   "F1": 0.49574,
+   "baseline": 0.33365,
+   "shares": [
+    0.32755,
+    0.32472,
+    0.34773
+   ],
+   "E": 0.16209,
+   "Edom": 0.02744,
+   "residual": 0.13464,
+   "domainShareOfE": 0.1693
+  },
+  {
+   "k": 20,
+   "size": 524288,
+   "pairs": 524288,
+   "F1": 0.50266,
+   "baseline": 0.33366,
+   "shares": [
+    0.32758,
+    0.32452,
+    0.34791
+   ],
+   "E": 0.169,
+   "Edom": 0.0334,
+   "residual": 0.1356,
+   "domainShareOfE": 0.1977
+  },
+  {
+   "k": 21,
+   "size": 1048576,
+   "pairs": 1048576,
+   "F1": 0.50896,
+   "baseline": 0.33366,
+   "shares": [
+    0.32769,
+    0.32431,
+    0.34801
+   ],
+   "E": 0.1753,
+   "Edom": 0.03984,
+   "residual": 0.13545,
+   "domainShareOfE": 0.2273
+  },
+  {
+   "k": 22,
+   "size": 2097152,
+   "pairs": 2097152,
+   "F1": 0.51444,
+   "baseline": 0.33367,
+   "shares": [
+    0.32741,
+    0.32441,
+    0.34818
+   ],
+   "E": 0.18077,
+   "Edom": 0.04725,
+   "residual": 0.13352,
+   "domainShareOfE": 0.2614
+  },
+  {
+   "k": 23,
+   "size": 4194304,
+   "pairs": 4194304,
+   "F1": 0.51947,
+   "baseline": 0.33367,
+   "shares": [
+    0.32726,
+    0.32442,
+    0.34833
+   ],
+   "E": 0.18579,
+   "Edom": 0.05416,
+   "residual": 0.13163,
+   "domainShareOfE": 0.2915
+  },
+  {
+   "k": 24,
+   "size": 8388608,
+   "pairs": 8388608,
+   "F1": 0.5246,
+   "baseline": 0.33369,
+   "shares": [
+    0.32687,
+    0.3244,
+    0.34872
+   ],
+   "E": 0.19091,
+   "Edom": 0.06116,
+   "residual": 0.12975,
+   "domainShareOfE": 0.3203
+  },
+  {
+   "k": 25,
+   "size": 16777216,
+   "pairs": 16777216,
+   "F1": 0.52987,
+   "baseline": 0.33369,
+   "shares": [
+    0.32683,
+    0.32457,
+    0.34861
+   ],
+   "E": 0.19618,
+   "Edom": 0.06821,
+   "residual": 0.12798,
+   "domainShareOfE": 0.3477
+  },
+  {
+   "k": 26,
+   "size": 33554432,
+   "pairs": 33554432,
+   "F1": 0.53439,
+   "baseline": 0.33368,
+   "shares": [
+    0.32677,
+    0.32476,
+    0.34847
+   ],
+   "E": 0.20072,
+   "Edom": 0.07494,
+   "residual": 0.12577,
+   "domainShareOfE": 0.3734
+  }
+ ],
+ "increments": [
+  {
+   "from": 14,
+   "to": 15,
+   "dE": 0.00802,
+   "dEdom": 0.00146,
+   "dResidual": 0.00656,
+   "domainShareOfIncrement": 0.182
+  },
+  {
+   "from": 15,
+   "to": 16,
+   "dE": 0.01479,
+   "dEdom": 0.01078,
+   "dResidual": 0.00401,
+   "domainShareOfIncrement": 0.729
+  },
+  {
+   "from": 16,
+   "to": 17,
+   "dE": 0.0071,
+   "dEdom": 0.00482,
+   "dResidual": 0.00228,
+   "domainShareOfIncrement": 0.679
+  },
+  {
+   "from": 17,
+   "to": 18,
+   "dE": 0.00708,
+   "dEdom": 0.00222,
+   "dResidual": 0.00486,
+   "domainShareOfIncrement": 0.313
+  },
+  {
+   "from": 18,
+   "to": 19,
+   "dE": 0.00963,
+   "dEdom": 0.00677,
+   "dResidual": 0.00286,
+   "domainShareOfIncrement": 0.703
+  },
+  {
+   "from": 19,
+   "to": 20,
+   "dE": 0.00691,
+   "dEdom": 0.00596,
+   "dResidual": 0.00095,
+   "domainShareOfIncrement": 0.862
+  },
+  {
+   "from": 20,
+   "to": 21,
+   "dE": 0.0063,
+   "dEdom": 0.00644,
+   "dResidual": -0.00014,
+   "domainShareOfIncrement": 1.023
+  },
+  {
+   "from": 21,
+   "to": 22,
+   "dE": 0.00548,
+   "dEdom": 0.00741,
+   "dResidual": -0.00193,
+   "domainShareOfIncrement": 1.353
+  },
+  {
+   "from": 22,
+   "to": 23,
+   "dE": 0.00502,
+   "dEdom": 0.00691,
+   "dResidual": -0.00189,
+   "domainShareOfIncrement": 1.377
+  },
+  {
+   "from": 23,
+   "to": 24,
+   "dE": 0.00512,
+   "dEdom": 0.00699,
+   "dResidual": -0.00188,
+   "domainShareOfIncrement": 1.366
+  },
+  {
+   "from": 24,
+   "to": 25,
+   "dE": 0.00527,
+   "dEdom": 0.00705,
+   "dResidual": -0.00178,
+   "domainShareOfIncrement": 1.337
+  },
+  {
+   "from": 25,
+   "to": 26,
+   "dE": 0.00453,
+   "dEdom": 0.00674,
+   "dResidual": -0.0022,
+   "domainShareOfIncrement": 1.486
+  }
+ ],
+ "wSensitivityLargestBlock": {
+  "block": 26,
+  "tau": 0.5,
+  "rows": [
+   {
+    "w": 256,
+    "Edom": 0.10176,
+    "residual": 0.09895,
+    "shareOfE": 0.507
+   },
+   {
+    "w": 1024,
+    "Edom": 0.07494,
+    "residual": 0.12577,
+    "shareOfE": 0.3734
+   },
+   {
+    "w": 4096,
+    "Edom": 0.05216,
+    "residual": 0.14855,
+    "shareOfE": 0.2599
+   }
+  ]
+ }
+}
