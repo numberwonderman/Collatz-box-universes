@@ -2021,3 +2021,141 @@ member were independent):
   one v ≥ 2 neighbour. So the v = 1 versus v = 2 contrast compares the two different
   neighbours of the *same* points, one on each side. The answer was already in Build
   7's numbers, but the table makes the structure explicit.
+
+---
+
+## Which component carries the 2-adic modulation? (Nov 2026)
+
+**This build was Franklin's own question, not an Imai request.**
+
+- Build 6 found a 2-adic modulation in the total F(r): the excess is larger at r
+  divisible by higher powers of 2, in every block from B₁₄ on.
+- Build 8 split the excess into a domain component and a pair-level residual, but
+  only in total.
+- This build splits the modulation itself: which component carries it?
+
+**It is a measurement, not a mechanism.**
+
+Where things are:
+
+- Code: `js/imaiModulationSplit.js` (tests: `js/tests/imaiModulationSplit.test.js`)
+  and `scripts/imai-modulation-split.mjs` (about 25 s).
+- Output: **`docs/modulation-split/modulation-split.json`**. It contains, per block,
+  the grouped tables and the per-r decomposition they were grouped from.
+
+**Reuse, exactly as asked.**
+
+- F(r) for r = 1–128 uses Build 6's pair convention.
+- The split is Build 8's, at its primary setting of block-internal windows
+  w = 1,024 (τ = 0.5 only affects domain counting, not the split):
+  - E(r) = F(r) − Σp²;
+  - E_dom(r) = A_dom(r) − Σp²;
+  - residual = E − E_dom.
+- B₂₁ is primary; B₁₈ is the stability check.
+- The recomputed per-r E and E_dom equal `domains.json` and `fate-map.json` at every r,
+  in both blocks.
+
+### Sanity checks (all passed)
+
+1. **Build 8's B₂₁ explained shares:** **22.73%** at r = 1 and **65.12%** at r = 128. ✔
+2. **Build 6's totals at B₂₁:** E(1) = **0.1753**. The modulation is present: mean
+   excess **0.07103** at v₂(r) ≥ 3, against **0.06727** at odd r. ✔
+3. **Components sum:** E_dom + residual = E at every r in both blocks (exact). ✔
+
+### A fact about the method, stated first
+
+**The domain component is a straight line in r, by construction.**
+
+- With block-internal windows of w = 1,024 and r ≤ 128 (so 2r < w), a pair
+  (n, n + 2r) either lies inside one window or straddles exactly one window boundary.
+- The number of straddling pairs, and the block's lowest-|n| pairs reaching into the
+  previous block's last window, both grow linearly in r. So A_dom(r) is exactly linear
+  in r.
+- A test confirms its second differences vanish (below 10⁻¹² over r = 1–64 at B₁₆).
+  In the data it falls from 0.03984 at r = 1 to 0.03738 at r = 128 in B₂₁, a slope of
+  −1.9 × 10⁻⁵ per unit of r.
+- A straight line **cannot vary with v₂(r)**. So in this decomposition the domain
+  component cannot carry any 2-adic modulation, and the residual necessarily carries
+  all of it.
+- **That outcome is guaranteed by the method, not discovered.** The informative
+  statement is this: the modulation is *not* something the window-share (domain) model
+  at w = 1,024 can produce.
+
+### The grouped tables
+
+**Raw group means by v₂(r)** (the requested view). They are confounded with the decay
+of the excess in r, because the groups sit at different r. v₂ = 6 and v₂ = 7 are the
+single values r = 64 and r = 128.
+
+**B₂₁:**
+
+| v₂(r) | n | total E | domain E_dom | residual | domain share | residual share |
+|---|---|---|---|---|---|---|
+| 0 | 64 | 0.06727 | 0.03862 | 0.02865 | 0.574 | 0.426 |
+| 1 | 32 | 0.06905 | 0.03862 | 0.03043 | 0.559 | 0.441 |
+| 2 | 16 | 0.07045 | 0.03862 | 0.03183 | 0.548 | 0.452 |
+| 3 | 8 | 0.07185 | 0.03862 | 0.03323 | 0.537 | 0.463 |
+| 4 | 4 | 0.07237 | 0.03862 | 0.03376 | 0.534 | 0.466 |
+| 5 | 2 | 0.07211 | 0.03862 | 0.03349 | 0.536 | 0.464 |
+| 6 | 1 | 0.07054 | 0.03862 | 0.03192 | 0.548 | 0.452 |
+| 7 | 1 | 0.05740 | 0.03738 | 0.02002 | 0.651 | 0.349 |
+
+**B₁₈:**
+
+| v₂(r) | n | total E | domain E_dom | residual | domain share | residual share |
+|---|---|---|---|---|---|---|
+| 0 | 64 | 0.04477 | 0.01989 | 0.02488 | 0.444 | 0.556 |
+| 1 | 32 | 0.04655 | 0.01989 | 0.02666 | 0.427 | 0.573 |
+| 2 | 16 | 0.04788 | 0.01989 | 0.02799 | 0.415 | 0.585 |
+| 3 | 8 | 0.04830 | 0.01989 | 0.02841 | 0.412 | 0.588 |
+| 4 | 4 | 0.04972 | 0.01989 | 0.02983 | 0.400 | 0.600 |
+| 5 | 2 | 0.04744 | 0.01989 | 0.02754 | 0.419 | 0.581 |
+| 6 | 1 | 0.04527 | 0.01989 | 0.02537 | 0.439 | 0.561 |
+| 7 | 1 | 0.03941 | 0.01910 | 0.02031 | 0.485 | 0.515 |
+
+- **The domain mean is the same in every group from v₂ = 0 to 6.** A linear function
+  has the same mean over any set of r centred near the same point, and these groups
+  centre near r ≈ 64.
+- **The residual mean rises with v₂ from 0 to 4** in both blocks: +0.0051 in B₂₁ and
+  +0.0050 in B₁₈.
+- **The falls at v₂ = 5, 6, 7** reflect where those few r sit (large r, where the
+  residual has decayed most), not the modulation.
+
+**Detrended group means** (Build 6's method: each r minus the mean of r ± 1 and r ± 2,
+for 3 ≤ r ≤ 126, then averaged by v₂). This removes the decay. The detrended total in
+B₂₁ reproduces Build 6's published modulation exactly.
+
+| v₂(r) | n | B₂₁ total | B₂₁ domain | B₂₁ residual | B₁₈ total | B₁₈ domain | B₁₈ residual |
+|---|---|---|---|---|---|---|---|
+| 0 | 62 | −0.00203 | 0 | −0.00203 | −0.00190 | 0 | −0.00190 |
+| 1 | 31 | −0.00090 | 0 | −0.00090 | −0.00062 | 0 | −0.00062 |
+| 2 | 16 | +0.00308 | 0 | +0.00308 | +0.00288 | 0 | +0.00288 |
+| 3 | 8 | +0.00423 | 0 | +0.00423 | +0.00344 | 0 | +0.00344 |
+| 4 | 4 | +0.00567 | 0 | +0.00567 | +0.00577 | 0 | +0.00577 |
+| 5 | 2 | +0.00801 | 0 | +0.00801 | +0.00519 | 0 | +0.00519 |
+| 6 | 1 | +0.00958 | 0 | +0.00958 | +0.00931 | 0 | +0.00931 |
+
+The detrended domain value is 0 exactly; it reads |·| ≤ 5 × 10⁻⁶ on the 5-decimal data.
+
+### Which component carries the modulation, as measured
+
+- **The pair-level residual carries all of it, in both blocks, and the two blocks
+  agree.**
+  - Detrended, the residual rises with v₂: from −0.0020 at odd r to +0.0096 (B₂₁) or
+    +0.0093 (B₁₈) at r = 64.
+  - The rise is monotone in B₂₁. B₁₈ has one reversal (v₂ = 5 is below v₂ = 4), in a
+    group of two r values.
+  - The domain component stays flat at 0.
+- **The strength:** the modulation is about 0.01 in excess from odd r to r = 64. That
+  is a few percent of the r = 1 excess (0.175 in B₂₁), carried entirely by the residual.
+- **What this does and does not establish.**
+  - The domain component *cannot* carry the modulation in this decomposition, because
+    it is linear in r by construction. So "the residual carries it" is partly forced by
+    the method.
+  - What the data add: window-scale share variation at w = 1,024, which accounts for
+    23–65% of the excess depending on r, contributes **nothing** to the 2-adic
+    modulation. The modulation lives entirely in the pair-level structure that the
+    domain model leaves unexplained.
+- **No mechanism is claimed.** In particular, the earlier hypothesis that pairs
+  agreeing mod a higher power of 2 share early parity steps (fate-correlation section)
+  is neither confirmed nor tested here.
