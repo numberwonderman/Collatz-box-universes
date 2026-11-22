@@ -1,0 +1,1587 @@
+{
+ "note": "Build 10 is Franklin's own question, following Imai's multiplier question of Build 4 (which varied m for the +1 maps).",
+ "domain": "negative integers; odd n classified, even n follow their odd part",
+ "caps": {
+  "stepCap": 10000,
+  "magnitudeCap": "2^40",
+  "unsettled": "step cap hit without a repeated value",
+  "escaped": "|value| > 2^40"
+ },
+ "extensionRule": "a c is extended to |n| <= 2^18 - 1 when two or more fates each hold >= 5% of the settled main range",
+ "sanityChecks": {
+  "cPlus1": {
+   "counts": {
+    "-1": 2673,
+    "-5": 2667,
+    "-17": 2852
+   },
+   "F1": 0.4293,
+   "pairs": 8191,
+   "passed": true
+  },
+  "handOrbits": {
+   "minus1UnderPlus3": "-1 -> 0 -> 0 (cycle [0])",
+   "minus1UnderMinus3": "-1 -> -6 -> -3 -> -12 -> -6 (cycle [-3, -12, -6])",
+   "location": "js/tests/imaiVariedConstants.test.js",
+   "passed": "see test run"
+  },
+  "mirror": {
+   "range": "|n| <= 32767, odd, both sides classified independently with the same classifier and caps",
+   "perC": {
+    "1": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        -1,
+        -2
+       ],
+       [
+        -5,
+        -14,
+        -7,
+        -20,
+        -10
+       ],
+       [
+        -17,
+        -50,
+        -25,
+        -74,
+        -37,
+        -110,
+        -55,
+        -164,
+        -82,
+        -41,
+        -122,
+        -61,
+        -182,
+        -91,
+        -272,
+        -136,
+        -68,
+        -34
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        1,
+        2
+       ],
+       [
+        5,
+        14,
+        7,
+        20,
+        10
+       ],
+       [
+        17,
+        50,
+        25,
+        74,
+        37,
+        110,
+        55,
+        164,
+        82,
+        41,
+        122,
+        61,
+        182,
+        91,
+        272,
+        136,
+        68,
+        34
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    },
+    "3": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        0
+       ],
+       [
+        -3,
+        -6
+       ],
+       [
+        -15,
+        -42,
+        -21,
+        -60,
+        -30
+       ],
+       [
+        -51,
+        -150,
+        -75,
+        -222,
+        -111,
+        -330,
+        -165,
+        -492,
+        -246,
+        -123,
+        -366,
+        -183,
+        -546,
+        -273,
+        -816,
+        -408,
+        -204,
+        -102
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        0
+       ],
+       [
+        3,
+        6
+       ],
+       [
+        15,
+        42,
+        21,
+        60,
+        30
+       ],
+       [
+        51,
+        150,
+        75,
+        222,
+        111,
+        330,
+        165,
+        492,
+        246,
+        123,
+        366,
+        183,
+        546,
+        273,
+        816,
+        408,
+        204,
+        102
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    },
+    "5": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        1,
+        8,
+        4,
+        2
+       ],
+       [
+        -5,
+        -10
+       ],
+       [
+        -25,
+        -70,
+        -35,
+        -100,
+        -50
+       ],
+       [
+        -85,
+        -250,
+        -125,
+        -370,
+        -185,
+        -550,
+        -275,
+        -820,
+        -410,
+        -205,
+        -610,
+        -305,
+        -910,
+        -455,
+        -1360,
+        -680,
+        -340,
+        -170
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        -1,
+        -8,
+        -4,
+        -2
+       ],
+       [
+        5,
+        10
+       ],
+       [
+        25,
+        70,
+        35,
+        100,
+        50
+       ],
+       [
+        85,
+        250,
+        125,
+        370,
+        185,
+        550,
+        275,
+        820,
+        410,
+        205,
+        610,
+        305,
+        910,
+        455,
+        1360,
+        680,
+        340,
+        170
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    },
+    "-5": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        -1,
+        -8,
+        -4,
+        -2
+       ],
+       [
+        -19,
+        -62,
+        -31,
+        -98,
+        -49,
+        -152,
+        -76,
+        -38
+       ],
+       [
+        -5,
+        -20,
+        -10
+       ],
+       [
+        -23,
+        -74,
+        -37,
+        -116,
+        -58,
+        -29,
+        -92,
+        -46
+       ],
+       [
+        -187,
+        -566,
+        -283,
+        -854,
+        -427,
+        -1286,
+        -643,
+        -1934,
+        -967,
+        -2906,
+        -1453,
+        -4364,
+        -2182,
+        -1091,
+        -3278,
+        -1639,
+        -4922,
+        -2461,
+        -7388,
+        -3694,
+        -1847,
+        -5546,
+        -2773,
+        -8324,
+        -4162,
+        -2081,
+        -6248,
+        -3124,
+        -1562,
+        -781,
+        -2348,
+        -1174,
+        -587,
+        -1766,
+        -883,
+        -2654,
+        -1327,
+        -3986,
+        -1993,
+        -5984,
+        -2992,
+        -1496,
+        -748,
+        -374
+       ],
+       [
+        -347,
+        -1046,
+        -523,
+        -1574,
+        -787,
+        -2366,
+        -1183,
+        -3554,
+        -1777,
+        -5336,
+        -2668,
+        -1334,
+        -667,
+        -2006,
+        -1003,
+        -3014,
+        -1507,
+        -4526,
+        -2263,
+        -6794,
+        -3397,
+        -10196,
+        -5098,
+        -2549,
+        -7652,
+        -3826,
+        -1913,
+        -5744,
+        -2872,
+        -1436,
+        -718,
+        -359,
+        -1082,
+        -541,
+        -1628,
+        -814,
+        -407,
+        -1226,
+        -613,
+        -1844,
+        -922,
+        -461,
+        -1388,
+        -694
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        1,
+        8,
+        4,
+        2
+       ],
+       [
+        19,
+        62,
+        31,
+        98,
+        49,
+        152,
+        76,
+        38
+       ],
+       [
+        5,
+        20,
+        10
+       ],
+       [
+        23,
+        74,
+        37,
+        116,
+        58,
+        29,
+        92,
+        46
+       ],
+       [
+        187,
+        566,
+        283,
+        854,
+        427,
+        1286,
+        643,
+        1934,
+        967,
+        2906,
+        1453,
+        4364,
+        2182,
+        1091,
+        3278,
+        1639,
+        4922,
+        2461,
+        7388,
+        3694,
+        1847,
+        5546,
+        2773,
+        8324,
+        4162,
+        2081,
+        6248,
+        3124,
+        1562,
+        781,
+        2348,
+        1174,
+        587,
+        1766,
+        883,
+        2654,
+        1327,
+        3986,
+        1993,
+        5984,
+        2992,
+        1496,
+        748,
+        374
+       ],
+       [
+        347,
+        1046,
+        523,
+        1574,
+        787,
+        2366,
+        1183,
+        3554,
+        1777,
+        5336,
+        2668,
+        1334,
+        667,
+        2006,
+        1003,
+        3014,
+        1507,
+        4526,
+        2263,
+        6794,
+        3397,
+        10196,
+        5098,
+        2549,
+        7652,
+        3826,
+        1913,
+        5744,
+        2872,
+        1436,
+        718,
+        359,
+        1082,
+        541,
+        1628,
+        814,
+        407,
+        1226,
+        613,
+        1844,
+        922,
+        461,
+        1388,
+        694
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    },
+    "-3": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        -3,
+        -12,
+        -6
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        3,
+        12,
+        6
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    },
+    "-1": {
+     "negativesUnderTc": {
+      "cycles": [
+       [
+        -1,
+        -4,
+        -2
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "positivesUnderTminusC": {
+      "cycles": [
+       [
+        1,
+        4,
+        2
+       ]
+      ],
+      "unsettled": 0,
+      "escaped": 0
+     },
+     "cycleSetsMatchAfterNegation": true,
+     "nWithMirroredFate": 16384,
+     "of": 16384
+    }
+   },
+   "passed": true
+  }
+ },
+ "perC": {
+  "1": {
+   "map": "T(n) = n/2 (n even), 3n + 1 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.06,
+    "cycles": [
+     {
+      "key": -1,
+      "length": 2,
+      "elements": [
+       -1,
+       -2
+      ],
+      "count": 5418
+     },
+     {
+      "key": -5,
+      "length": 5,
+      "elements": [
+       -5,
+       -14,
+       -7,
+       -20,
+       -10
+      ],
+      "count": 5317
+     },
+     {
+      "key": -17,
+      "length": 18,
+      "elements": [
+       -17,
+       -50,
+       -25,
+       -74,
+       -37,
+       -110,
+       -55,
+       -164,
+       -82,
+       -41,
+       -122,
+       -61,
+       -182,
+       -91,
+       -272,
+       -136,
+       -68,
+       -34
+      ],
+      "count": 5649
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 300,
+    "shares": {
+     "-1": 0.33069,
+     "-5": 0.32452,
+     "-17": 0.34479
+    },
+    "F1": 0.43911,
+    "baseline": 0.33355,
+    "excess": 0.10556,
+    "pairs": 16383,
+    "same": 7194
+   },
+   "qualifiesForExtension": true,
+   "extended": {
+    "range": "odd n, -262143 <= n <= -1 (131072 values)",
+    "seconds": 0.89,
+    "cycles": [
+     {
+      "key": -1,
+      "length": 2,
+      "elements": [
+       -1,
+       -2
+      ],
+      "count": 43180
+     },
+     {
+      "key": -5,
+      "length": 5,
+      "elements": [
+       -5,
+       -14,
+       -7,
+       -20,
+       -10
+      ],
+      "count": 42190
+     },
+     {
+      "key": -17,
+      "length": 18,
+      "elements": [
+       -17,
+       -50,
+       -25,
+       -74,
+       -37,
+       -110,
+       -55,
+       -164,
+       -82,
+       -41,
+       -122,
+       -61,
+       -182,
+       -91,
+       -272,
+       -136,
+       -68,
+       -34
+      ],
+      "count": 45702
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 371,
+    "shares": {
+     "-1": 0.32944,
+     "-5": 0.32188,
+     "-17": 0.34868
+    },
+    "F1": 0.46962,
+    "baseline": 0.33372,
+    "excess": 0.13591,
+    "pairs": 131071,
+    "same": 61554
+   }
+  },
+  "3": {
+   "map": "T(n) = n/2 (n even), 3n + 3 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.06,
+    "cycles": [
+     {
+      "key": 0,
+      "length": 1,
+      "elements": [
+       0
+      ],
+      "count": 1
+     },
+     {
+      "key": -3,
+      "length": 2,
+      "elements": [
+       -3,
+       -6
+      ],
+      "count": 5345
+     },
+     {
+      "key": -15,
+      "length": 5,
+      "elements": [
+       -15,
+       -42,
+       -21,
+       -60,
+       -30
+      ],
+      "count": 5327
+     },
+     {
+      "key": -51,
+      "length": 18,
+      "elements": [
+       -51,
+       -150,
+       -75,
+       -222,
+       -111,
+       -330,
+       -165,
+       -492,
+       -246,
+       -123,
+       -366,
+       -183,
+       -546,
+       -273,
+       -816,
+       -408,
+       -204,
+       -102
+      ],
+      "count": 5711
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 245,
+    "shares": {
+     "0": 0.00006,
+     "-3": 0.32623,
+     "-15": 0.32513,
+     "-51": 0.34857
+    },
+    "F1": 0.58078,
+    "baseline": 0.33364,
+    "excess": 0.24714,
+    "pairs": 16383,
+    "same": 9515
+   },
+   "qualifiesForExtension": true,
+   "extended": {
+    "range": "odd n, -262143 <= n <= -1 (131072 values)",
+    "seconds": 0.8,
+    "cycles": [
+     {
+      "key": 0,
+      "length": 1,
+      "elements": [
+       0
+      ],
+      "count": 1
+     },
+     {
+      "key": -3,
+      "length": 2,
+      "elements": [
+       -3,
+       -6
+      ],
+      "count": 43388
+     },
+     {
+      "key": -15,
+      "length": 5,
+      "elements": [
+       -15,
+       -42,
+       -21,
+       -60,
+       -30
+      ],
+      "count": 42251
+     },
+     {
+      "key": -51,
+      "length": 18,
+      "elements": [
+       -51,
+       -150,
+       -75,
+       -222,
+       -111,
+       -330,
+       -165,
+       -492,
+       -246,
+       -123,
+       -366,
+       -183,
+       -546,
+       -273,
+       -816,
+       -408,
+       -204,
+       -102
+      ],
+      "count": 45432
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 364,
+    "shares": {
+     "0": 0.00001,
+     "-3": 0.33102,
+     "-15": 0.32235,
+     "-51": 0.34662
+    },
+    "F1": 0.6008,
+    "baseline": 0.33363,
+    "excess": 0.26717,
+    "pairs": 131071,
+    "same": 78748
+   }
+  },
+  "5": {
+   "map": "T(n) = n/2 (n even), 3n + 5 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.07,
+    "cycles": [
+     {
+      "key": 1,
+      "length": 4,
+      "elements": [
+       1,
+       8,
+       4,
+       2
+      ],
+      "count": 13107
+     },
+     {
+      "key": -5,
+      "length": 2,
+      "elements": [
+       -5,
+       -10
+      ],
+      "count": 1071
+     },
+     {
+      "key": -25,
+      "length": 5,
+      "elements": [
+       -25,
+       -70,
+       -35,
+       -100,
+       -50
+      ],
+      "count": 1067
+     },
+     {
+      "key": -85,
+      "length": 18,
+      "elements": [
+       -85,
+       -250,
+       -125,
+       -370,
+       -185,
+       -550,
+       -275,
+       -820,
+       -410,
+       -205,
+       -610,
+       -305,
+       -910,
+       -455,
+       -1360,
+       -680,
+       -340,
+       -170
+      ],
+      "count": 1139
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 297,
+    "shares": {
+     "1": 0.79999,
+     "-5": 0.06537,
+     "-25": 0.06512,
+     "-85": 0.06952
+    },
+    "F1": 0.59995,
+    "baseline": 0.65333,
+    "excess": -0.05338,
+    "pairs": 16383,
+    "same": 9829
+   },
+   "qualifiesForExtension": true,
+   "extended": {
+    "range": "odd n, -262143 <= n <= -1 (131072 values)",
+    "seconds": 1.18,
+    "cycles": [
+     {
+      "key": 1,
+      "length": 4,
+      "elements": [
+       1,
+       8,
+       4,
+       2
+      ],
+      "count": 104858
+     },
+     {
+      "key": -5,
+      "length": 2,
+      "elements": [
+       -5,
+       -10
+      ],
+      "count": 8735
+     },
+     {
+      "key": -25,
+      "length": 5,
+      "elements": [
+       -25,
+       -70,
+       -35,
+       -100,
+       -50
+      ],
+      "count": 8415
+     },
+     {
+      "key": -85,
+      "length": 18,
+      "elements": [
+       -85,
+       -250,
+       -125,
+       -370,
+       -185,
+       -550,
+       -275,
+       -820,
+       -410,
+       -205,
+       -610,
+       -305,
+       -910,
+       -455,
+       -1360,
+       -680,
+       -340,
+       -170
+      ],
+      "count": 9064
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 405,
+    "shares": {
+     "1": 0.8,
+     "-5": 0.06664,
+     "-25": 0.0642,
+     "-85": 0.06915
+    },
+    "F1": 0.6,
+    "baseline": 0.65335,
+    "excess": -0.05335,
+    "pairs": 131071,
+    "same": 78643
+   }
+  },
+  "-5": {
+   "map": "T(n) = n/2 (n even), 3n - 5 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.1,
+    "cycles": [
+     {
+      "key": -1,
+      "length": 4,
+      "elements": [
+       -1,
+       -8,
+       -4,
+       -2
+      ],
+      "count": 2312
+     },
+     {
+      "key": -19,
+      "length": 8,
+      "elements": [
+       -19,
+       -62,
+       -31,
+       -98,
+       -49,
+       -152,
+       -76,
+       -38
+      ],
+      "count": 8178
+     },
+     {
+      "key": -5,
+      "length": 3,
+      "elements": [
+       -5,
+       -20,
+       -10
+      ],
+      "count": 3277
+     },
+     {
+      "key": -23,
+      "length": 8,
+      "elements": [
+       -23,
+       -74,
+       -37,
+       -116,
+       -58,
+       -29,
+       -92,
+       -46
+      ],
+      "count": 1489
+     },
+     {
+      "key": -187,
+      "length": 44,
+      "elements": [
+       -187,
+       -566,
+       -283,
+       -854,
+       -427,
+       -1286,
+       -643,
+       -1934,
+       -967,
+       -2906,
+       -1453,
+       -4364,
+       -2182,
+       -1091,
+       -3278,
+       -1639,
+       -4922,
+       -2461,
+       -7388,
+       -3694,
+       -1847,
+       -5546,
+       -2773,
+       -8324,
+       -4162,
+       -2081,
+       -6248,
+       -3124,
+       -1562,
+       -781,
+       -2348,
+       -1174,
+       -587,
+       -1766,
+       -883,
+       -2654,
+       -1327,
+       -3986,
+       -1993,
+       -5984,
+       -2992,
+       -1496,
+       -748,
+       -374
+      ],
+      "count": 509
+     },
+     {
+      "key": -347,
+      "length": 44,
+      "elements": [
+       -347,
+       -1046,
+       -523,
+       -1574,
+       -787,
+       -2366,
+       -1183,
+       -3554,
+       -1777,
+       -5336,
+       -2668,
+       -1334,
+       -667,
+       -2006,
+       -1003,
+       -3014,
+       -1507,
+       -4526,
+       -2263,
+       -6794,
+       -3397,
+       -10196,
+       -5098,
+       -2549,
+       -7652,
+       -3826,
+       -1913,
+       -5744,
+       -2872,
+       -1436,
+       -718,
+       -359,
+       -1082,
+       -541,
+       -1628,
+       -814,
+       -407,
+       -1226,
+       -613,
+       -1844,
+       -922,
+       -461,
+       -1388,
+       -694
+      ],
+      "count": 619
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 305,
+    "shares": {
+     "-1": 0.14111,
+     "-19": 0.49915,
+     "-5": 0.20001,
+     "-23": 0.09088,
+     "-187": 0.03107,
+     "-347": 0.03778
+    },
+    "F1": 0.25435,
+    "baseline": 0.31972,
+    "excess": -0.06537,
+    "pairs": 16383,
+    "same": 4167
+   },
+   "qualifiesForExtension": true,
+   "extended": {
+    "range": "odd n, -262143 <= n <= -1 (131072 values)",
+    "seconds": 0.91,
+    "cycles": [
+     {
+      "key": -1,
+      "length": 4,
+      "elements": [
+       -1,
+       -8,
+       -4,
+       -2
+      ],
+      "count": 18512
+     },
+     {
+      "key": -19,
+      "length": 8,
+      "elements": [
+       -19,
+       -62,
+       -31,
+       -98,
+       -49,
+       -152,
+       -76,
+       -38
+      ],
+      "count": 64875
+     },
+     {
+      "key": -5,
+      "length": 3,
+      "elements": [
+       -5,
+       -20,
+       -10
+      ],
+      "count": 26214
+     },
+     {
+      "key": -23,
+      "length": 8,
+      "elements": [
+       -23,
+       -74,
+       -37,
+       -116,
+       -58,
+       -29,
+       -92,
+       -46
+      ],
+      "count": 12337
+     },
+     {
+      "key": -187,
+      "length": 44,
+      "elements": [
+       -187,
+       -566,
+       -283,
+       -854,
+       -427,
+       -1286,
+       -643,
+       -1934,
+       -967,
+       -2906,
+       -1453,
+       -4364,
+       -2182,
+       -1091,
+       -3278,
+       -1639,
+       -4922,
+       -2461,
+       -7388,
+       -3694,
+       -1847,
+       -5546,
+       -2773,
+       -8324,
+       -4162,
+       -2081,
+       -6248,
+       -3124,
+       -1562,
+       -781,
+       -2348,
+       -1174,
+       -587,
+       -1766,
+       -883,
+       -2654,
+       -1327,
+       -3986,
+       -1993,
+       -5984,
+       -2992,
+       -1496,
+       -748,
+       -374
+      ],
+      "count": 4225
+     },
+     {
+      "key": -347,
+      "length": 44,
+      "elements": [
+       -347,
+       -1046,
+       -523,
+       -1574,
+       -787,
+       -2366,
+       -1183,
+       -3554,
+       -1777,
+       -5336,
+       -2668,
+       -1334,
+       -667,
+       -2006,
+       -1003,
+       -3014,
+       -1507,
+       -4526,
+       -2263,
+       -6794,
+       -3397,
+       -10196,
+       -5098,
+       -2549,
+       -7652,
+       -3826,
+       -1913,
+       -5744,
+       -2872,
+       -1436,
+       -718,
+       -359,
+       -1082,
+       -541,
+       -1628,
+       -814,
+       -407,
+       -1226,
+       -613,
+       -1844,
+       -922,
+       -461,
+       -1388,
+       -694
+      ],
+      "count": 4909
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 373,
+    "shares": {
+     "-1": 0.14124,
+     "-19": 0.49496,
+     "-5": 0.2,
+     "-23": 0.09412,
+     "-187": 0.03223,
+     "-347": 0.03745
+    },
+    "F1": 0.25644,
+    "baseline": 0.31623,
+    "excess": -0.05979,
+    "pairs": 131071,
+    "same": 33612
+   }
+  },
+  "-3": {
+   "map": "T(n) = n/2 (n even), 3n - 3 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.08,
+    "cycles": [
+     {
+      "key": -3,
+      "length": 3,
+      "elements": [
+       -3,
+       -12,
+       -6
+      ],
+      "count": 16384
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 275,
+    "shares": {
+     "-3": 1
+    },
+    "F1": 1,
+    "baseline": 1,
+    "excess": 0,
+    "pairs": 16383,
+    "same": 16383
+   },
+   "qualifiesForExtension": false
+  },
+  "-1": {
+   "map": "T(n) = n/2 (n even), 3n - 1 (n odd)",
+   "main": {
+    "range": "odd n, -32767 <= n <= -1 (16384 values)",
+    "seconds": 0.09,
+    "cycles": [
+     {
+      "key": -1,
+      "length": 3,
+      "elements": [
+       -1,
+       -4,
+       -2
+      ],
+      "count": 16384
+     }
+    ],
+    "unsettled": 0,
+    "escaped": 0,
+    "maxStepsToCycle": 305,
+    "shares": {
+     "-1": 1
+    },
+    "F1": 1,
+    "baseline": 1,
+    "excess": 0,
+    "pairs": 16383,
+    "same": 16383
+   },
+   "qualifiesForExtension": false
+  }
+ },
+ "structure": {
+  "cPlus3": {
+   "statement": "for odd n != -1, T_3(n) = 3(n + 1); so the fate of n is 3 x (the c = +1 fate of the odd part of n + 1), and the pair (n, n - 2) corresponds to the consecutive integers m = (|n| - 1)/2 and m + 1 under c = +1",
+   "identityHoldsForEveryN": true,
+   "F1ExcludingNMinus1": {
+    "pairs": 16382,
+    "same": 9515,
+    "F1": 0.58082
+   },
+   "consecutiveIntegersUnderCPlus1": {
+    "m": "1..16383",
+    "pairs": 16382,
+    "same": 9515,
+    "agreement": 0.58082
+   },
+   "equal": true
+  },
+  "cPlus5": {
+   "statement": "3n + 5 = 3n (mod 5) and halving keeps the residue, so multiples of 5 never enter or leave their class; on it T_5(5m) = 5 T_1(m)",
+   "cyclesOnMultiplesOf5": [
+    -5,
+    -25,
+    -85
+   ],
+   "cyclesOnOtherOdd": [
+    1
+   ],
+   "classesDisjoint": true,
+   "multiplesOf5Are5xCpm1": true,
+   "pairsTouchingAMultipleOf5": {
+    "pairs": 6554,
+    "same": 0,
+    "note": "never agree: the two classes have disjoint cycle sets"
+   },
+   "pairsWithinNonMultiples": {
+    "pairs": 9829,
+    "same": 9829,
+    "F1": 1,
+    "baseline": 1,
+    "excess": 0,
+    "shares": {
+     "1": 1
+    }
+   },
+   "consecutiveMultiplesOf5": {
+    "pairs": 3276,
+    "same": 1378,
+    "agreement": 0.42063,
+    "equalsCpm1F1OverOddM": {
+     "range": "|m| <= 6553",
+     "pairs": 3276,
+     "same": 1378,
+     "F1": 0.42063
+    }
+   }
+  },
+  "cMinus5": {
+   "statement": "3n - 5 = 3n (mod 5) and halving keeps the residue, so multiples of 5 never enter or leave their class; on it T_-5(5m) = 5 T_-1(m)",
+   "cyclesOnMultiplesOf5": [
+    -5
+   ],
+   "cyclesOnOtherOdd": [
+    -1,
+    -19,
+    -23,
+    -187,
+    -347
+   ],
+   "classesDisjoint": true,
+   "multiplesOf5Are5xCpm1": true,
+   "pairsTouchingAMultipleOf5": {
+    "pairs": 6554,
+    "same": 0,
+    "note": "never agree: the two classes have disjoint cycle sets"
+   },
+   "pairsWithinNonMultiples": {
+    "pairs": 9829,
+    "same": 4167,
+    "F1": 0.42395,
+    "baseline": 0.43706,
+    "excess": -0.01311,
+    "shares": {
+     "-1": 0.17639,
+     "-19": 0.62394,
+     "-23": 0.1136,
+     "-187": 0.03883,
+     "-347": 0.04723
+    }
+   },
+   "consecutiveMultiplesOf5": {
+    "pairs": 3276,
+    "same": 3276,
+    "agreement": 1,
+    "equalsCpm1F1OverOddM": {
+     "range": "|m| <= 6553",
+     "pairs": 3276,
+     "same": 3276,
+     "F1": 1
+    }
+   },
+   "pairsWithinNonMultiplesExtended": {
+    "range": "odd n, -262143 <= n <= -1",
+    "pairs": 78643,
+    "same": 33612,
+    "F1": 0.4274,
+    "baseline": 0.43161,
+    "excess": -0.00421,
+    "naiveSe": 0.00176,
+    "shares": {
+     "-1": 0.17654,
+     "-19": 0.61869,
+     "-23": 0.11765,
+     "-187": 0.04029,
+     "-347": 0.04682
+    }
+   }
+  }
+ }
+}

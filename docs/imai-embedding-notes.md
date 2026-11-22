@@ -1656,3 +1656,131 @@ Neither shape adds information. As with the sphere in Build 3, the torus is the
 cylinder redrawn, and the spiral is the integer sequence redrawn. The structure they
 display (agreement of neighbours, growing with |n|, and the 2-adic pairing behind the
 vertical neighbours) was already measured in Builds 4–8.
+
+---
+
+## Varying the constant: fate partitions for 3n + c (Nov 2026)
+
+**This build was Franklin's own question, not one of Imai's requests.** It follows
+Imai's multiplier question from the other side. Build 4 varied the multiplier m for
+the +1 maps and found them expanding. This build fixes the multiplier at 3 and varies
+the constant: T_c(n) = n/2 (n even), 3n + c (n odd), for c = −5, −3, −1, +1, +3, +5,
+on the negative integers. Odd n are classified, and even n follow their odd part.
+
+Where things are:
+
+- Code: `js/imaiVariedConstants.js` (tests: `js/tests/imaiVariedConstants.test.js`)
+  and `scripts/imai-varied-constants.mjs` (about 6 s).
+- Output: **`docs/varied-constants/varied-constants.json`**.
+
+**Classifier.** One general classifier serves all six maps.
+
+- It has a **step cap of 10,000** (an orbit with no repeated value by then is
+  *unsettled*) and a **magnitude cap of 2⁴⁰** (*escaped*).
+- A cycle is detected when a value repeats within the orbit. It is listed starting
+  from its element of least |value| (on a tie, the negative one), and stored as an
+  explicit list in the JSON.
+- Reaching 0 is the cycle [0].
+- Orbits may change sign. For example −1 → 2 → 1 under c = +5, so a fate can be a
+  *positive* cycle.
+
+**Ranges.** The main range is odd n down to −(2¹⁵ − 1), 16,384 values. Any c with two
+or more fates each holding ≥ 5% was extended to −(2¹⁸ − 1), 131,072 values. Every
+range took at most about 1 s, with no cut. **Across all c and both ranges, no orbit
+was unsettled and none escaped.**
+
+### Sanity checks (all passed)
+
+1. **c = +1 reproduces the known partition:** at |n| ≤ 16,383, −1: 2673, −5: 2667,
+   −17: 2852, and F(1) = 0.4293 over 8,191 pairs. At the extended range F(1) is
+   0.4696, also the published value. ✔
+2. **The mirror identity T₋c(−n) = −T_c(n) holds in the data.** For each c, the
+   negatives under T_c and the positives under T₋c over the mirrored range
+   (|n| ≤ 2¹⁵ − 1) were classified **independently** with the same classifier and
+   caps. On both sides, the cycle sets coincide after negation, and every one of the
+   16,384 values has the mirrored fate. Both sides also have 0 unsettled and 0
+   escaped. ✔ The positive-side cycle lists are in the JSON.
+3. **Hand orbits,** worked out on paper and encoded as tests:
+   - under T₊₃, −1 → 3(−1) + 3 = **0** → 0, the cycle [0];
+   - under T₋₃, −1 → −6 → −3 → −12 → −6, the cycle **[−3, −12, −6]**. ✔
+
+### Per c (main range, |n| ≤ 2¹⁵ − 1)
+
+| c | cycles reached (start, length): share | F(1) | baseline Σp² | pairs |
+|---|---|---|---|---|
+| −5 | −19 (8): 49.9%, −5 (3): 20.0%, −1 (4): 14.1%, −23 (8): 9.1%, −347 (44): 3.8%, −187 (44): 3.1% | 0.2543 | 0.3197 | 16,383 |
+| −3 | −3 (3): 100% | 1 | 1 | 16,383 |
+| −1 | −1 (3): 100% | 1 | 1 | 16,383 |
+| +1 | −1 (2): 33.1%, −5 (5): 32.5%, −17 (18): 34.5% | 0.4391 | 0.3336 | 16,383 |
+| +3 | 0 (1): one value, −3 (2): 32.6%, −15 (5): 32.5%, −51 (18): 34.9% | 0.5808 | 0.3336 | 16,383 |
+| +5 | **+1** (4): 80.0%, −5 (2): 6.5%, −25 (5): 6.5%, −85 (18): 7.0% | 0.5999 | 0.6533 | 16,383 |
+
+All six have 0 unsettled and 0 escaped.
+
+**Extended range (|n| ≤ 2¹⁸ − 1), for the c that qualified:**
+
+| c | F(1) | baseline |
+|---|---|---|
+| +1 | 0.4696 | 0.3337 |
+| +3 | 0.6008 | 0.3336 |
+| +5 | 0.6000 | 0.6534 |
+| −5 | 0.2564 | 0.3162 |
+
+Shares are within about 0.005 of their main-range values, with 0 unsettled and 0
+escaped. c = −1 and c = −3 have a single fate and did not qualify.
+
+### What each c is
+
+- **c = −1 and c = −3: a single fate. Dull.** Every negative odd integer reaches −1
+  (c = −1) or −3 (c = −3). By the mirror these are the positives of 3n + 1 and 3n + 3
+  reaching their bottom cycle. F(1) = 1 trivially, and there is no partition to study.
+- **c = +3: the c = +1 partition in disguise.**
+  - For odd n, T₊₃(n) = 3(n + 1). So every orbit enters the multiples of 3 at once,
+    and on them T₊₃(3m) = 3·T₊₁(m). The cycles are 3× the c = +1 cycles (−3, −15, −51),
+    plus [0] for n = −1 alone.
+  - The fate of n is 3 × the c = +1 fate of the odd part of n + 1, which holds for
+    every n tested. Its F(1) (9,515 of 16,382 pairs, excluding n = −1) is *identical*
+    to c = +1's agreement between consecutive integers m and m + 1, the quantity
+    measured in Builds 7 and 9.
+  - **No new partition.**
+- **c = +5: mostly arithmetic.**
+  - Since 3n + 5 ≡ 3n (mod 5) and halving preserves the residue, the multiples of 5
+    form a closed class. On it, T₊₅(5m) = 5·T₊₁(m), giving 5× the c = +1 cycles:
+    −5, −25, −85.
+  - Every other odd negative (80%) goes to the **positive** cycle 1 → 8 → 4 → 2 → 1.
+  - Two odd integers 2 apart cannot both be multiples of 5. So the 6,554 pairs that
+    touch a multiple of 5 **never** agree, and the other 9,829 **always** agree. That
+    makes **F(1) = 9,829 / 16,383 = 0.59995**, below its baseline (0.6533) for a purely
+    arithmetic reason.
+  - Inside the multiples of 5, consecutive members (n, n − 10) agree exactly as c = +1
+    does over |m| ≤ 6,553 (1,378 of 3,276).
+  - **Nothing here is new.**
+- **c = −5: the one genuine new partition.**
+  - The multiples of 5 again form a closed class. On it, T₋₅(5m) = 5·T₋₁(m), so they
+    all go to −5 (20.0%).
+  - The other 80% split among **five cycles**: −19 (62.4% of that class), −1 (17.6%),
+    −23 (11.4%), −347 (4.7%) and −187 (3.9%). By the mirror, these are the cycles of
+    3n + 5 on the positives.
+  - Overall F(1) (0.254 against 0.320) is depressed by the mod-5 class, since a pair
+    touching a multiple of 5 never agrees.
+  - **Within the non-multiples, neighbours show essentially no correlation:**
+    - main range: 0.4239 against 0.4371 (9,829 pairs);
+    - extended range: 0.4274 against 0.4316 (78,643 pairs, excess −0.004, about 2.4
+      naive standard errors).
+  - This is unlike c = +1, whose neighbours agree well above chance (+0.106 at
+    2¹⁵ − 1, +0.136 at 2¹⁸ − 1). Whether the small deficit is real is not
+    established. The point is the absence of the strong positive correlation.
+
+### In short
+
+- Of the six constants, **two give a single fate** (c = −1, −3).
+- **Two re-express the c = +1 partition**, by rescaling: c = +3 by 3 and c = +5 by 5
+  on the multiples of 5. c = +5's F(1) is fixed by residues mod 5.
+- **c = +1 is the known case.**
+- **Only c = −5 carries a genuinely different multi-cycle partition** (the mirror of
+  3n + 5 on the positives). There, the strong neighbour correlation that defines the
+  3n + 1 partition is **absent**.
+- **None of the maps escapes.** Unlike the multipliers in Build 4, varying the constant
+  keeps the dynamics contracting.
+- The strong neighbour clustering studied in Builds 4–8 appears here only in c = +1
+  and its disguises. It is not a general feature of 3n + c.
