@@ -1,0 +1,457 @@
+{
+ "note": "Build 14 is Franklin's own question, testing Build 11's own caveat (the residual's fall may be an artefact of a fixed window). Not an Imai request.",
+ "settings": "Build 11 split unchanged (blockSplit): blocks B_k = odd n with 2^k <= |n| < 2^(k+1); fate-map pair convention; block-internal windows; the lowest-|n| element pairs into B_(k-1), tiled at the same w",
+ "sanityChecks": {
+  "fixedEqualsBuild11": {
+   "blocks": "19..26, all five quantities",
+   "B21": {
+    "domainShare": 0.2273,
+    "residual": 0.13545
+   },
+   "B26": {
+    "residual": 0.12577
+   },
+   "passed": true
+  },
+  "coincidences": {
+   "scalingB20": {
+    "w": 1024,
+    "Edom": 0.0334,
+    "residual": 0.1356
+   },
+   "halfScalingB22": {
+    "w": 1024,
+    "Edom": 0.04725,
+    "residual": 0.13352
+   },
+   "identicalToFixed": true,
+   "passed": true
+  },
+  "F1IdenticalAndComponentsSum": {
+   "passed": true
+  },
+  "fateTable": {
+   "source": "Build 11 cache (not recomputed)",
+   "N": 134217727,
+   "values": 67108864,
+   "unsettled": {
+    "cap": 0,
+    "overflow": 0
+   }
+  }
+ },
+ "fixed": {
+  "windowRule": "w = 1024",
+  "rows": [
+   {
+    "k": 19,
+    "w": 1024,
+    "windowsPerBlock": 256,
+    "F1": 0.49574,
+    "baseline": 0.33365,
+    "E": 0.16209,
+    "Edom": 0.02744,
+    "residual": 0.13464,
+    "domainShare": 0.1693
+   },
+   {
+    "k": 20,
+    "w": 1024,
+    "windowsPerBlock": 512,
+    "F1": 0.50266,
+    "baseline": 0.33366,
+    "E": 0.169,
+    "Edom": 0.0334,
+    "residual": 0.1356,
+    "domainShare": 0.1977
+   },
+   {
+    "k": 21,
+    "w": 1024,
+    "windowsPerBlock": 1024,
+    "F1": 0.50896,
+    "baseline": 0.33366,
+    "E": 0.1753,
+    "Edom": 0.03984,
+    "residual": 0.13545,
+    "domainShare": 0.2273
+   },
+   {
+    "k": 22,
+    "w": 1024,
+    "windowsPerBlock": 2048,
+    "F1": 0.51444,
+    "baseline": 0.33367,
+    "E": 0.18077,
+    "Edom": 0.04725,
+    "residual": 0.13352,
+    "domainShare": 0.2614
+   },
+   {
+    "k": 23,
+    "w": 1024,
+    "windowsPerBlock": 4096,
+    "F1": 0.51947,
+    "baseline": 0.33367,
+    "E": 0.18579,
+    "Edom": 0.05416,
+    "residual": 0.13163,
+    "domainShare": 0.2915
+   },
+   {
+    "k": 24,
+    "w": 1024,
+    "windowsPerBlock": 8192,
+    "F1": 0.5246,
+    "baseline": 0.33369,
+    "E": 0.19091,
+    "Edom": 0.06116,
+    "residual": 0.12975,
+    "domainShare": 0.3203
+   },
+   {
+    "k": 25,
+    "w": 1024,
+    "windowsPerBlock": 16384,
+    "F1": 0.52987,
+    "baseline": 0.33369,
+    "E": 0.19618,
+    "Edom": 0.06821,
+    "residual": 0.12798,
+    "domainShare": 0.3477
+   },
+   {
+    "k": 26,
+    "w": 1024,
+    "windowsPerBlock": 32768,
+    "F1": 0.53439,
+    "baseline": 0.33368,
+    "E": 0.20072,
+    "Edom": 0.07494,
+    "residual": 0.12577,
+    "domainShare": 0.3734
+   }
+  ],
+  "residualIncrements": [
+   {
+    "from": 19,
+    "to": 20,
+    "dResidual": 0.00095,
+    "dEdom": 0.00596
+   },
+   {
+    "from": 20,
+    "to": 21,
+    "dResidual": -0.00014,
+    "dEdom": 0.00644
+   },
+   {
+    "from": 21,
+    "to": 22,
+    "dResidual": -0.00193,
+    "dEdom": 0.00741
+   },
+   {
+    "from": 22,
+    "to": 23,
+    "dResidual": -0.00189,
+    "dEdom": 0.00691
+   },
+   {
+    "from": 23,
+    "to": 24,
+    "dResidual": -0.00188,
+    "dEdom": 0.00699
+   },
+   {
+    "from": 24,
+    "to": 25,
+    "dResidual": -0.00178,
+    "dEdom": 0.00705
+   },
+   {
+    "from": 25,
+    "to": 26,
+    "dResidual": -0.0022,
+    "dEdom": 0.00674
+   }
+  ],
+  "residualPeakBlock": 20
+ },
+ "scaling": {
+  "windowRule": "w_k = 2^(k-10), 512 windows per block",
+  "rows": [
+   {
+    "k": 19,
+    "w": 512,
+    "windowsPerBlock": 512,
+    "F1": 0.49574,
+    "baseline": 0.33365,
+    "E": 0.16209,
+    "Edom": 0.03853,
+    "residual": 0.12356,
+    "domainShare": 0.2377
+   },
+   {
+    "k": 20,
+    "w": 1024,
+    "windowsPerBlock": 512,
+    "F1": 0.50266,
+    "baseline": 0.33366,
+    "E": 0.169,
+    "Edom": 0.0334,
+    "residual": 0.1356,
+    "domainShare": 0.1977
+   },
+   {
+    "k": 21,
+    "w": 2048,
+    "windowsPerBlock": 512,
+    "F1": 0.50896,
+    "baseline": 0.33366,
+    "E": 0.1753,
+    "Edom": 0.02955,
+    "residual": 0.14575,
+    "domainShare": 0.1685
+   },
+   {
+    "k": 22,
+    "w": 4096,
+    "windowsPerBlock": 512,
+    "F1": 0.51444,
+    "baseline": 0.33367,
+    "E": 0.18077,
+    "Edom": 0.02636,
+    "residual": 0.15442,
+    "domainShare": 0.1458
+   },
+   {
+    "k": 23,
+    "w": 8192,
+    "windowsPerBlock": 512,
+    "F1": 0.51947,
+    "baseline": 0.33367,
+    "E": 0.18579,
+    "Edom": 0.02382,
+    "residual": 0.16197,
+    "domainShare": 0.1282
+   },
+   {
+    "k": 24,
+    "w": 16384,
+    "windowsPerBlock": 512,
+    "F1": 0.5246,
+    "baseline": 0.33369,
+    "E": 0.19091,
+    "Edom": 0.02166,
+    "residual": 0.16925,
+    "domainShare": 0.1135
+   },
+   {
+    "k": 25,
+    "w": 32768,
+    "windowsPerBlock": 512,
+    "F1": 0.52987,
+    "baseline": 0.33369,
+    "E": 0.19618,
+    "Edom": 0.01985,
+    "residual": 0.17633,
+    "domainShare": 0.1012
+   },
+   {
+    "k": 26,
+    "w": 65536,
+    "windowsPerBlock": 512,
+    "F1": 0.53439,
+    "baseline": 0.33368,
+    "E": 0.20072,
+    "Edom": 0.01828,
+    "residual": 0.18243,
+    "domainShare": 0.0911
+   }
+  ],
+  "residualIncrements": [
+   {
+    "from": 19,
+    "to": 20,
+    "dResidual": 0.01204,
+    "dEdom": -0.00512
+   },
+   {
+    "from": 20,
+    "to": 21,
+    "dResidual": 0.01016,
+    "dEdom": -0.00386
+   },
+   {
+    "from": 21,
+    "to": 22,
+    "dResidual": 0.00867,
+    "dEdom": -0.00319
+   },
+   {
+    "from": 22,
+    "to": 23,
+    "dResidual": 0.00756,
+    "dEdom": -0.00254
+   },
+   {
+    "from": 23,
+    "to": 24,
+    "dResidual": 0.00727,
+    "dEdom": -0.00215
+   },
+   {
+    "from": 24,
+    "to": 25,
+    "dResidual": 0.00708,
+    "dEdom": -0.00181
+   },
+   {
+    "from": 25,
+    "to": 26,
+    "dResidual": 0.0061,
+    "dEdom": -0.00157
+   }
+  ],
+  "residualPeakBlock": 26
+ },
+ "halfScaling": {
+  "windowRule": "w_k = 2^(k-12), 2,048 windows per block",
+  "rows": [
+   {
+    "k": 19,
+    "w": 128,
+    "windowsPerBlock": 2048,
+    "F1": 0.49574,
+    "baseline": 0.33365,
+    "E": 0.16209,
+    "Edom": 0.06971,
+    "residual": 0.09237,
+    "domainShare": 0.4301
+   },
+   {
+    "k": 20,
+    "w": 256,
+    "windowsPerBlock": 2048,
+    "F1": 0.50266,
+    "baseline": 0.33366,
+    "E": 0.169,
+    "Edom": 0.06033,
+    "residual": 0.10867,
+    "domainShare": 0.357
+   },
+   {
+    "k": 21,
+    "w": 512,
+    "windowsPerBlock": 2048,
+    "F1": 0.50896,
+    "baseline": 0.33366,
+    "E": 0.1753,
+    "Edom": 0.053,
+    "residual": 0.1223,
+    "domainShare": 0.3024
+   },
+   {
+    "k": 22,
+    "w": 1024,
+    "windowsPerBlock": 2048,
+    "F1": 0.51444,
+    "baseline": 0.33367,
+    "E": 0.18077,
+    "Edom": 0.04725,
+    "residual": 0.13352,
+    "domainShare": 0.2614
+   },
+   {
+    "k": 23,
+    "w": 2048,
+    "windowsPerBlock": 2048,
+    "F1": 0.51947,
+    "baseline": 0.33367,
+    "E": 0.18579,
+    "Edom": 0.04287,
+    "residual": 0.14293,
+    "domainShare": 0.2307
+   },
+   {
+    "k": 24,
+    "w": 4096,
+    "windowsPerBlock": 2048,
+    "F1": 0.5246,
+    "baseline": 0.33369,
+    "E": 0.19091,
+    "Edom": 0.03904,
+    "residual": 0.15188,
+    "domainShare": 0.2045
+   },
+   {
+    "k": 25,
+    "w": 8192,
+    "windowsPerBlock": 2048,
+    "F1": 0.52987,
+    "baseline": 0.33369,
+    "E": 0.19618,
+    "Edom": 0.03589,
+    "residual": 0.16029,
+    "domainShare": 0.1829
+   },
+   {
+    "k": 26,
+    "w": 16384,
+    "windowsPerBlock": 2048,
+    "F1": 0.53439,
+    "baseline": 0.33368,
+    "E": 0.20072,
+    "Edom": 0.03315,
+    "residual": 0.16757,
+    "domainShare": 0.1651
+   }
+  ],
+  "residualIncrements": [
+   {
+    "from": 19,
+    "to": 20,
+    "dResidual": 0.0163,
+    "dEdom": -0.00939
+   },
+   {
+    "from": 20,
+    "to": 21,
+    "dResidual": 0.01362,
+    "dEdom": -0.00732
+   },
+   {
+    "from": 21,
+    "to": 22,
+    "dResidual": 0.01123,
+    "dEdom": -0.00575
+   },
+   {
+    "from": 22,
+    "to": 23,
+    "dResidual": 0.0094,
+    "dEdom": -0.00438
+   },
+   {
+    "from": 23,
+    "to": 24,
+    "dResidual": 0.00895,
+    "dEdom": -0.00383
+   },
+   {
+    "from": 24,
+    "to": 25,
+    "dResidual": 0.00842,
+    "dEdom": -0.00315
+   },
+   {
+    "from": 25,
+    "to": 26,
+    "dResidual": 0.00728,
+    "dEdom": -0.00274
+   }
+  ],
+  "residualPeakBlock": 26
+ }
+}

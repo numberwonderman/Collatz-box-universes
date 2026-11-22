@@ -2159,3 +2159,122 @@ The detrended domain value is 0 exactly; it reads |·| ≤ 5 × 10⁻⁶ on the 
 - **No mechanism is claimed.** In particular, the earlier hypothesis that pairs
   agreeing mod a higher power of 2 share early parity steps (fate-correlation section)
   is neither confirmed nor tested here.
+
+---
+
+## Does the residual still fall under a scaling window? (Nov 2026)
+
+**This build was Franklin's own question, testing Build 11's own caveat. It was not
+an Imai request.**
+
+- Build 11 found that under Build 8's fixed window (w = 1,024), the pair-level residual
+  peaks at B₂₀–B₂₁ and then falls about 0.0019 per doubling, to 0.12577 at B₂₆.
+- Its caveat: part of that decline may be an artefact of holding the window fixed
+  while domains grow.
+- This build tests the caveat directly.
+
+Where things are:
+
+- Code: `js/imaiScalingWindow.js` (tests: `js/tests/imaiScalingWindow.test.js`) and
+  `scripts/imai-scaling-window.mjs`.
+- Output: **`docs/scaling-window/scaling-window.json`**.
+
+**Reuse.**
+
+- **Build 11's fate table** (every odd negative n down to −(2²⁷ − 1)) was loaded from
+  its cache file and **not recomputed**. The script stops if the cache is missing.
+- **Build 11's split function** (`blockSplit`) is used unchanged: fate-map pair
+  convention, block-internal windows, E_dom = A_dom − baseline, residual = F(1) − A_dom.
+  As in Build 11, a block's lowest-|n| element pairs into B_(k−1), which is tiled with
+  the same width w.
+
+**Three window rules, blocks B₁₉–B₂₆:**
+
+1. **fixed:** w = 1,024 (Build 11, the control);
+2. **scaling:** w_k = 2^(k−10), so 512 windows per block. It equals 1,024 at B₂₀.
+3. **half-scaling:** w_k = 2^(k−12), so 2,048 windows per block. It equals 1,024 at B₂₂.
+
+All block splits took under 6 s; no block was cut.
+
+### Sanity checks (all passed)
+
+1. **The fixed rows equal Build 11's committed table** in F(1), baseline, E, domain part
+   and residual, at every block. In particular B₂₁ has domain share **22.73%** and
+   residual **0.13545**, and B₂₆ has residual **0.12577**. ✔
+2. **Coincidence points, exact:**
+   - scaling at B₂₀ (w = 1,024): domain part **0.03340**, residual **0.13560**;
+   - half-scaling at B₂₂ (w = 1,024): domain part **0.04725**, residual **0.13352**. ✔
+3. **F(1) and the baseline are identical across the three rules** at every block, and
+   domain part + residual = E everywhere. ✔
+
+### The split under each rule
+
+F(1), the baseline and E do not depend on the window; they are Build 11's values
+(E = 0.16209 at B₁₉ rising to 0.20072 at B₂₆).
+
+| block | fixed: domain part | fixed: residual | scaling: w | scaling: domain part | scaling: residual | half-scaling: w | half-scaling: domain part | half-scaling: residual |
+|---|---|---|---|---|---|---|---|---|
+| B₁₉ | 0.02744 | 0.13464 | 512 | 0.03853 | 0.12356 | 128 | 0.06971 | 0.09237 |
+| B₂₀ | 0.03340 | **0.13560** | 1,024 | 0.03340 | 0.13560 | 256 | 0.06033 | 0.10867 |
+| B₂₁ | 0.03984 | 0.13545 | 2,048 | 0.02955 | 0.14575 | 512 | 0.05300 | 0.12230 |
+| B₂₂ | 0.04725 | 0.13352 | 4,096 | 0.02636 | 0.15442 | 1,024 | 0.04725 | 0.13352 |
+| B₂₃ | 0.05416 | 0.13163 | 8,192 | 0.02382 | 0.16197 | 2,048 | 0.04287 | 0.14293 |
+| B₂₄ | 0.06116 | 0.12975 | 16,384 | 0.02166 | 0.16925 | 4,096 | 0.03904 | 0.15188 |
+| B₂₅ | 0.06821 | 0.12798 | 32,768 | 0.01985 | 0.17633 | 8,192 | 0.03589 | 0.16029 |
+| B₂₆ | 0.07494 | 0.12577 | 65,536 | 0.01828 | **0.18243** | 16,384 | 0.03315 | **0.16757** |
+
+**Residual increments per doubling, for steps ending at B₂₁ to B₂₆:**
+
+| rule | B₂₀→B₂₁ | B₂₁→B₂₂ | B₂₂→B₂₃ | B₂₃→B₂₄ | B₂₄→B₂₅ | B₂₅→B₂₆ | residual peak |
+|---|---|---|---|---|---|---|---|
+| fixed | −0.00014 | −0.00193 | −0.00189 | −0.00188 | −0.00178 | −0.00220 | B₂₀ |
+| scaling | +0.01016 | +0.00867 | +0.00756 | +0.00727 | +0.00708 | +0.00610 | none in range (rises at every step) |
+| half-scaling | +0.01362 | +0.01123 | +0.00940 | +0.00895 | +0.00842 | +0.00728 | none in range (rises at every step) |
+
+**Domain share of E:**
+
+| rule | B₁₉ | B₂₆ |
+|---|---|---|
+| fixed | 16.9% | 37.3% (rises) |
+| scaling | 23.8% | 9.1% (falls) |
+| half-scaling | 43.0% | 16.5% (falls) |
+
+### What each rule shows
+
+- **Fixed window:** the residual peaks at B₂₀ and falls by about 0.0019 per doubling,
+  exactly Build 11's result. The domain part grows by about 0.007 per doubling.
+- **Scaling window** (constant 512 windows per block): **the residual does not peak;
+  it rises at every step**, from 0.1236 to 0.1824, by +0.0061 to +0.0120 per doubling,
+  with shrinking increments. The domain part *falls* at every step, from 0.0385 to
+  0.0183.
+- **Half-scaling window** (constant 2,048 windows per block): the same direction.
+  The residual rises at every step, from 0.0924 to 0.1676, by +0.0073 to +0.0163 per
+  doubling, again with shrinking increments. The domain part falls from 0.0697 to
+  0.0332.
+
+**The three rules disagree.** Under the fixed window the residual falls after B₂₀.
+Under both window rules that grow with the block, it rises throughout B₁₉–B₂₆, and the
+domain part falls. **Build 11's caveat is confirmed in its strongest form**: the
+residual's decline is a property of the fixed window, not of the fates. Neither its
+fall (fixed) nor its rise (scaling) is a window-independent statement.
+
+### Strength of the conclusion
+
+- **Measured:** over B₁₉–B₂₆, the *direction* of the residual's change, and of the
+  domain part's, depends on how the window is tied to |n|.
+  - Fixed: residual falling, domain rising.
+  - Both scaling rules: residual rising, domain falling, with shrinking increments.
+- **Consequences for earlier statements.** Build 11's synthesis test ("the domain
+  component does not saturate, the residual is not flat") holds **only at w = 1,024**.
+  Build 8's statement that most of the excess's growth is domain-driven is equally
+  window-specific.
+  - Under a window that keeps a fixed number of windows per block, the domain part
+    shrinks and the residual carries all of E's growth.
+  - This is consistent with Build 6's observation that share fluctuations at a fixed
+    *relative* width decrease with |n|, but it measures something different, and no
+    growth law is drawn from it.
+- **Not established:** which window rule, if any, is "right". The split into domain
+  and pair-level parts has no window-free definition here, so no rule is preferred.
+- **Nothing here proves or disproves convergence of F(1).** Its own growth (+0.0045 to
+  +0.0055 per doubling over B₂₁–B₂₆) is the same under every rule, because F(1) does
+  not depend on the window.
