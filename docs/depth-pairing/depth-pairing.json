@@ -1,0 +1,1282 @@
+{
+ "note": "Build 12 is Franklin's own question, not an Imai request.",
+ "reuse": "Build 7 exactly: Imai's placement, the cyclic overlay of j < 2^K, its neighbour pairs, and depth v = K - 1 - (j-block) of a circle point (v = v2(|n| +- 1) for the coarser member; j = 0 has v = K)",
+ "structuralFact": "Build 7 proved every overlay pair joins a top-block point (v = 0) with a coarser point. So every pair falls in a cell (v, 0): the joint table is one column, the min marginal is identically 0, and the max marginal equals Build 7's coarser-member marginal.",
+ "sanityChecks": {
+  "K18": {
+   "overallAgreement": 0.62423,
+   "expected": 0.62423,
+   "pairs": 262144,
+   "expectedPairs": 262144,
+   "coarserMarginalMatchesBuild7": true,
+   "coarserMarginal": {
+    "1": 0.6714,
+    "2": 0.7484,
+    "3": 0.4294,
+    "4": 0.4346,
+    "5": 0.3408,
+    "6": 0.3376,
+    "7": 0.3018,
+    "8": 0.2988
+   },
+   "passed": true
+  },
+  "K21": {
+   "overallAgreement": 0.63894,
+   "expected": 0.63894,
+   "pairs": 2097152,
+   "expectedPairs": 2097152,
+   "coarserMarginalMatchesBuild7": true,
+   "coarserMarginal": {
+    "1": 0.6841,
+    "2": 0.7603,
+    "3": 0.4471,
+    "4": 0.4571,
+    "5": 0.3661,
+    "6": 0.3694,
+    "7": 0.3326,
+    "8": 0.3322
+   },
+   "passed": true
+  },
+  "syntheticHandCase": {
+   "location": "js/tests/imaiDepthPairing.test.js",
+   "passed": "see test run"
+  }
+ },
+ "K18": {
+  "pairs": 262144,
+  "agreement": 0.62423,
+  "order": "each pair listed coarser member (larger depth v) first",
+  "jointTable": [
+   {
+    "vCoarser": 1,
+    "vFiner": 0,
+    "pairs": 131072,
+    "same": 88000,
+    "agreement": 0.67139,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "vCoarser": 2,
+    "vFiner": 0,
+    "pairs": 65536,
+    "same": 49046,
+    "agreement": 0.74838,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "vCoarser": 3,
+    "vFiner": 0,
+    "pairs": 32768,
+    "same": 14069,
+    "agreement": 0.42935,
+    "pooledSumSquares": 0.33362,
+    "independentGivenSides": 0.33359
+   },
+   {
+    "vCoarser": 4,
+    "vFiner": 0,
+    "pairs": 16384,
+    "same": 7120,
+    "agreement": 0.43457,
+    "pooledSumSquares": 0.33354,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "vCoarser": 5,
+    "vFiner": 0,
+    "pairs": 8192,
+    "same": 2792,
+    "agreement": 0.34082,
+    "pooledSumSquares": 0.33385,
+    "independentGivenSides": 0.33379
+   },
+   {
+    "vCoarser": 6,
+    "vFiner": 0,
+    "pairs": 4096,
+    "same": 1383,
+    "agreement": 0.33765,
+    "pooledSumSquares": 0.3335,
+    "independentGivenSides": 0.33345
+   },
+   {
+    "vCoarser": 7,
+    "vFiner": 0,
+    "pairs": 2048,
+    "same": 618,
+    "agreement": 0.30176,
+    "pooledSumSquares": 0.33417,
+    "independentGivenSides": 0.33403
+   },
+   {
+    "vCoarser": 8,
+    "vFiner": 0,
+    "pairs": 1024,
+    "same": 306,
+    "agreement": 0.29883,
+    "pooledSumSquares": 0.3334,
+    "independentGivenSides": 0.33297
+   },
+   {
+    "vCoarser": 9,
+    "vFiner": 0,
+    "pairs": 512,
+    "same": 158,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33506,
+    "independentGivenSides": 0.33502
+   },
+   {
+    "vCoarser": 10,
+    "vFiner": 0,
+    "pairs": 256,
+    "same": 69,
+    "agreement": 0.26953,
+    "pooledSumSquares": 0.33399,
+    "independentGivenSides": 0.33353
+   },
+   {
+    "vCoarser": 11,
+    "vFiner": 0,
+    "pairs": 128,
+    "same": 36,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33057
+   },
+   {
+    "vCoarser": 12,
+    "vFiner": 0,
+    "pairs": 64,
+    "same": 22,
+    "agreement": 0.34375,
+    "pooledSumSquares": 0.33545,
+    "independentGivenSides": 0.31738
+   },
+   {
+    "vCoarser": 13,
+    "vFiner": 0,
+    "pairs": 32,
+    "same": 10,
+    "agreement": 0.3125,
+    "pooledSumSquares": 0.34033,
+    "independentGivenSides": 0.33398
+   },
+   {
+    "vCoarser": 14,
+    "vFiner": 0,
+    "pairs": 16,
+    "same": 4,
+    "agreement": 0.25,
+    "pooledSumSquares": 0.37305,
+    "independentGivenSides": 0.29688
+   },
+   {
+    "vCoarser": 15,
+    "vFiner": 0,
+    "pairs": 8,
+    "same": 4,
+    "agreement": 0.5,
+    "pooledSumSquares": 0.36719,
+    "independentGivenSides": 0.3125
+   },
+   {
+    "vCoarser": 16,
+    "vFiner": 0,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "vCoarser": 17,
+    "vFiner": 0,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   },
+   {
+    "vCoarser": 18,
+    "vFiner": 0,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   }
+  ],
+  "distinctFinerDepths": [
+   0
+  ],
+  "byMin": [
+   {
+    "v": 0,
+    "pairs": 262144,
+    "same": 163637,
+    "agreement": 0.62423,
+    "pooledSumSquares": 0.3337,
+    "independentGivenSides": 0.3337
+   }
+  ],
+  "byMax": [
+   {
+    "v": 1,
+    "pairs": 131072,
+    "same": 88000,
+    "agreement": 0.67139,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "v": 2,
+    "pairs": 65536,
+    "same": 49046,
+    "agreement": 0.74838,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "v": 3,
+    "pairs": 32768,
+    "same": 14069,
+    "agreement": 0.42935,
+    "pooledSumSquares": 0.33362,
+    "independentGivenSides": 0.33359
+   },
+   {
+    "v": 4,
+    "pairs": 16384,
+    "same": 7120,
+    "agreement": 0.43457,
+    "pooledSumSquares": 0.33354,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "v": 5,
+    "pairs": 8192,
+    "same": 2792,
+    "agreement": 0.34082,
+    "pooledSumSquares": 0.33385,
+    "independentGivenSides": 0.33379
+   },
+   {
+    "v": 6,
+    "pairs": 4096,
+    "same": 1383,
+    "agreement": 0.33765,
+    "pooledSumSquares": 0.3335,
+    "independentGivenSides": 0.33345
+   },
+   {
+    "v": 7,
+    "pairs": 2048,
+    "same": 618,
+    "agreement": 0.30176,
+    "pooledSumSquares": 0.33417,
+    "independentGivenSides": 0.33403
+   },
+   {
+    "v": 8,
+    "pairs": 1024,
+    "same": 306,
+    "agreement": 0.29883,
+    "pooledSumSquares": 0.3334,
+    "independentGivenSides": 0.33297
+   },
+   {
+    "v": 9,
+    "pairs": 512,
+    "same": 158,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33506,
+    "independentGivenSides": 0.33502
+   },
+   {
+    "v": 10,
+    "pairs": 256,
+    "same": 69,
+    "agreement": 0.26953,
+    "pooledSumSquares": 0.33399,
+    "independentGivenSides": 0.33353
+   },
+   {
+    "v": 11,
+    "pairs": 128,
+    "same": 36,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33057
+   },
+   {
+    "v": 12,
+    "pairs": 64,
+    "same": 22,
+    "agreement": 0.34375,
+    "pooledSumSquares": 0.33545,
+    "independentGivenSides": 0.31738
+   },
+   {
+    "v": 13,
+    "pairs": 32,
+    "same": 10,
+    "agreement": 0.3125,
+    "pooledSumSquares": 0.34033,
+    "independentGivenSides": 0.33398
+   },
+   {
+    "v": 14,
+    "pairs": 16,
+    "same": 4,
+    "agreement": 0.25,
+    "pooledSumSquares": 0.37305,
+    "independentGivenSides": 0.29688
+   },
+   {
+    "v": 15,
+    "pairs": 8,
+    "same": 4,
+    "agreement": 0.5,
+    "pooledSumSquares": 0.36719,
+    "independentGivenSides": 0.3125
+   },
+   {
+    "v": 16,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 17,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 18,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   }
+  ],
+  "byCoarserBuild7": [
+   {
+    "v": 1,
+    "pairs": 131072,
+    "same": 88000,
+    "agreement": 0.67139,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "v": 2,
+    "pairs": 65536,
+    "same": 49046,
+    "agreement": 0.74838,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33373
+   },
+   {
+    "v": 3,
+    "pairs": 32768,
+    "same": 14069,
+    "agreement": 0.42935,
+    "pooledSumSquares": 0.33362,
+    "independentGivenSides": 0.33359
+   },
+   {
+    "v": 4,
+    "pairs": 16384,
+    "same": 7120,
+    "agreement": 0.43457,
+    "pooledSumSquares": 0.33354,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "v": 5,
+    "pairs": 8192,
+    "same": 2792,
+    "agreement": 0.34082,
+    "pooledSumSquares": 0.33385,
+    "independentGivenSides": 0.33379
+   },
+   {
+    "v": 6,
+    "pairs": 4096,
+    "same": 1383,
+    "agreement": 0.33765,
+    "pooledSumSquares": 0.3335,
+    "independentGivenSides": 0.33345
+   },
+   {
+    "v": 7,
+    "pairs": 2048,
+    "same": 618,
+    "agreement": 0.30176,
+    "pooledSumSquares": 0.33417,
+    "independentGivenSides": 0.33403
+   },
+   {
+    "v": 8,
+    "pairs": 1024,
+    "same": 306,
+    "agreement": 0.29883,
+    "pooledSumSquares": 0.3334,
+    "independentGivenSides": 0.33297
+   },
+   {
+    "v": 9,
+    "pairs": 512,
+    "same": 158,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33506,
+    "independentGivenSides": 0.33502
+   },
+   {
+    "v": 10,
+    "pairs": 256,
+    "same": 69,
+    "agreement": 0.26953,
+    "pooledSumSquares": 0.33399,
+    "independentGivenSides": 0.33353
+   },
+   {
+    "v": 11,
+    "pairs": 128,
+    "same": 36,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33057
+   },
+   {
+    "v": 12,
+    "pairs": 64,
+    "same": 22,
+    "agreement": 0.34375,
+    "pooledSumSquares": 0.33545,
+    "independentGivenSides": 0.31738
+   },
+   {
+    "v": 13,
+    "pairs": 32,
+    "same": 10,
+    "agreement": 0.3125,
+    "pooledSumSquares": 0.34033,
+    "independentGivenSides": 0.33398
+   },
+   {
+    "v": 14,
+    "pairs": 16,
+    "same": 4,
+    "agreement": 0.25,
+    "pooledSumSquares": 0.37305,
+    "independentGivenSides": 0.29688
+   },
+   {
+    "v": 15,
+    "pairs": 8,
+    "same": 4,
+    "agreement": 0.5,
+    "pooledSumSquares": 0.36719,
+    "independentGivenSides": 0.3125
+   },
+   {
+    "v": 16,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 17,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 18,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.5,
+    "independentGivenSides": 0
+   }
+  ],
+  "perFate": {
+   "1": [
+    {
+     "coarserFate": -1,
+     "pairs": 42934,
+     "same": 28652,
+     "agreement": 0.66735,
+     "expectedIfIndependent": 0.32652,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 42238,
+     "same": 28368,
+     "agreement": 0.67162,
+     "expectedIfIndependent": 0.32467,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 45900,
+     "same": 30980,
+     "agreement": 0.67495,
+     "expectedIfIndependent": 0.34881,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "2": [
+    {
+     "coarserFate": -1,
+     "pairs": 21602,
+     "same": 16105,
+     "agreement": 0.74553,
+     "expectedIfIndependent": 0.32671,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 21070,
+     "same": 15795,
+     "agreement": 0.74964,
+     "expectedIfIndependent": 0.32349,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 22864,
+     "same": 17146,
+     "agreement": 0.74991,
+     "expectedIfIndependent": 0.34981,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "3": [
+    {
+     "coarserFate": -1,
+     "pairs": 10988,
+     "same": 4703,
+     "agreement": 0.42801,
+     "expectedIfIndependent": 0.32681,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 10438,
+     "same": 4484,
+     "agreement": 0.42958,
+     "expectedIfIndependent": 0.32672,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 11342,
+     "same": 4882,
+     "agreement": 0.43044,
+     "expectedIfIndependent": 0.34647,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "4": [
+    {
+     "coarserFate": -1,
+     "pairs": 5490,
+     "same": 2386,
+     "agreement": 0.43461,
+     "expectedIfIndependent": 0.32794,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 5300,
+     "same": 2295,
+     "agreement": 0.43302,
+     "expectedIfIndependent": 0.32513,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 5594,
+     "same": 2439,
+     "agreement": 0.436,
+     "expectedIfIndependent": 0.34692,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ]
+  }
+ },
+ "K21": {
+  "pairs": 2097152,
+  "agreement": 0.63894,
+  "order": "each pair listed coarser member (larger depth v) first",
+  "jointTable": [
+   {
+    "vCoarser": 1,
+    "vFiner": 0,
+    "pairs": 1048576,
+    "same": 717371,
+    "agreement": 0.68414,
+    "pooledSumSquares": 0.33366,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "vCoarser": 2,
+    "vFiner": 0,
+    "pairs": 524288,
+    "same": 398627,
+    "agreement": 0.76032,
+    "pooledSumSquares": 0.33365,
+    "independentGivenSides": 0.33365
+   },
+   {
+    "vCoarser": 3,
+    "vFiner": 0,
+    "pairs": 262144,
+    "same": 117200,
+    "agreement": 0.44708,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "vCoarser": 4,
+    "vFiner": 0,
+    "pairs": 131072,
+    "same": 59913,
+    "agreement": 0.4571,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33371
+   },
+   {
+    "vCoarser": 5,
+    "vFiner": 0,
+    "pairs": 65536,
+    "same": 23995,
+    "agreement": 0.36613,
+    "pooledSumSquares": 0.33367,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "vCoarser": 6,
+    "vFiner": 0,
+    "pairs": 32768,
+    "same": 12105,
+    "agreement": 0.36942,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33368
+   },
+   {
+    "vCoarser": 7,
+    "vFiner": 0,
+    "pairs": 16384,
+    "same": 5450,
+    "agreement": 0.33264,
+    "pooledSumSquares": 0.33356,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "vCoarser": 8,
+    "vFiner": 0,
+    "pairs": 8192,
+    "same": 2721,
+    "agreement": 0.33215,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33367
+   },
+   {
+    "vCoarser": 9,
+    "vFiner": 0,
+    "pairs": 4096,
+    "same": 1297,
+    "agreement": 0.31665,
+    "pooledSumSquares": 0.33379,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "vCoarser": 10,
+    "vFiner": 0,
+    "pairs": 2048,
+    "same": 616,
+    "agreement": 0.30078,
+    "pooledSumSquares": 0.33345,
+    "independentGivenSides": 0.33341
+   },
+   {
+    "vCoarser": 11,
+    "vFiner": 0,
+    "pairs": 1024,
+    "same": 316,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33444,
+    "independentGivenSides": 0.3344
+   },
+   {
+    "vCoarser": 12,
+    "vFiner": 0,
+    "pairs": 512,
+    "same": 177,
+    "agreement": 0.3457,
+    "pooledSumSquares": 0.33372,
+    "independentGivenSides": 0.33169
+   },
+   {
+    "vCoarser": 13,
+    "vFiner": 0,
+    "pairs": 256,
+    "same": 74,
+    "agreement": 0.28906,
+    "pooledSumSquares": 0.33416,
+    "independentGivenSides": 0.33401
+   },
+   {
+    "vCoarser": 14,
+    "vFiner": 0,
+    "pairs": 128,
+    "same": 47,
+    "agreement": 0.36719,
+    "pooledSumSquares": 0.33701,
+    "independentGivenSides": 0.33508
+   },
+   {
+    "vCoarser": 15,
+    "vFiner": 0,
+    "pairs": 64,
+    "same": 23,
+    "agreement": 0.35938,
+    "pooledSumSquares": 0.3374,
+    "independentGivenSides": 0.31836
+   },
+   {
+    "vCoarser": 16,
+    "vFiner": 0,
+    "pairs": 32,
+    "same": 9,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33789,
+    "independentGivenSides": 0.33203
+   },
+   {
+    "vCoarser": 17,
+    "vFiner": 0,
+    "pairs": 16,
+    "same": 6,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.37695,
+    "independentGivenSides": 0.35156
+   },
+   {
+    "vCoarser": 18,
+    "vFiner": 0,
+    "pairs": 8,
+    "same": 3,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.35156,
+    "independentGivenSides": 0.25
+   },
+   {
+    "vCoarser": 19,
+    "vFiner": 0,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "vCoarser": 20,
+    "vFiner": 0,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   },
+   {
+    "vCoarser": 21,
+    "vFiner": 0,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   }
+  ],
+  "distinctFinerDepths": [
+   0
+  ],
+  "byMin": [
+   {
+    "v": 0,
+    "pairs": 2097152,
+    "same": 1339950,
+    "agreement": 0.63894,
+    "pooledSumSquares": 0.33366,
+    "independentGivenSides": 0.33366
+   }
+  ],
+  "byMax": [
+   {
+    "v": 1,
+    "pairs": 1048576,
+    "same": 717371,
+    "agreement": 0.68414,
+    "pooledSumSquares": 0.33366,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "v": 2,
+    "pairs": 524288,
+    "same": 398627,
+    "agreement": 0.76032,
+    "pooledSumSquares": 0.33365,
+    "independentGivenSides": 0.33365
+   },
+   {
+    "v": 3,
+    "pairs": 262144,
+    "same": 117200,
+    "agreement": 0.44708,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "v": 4,
+    "pairs": 131072,
+    "same": 59913,
+    "agreement": 0.4571,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33371
+   },
+   {
+    "v": 5,
+    "pairs": 65536,
+    "same": 23995,
+    "agreement": 0.36613,
+    "pooledSumSquares": 0.33367,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "v": 6,
+    "pairs": 32768,
+    "same": 12105,
+    "agreement": 0.36942,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33368
+   },
+   {
+    "v": 7,
+    "pairs": 16384,
+    "same": 5450,
+    "agreement": 0.33264,
+    "pooledSumSquares": 0.33356,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "v": 8,
+    "pairs": 8192,
+    "same": 2721,
+    "agreement": 0.33215,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33367
+   },
+   {
+    "v": 9,
+    "pairs": 4096,
+    "same": 1297,
+    "agreement": 0.31665,
+    "pooledSumSquares": 0.33379,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "v": 10,
+    "pairs": 2048,
+    "same": 616,
+    "agreement": 0.30078,
+    "pooledSumSquares": 0.33345,
+    "independentGivenSides": 0.33341
+   },
+   {
+    "v": 11,
+    "pairs": 1024,
+    "same": 316,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33444,
+    "independentGivenSides": 0.3344
+   },
+   {
+    "v": 12,
+    "pairs": 512,
+    "same": 177,
+    "agreement": 0.3457,
+    "pooledSumSquares": 0.33372,
+    "independentGivenSides": 0.33169
+   },
+   {
+    "v": 13,
+    "pairs": 256,
+    "same": 74,
+    "agreement": 0.28906,
+    "pooledSumSquares": 0.33416,
+    "independentGivenSides": 0.33401
+   },
+   {
+    "v": 14,
+    "pairs": 128,
+    "same": 47,
+    "agreement": 0.36719,
+    "pooledSumSquares": 0.33701,
+    "independentGivenSides": 0.33508
+   },
+   {
+    "v": 15,
+    "pairs": 64,
+    "same": 23,
+    "agreement": 0.35938,
+    "pooledSumSquares": 0.3374,
+    "independentGivenSides": 0.31836
+   },
+   {
+    "v": 16,
+    "pairs": 32,
+    "same": 9,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33789,
+    "independentGivenSides": 0.33203
+   },
+   {
+    "v": 17,
+    "pairs": 16,
+    "same": 6,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.37695,
+    "independentGivenSides": 0.35156
+   },
+   {
+    "v": 18,
+    "pairs": 8,
+    "same": 3,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.35156,
+    "independentGivenSides": 0.25
+   },
+   {
+    "v": 19,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 20,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 21,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   }
+  ],
+  "byCoarserBuild7": [
+   {
+    "v": 1,
+    "pairs": 1048576,
+    "same": 717371,
+    "agreement": 0.68414,
+    "pooledSumSquares": 0.33366,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "v": 2,
+    "pairs": 524288,
+    "same": 398627,
+    "agreement": 0.76032,
+    "pooledSumSquares": 0.33365,
+    "independentGivenSides": 0.33365
+   },
+   {
+    "v": 3,
+    "pairs": 262144,
+    "same": 117200,
+    "agreement": 0.44708,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "v": 4,
+    "pairs": 131072,
+    "same": 59913,
+    "agreement": 0.4571,
+    "pooledSumSquares": 0.33371,
+    "independentGivenSides": 0.33371
+   },
+   {
+    "v": 5,
+    "pairs": 65536,
+    "same": 23995,
+    "agreement": 0.36613,
+    "pooledSumSquares": 0.33367,
+    "independentGivenSides": 0.33366
+   },
+   {
+    "v": 6,
+    "pairs": 32768,
+    "same": 12105,
+    "agreement": 0.36942,
+    "pooledSumSquares": 0.33373,
+    "independentGivenSides": 0.33368
+   },
+   {
+    "v": 7,
+    "pairs": 16384,
+    "same": 5450,
+    "agreement": 0.33264,
+    "pooledSumSquares": 0.33356,
+    "independentGivenSides": 0.33351
+   },
+   {
+    "v": 8,
+    "pairs": 8192,
+    "same": 2721,
+    "agreement": 0.33215,
+    "pooledSumSquares": 0.33369,
+    "independentGivenSides": 0.33367
+   },
+   {
+    "v": 9,
+    "pairs": 4096,
+    "same": 1297,
+    "agreement": 0.31665,
+    "pooledSumSquares": 0.33379,
+    "independentGivenSides": 0.33369
+   },
+   {
+    "v": 10,
+    "pairs": 2048,
+    "same": 616,
+    "agreement": 0.30078,
+    "pooledSumSquares": 0.33345,
+    "independentGivenSides": 0.33341
+   },
+   {
+    "v": 11,
+    "pairs": 1024,
+    "same": 316,
+    "agreement": 0.30859,
+    "pooledSumSquares": 0.33444,
+    "independentGivenSides": 0.3344
+   },
+   {
+    "v": 12,
+    "pairs": 512,
+    "same": 177,
+    "agreement": 0.3457,
+    "pooledSumSquares": 0.33372,
+    "independentGivenSides": 0.33169
+   },
+   {
+    "v": 13,
+    "pairs": 256,
+    "same": 74,
+    "agreement": 0.28906,
+    "pooledSumSquares": 0.33416,
+    "independentGivenSides": 0.33401
+   },
+   {
+    "v": 14,
+    "pairs": 128,
+    "same": 47,
+    "agreement": 0.36719,
+    "pooledSumSquares": 0.33701,
+    "independentGivenSides": 0.33508
+   },
+   {
+    "v": 15,
+    "pairs": 64,
+    "same": 23,
+    "agreement": 0.35938,
+    "pooledSumSquares": 0.3374,
+    "independentGivenSides": 0.31836
+   },
+   {
+    "v": 16,
+    "pairs": 32,
+    "same": 9,
+    "agreement": 0.28125,
+    "pooledSumSquares": 0.33789,
+    "independentGivenSides": 0.33203
+   },
+   {
+    "v": 17,
+    "pairs": 16,
+    "same": 6,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.37695,
+    "independentGivenSides": 0.35156
+   },
+   {
+    "v": 18,
+    "pairs": 8,
+    "same": 3,
+    "agreement": 0.375,
+    "pooledSumSquares": 0.35156,
+    "independentGivenSides": 0.25
+   },
+   {
+    "v": 19,
+    "pairs": 4,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.40625,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 20,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   },
+   {
+    "v": 21,
+    "pairs": 2,
+    "same": 0,
+    "agreement": 0,
+    "pooledSumSquares": 0.375,
+    "independentGivenSides": 0
+   }
+  ],
+  "perFate": {
+   "1": [
+    {
+     "coarserFate": -1,
+     "pairs": 343490,
+     "same": 234413,
+     "agreement": 0.68244,
+     "expectedIfIndependent": 0.32769,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 340280,
+     "same": 231985,
+     "agreement": 0.68175,
+     "expectedIfIndependent": 0.32431,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 364806,
+     "same": 250973,
+     "agreement": 0.68796,
+     "expectedIfIndependent": 0.34801,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "2": [
+    {
+     "coarserFate": -1,
+     "pairs": 171730,
+     "same": 130458,
+     "agreement": 0.75967,
+     "expectedIfIndependent": 0.32795,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 170246,
+     "same": 129170,
+     "agreement": 0.75873,
+     "expectedIfIndependent": 0.32443,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 182312,
+     "same": 138999,
+     "agreement": 0.76242,
+     "expectedIfIndependent": 0.34762,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "3": [
+    {
+     "coarserFate": -1,
+     "pairs": 85596,
+     "same": 38087,
+     "agreement": 0.44496,
+     "expectedIfIndependent": 0.32785,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 85110,
+     "same": 37637,
+     "agreement": 0.44222,
+     "expectedIfIndependent": 0.3236,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 91438,
+     "same": 41476,
+     "agreement": 0.4536,
+     "expectedIfIndependent": 0.34856,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ],
+   "4": [
+    {
+     "coarserFate": -1,
+     "pairs": 42934,
+     "same": 19557,
+     "agreement": 0.45551,
+     "expectedIfIndependent": 0.32873,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -5,
+     "pairs": 42238,
+     "same": 19095,
+     "agreement": 0.45208,
+     "expectedIfIndependent": 0.32372,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    },
+    {
+     "coarserFate": -17,
+     "pairs": 45900,
+     "same": 21261,
+     "agreement": 0.4632,
+     "expectedIfIndependent": 0.34755,
+     "note": "expectedIfIndependent = share of fate f among the finer members of ALL pairs at this depth v: the agreement expected if the finer member were independent of the coarser one"
+    }
+   ]
+  }
+ }
+}

@@ -1914,3 +1914,110 @@ window width, of a decomposition that depends strongly on the window.
 - **What they do not support:** any statement about convergence or non-convergence of
   F(1). Saturation would not have proved convergence, and its absence over this range
   does not prove divergence.
+
+---
+
+## The depth-pairing table (Nov 2026)
+
+**This build was Franklin's own question, not an Imai request.**
+
+Build 7 left one puzzle: overlay neighbour agreement *peaks* when the coarser
+neighbour's 2-adic depth is v = 2 (0.760 at K = 21), above v = 1 (0.684). This build
+asks whether that peak is:
+
+- a pairing effect between the two members' depths,
+- an artefact of looking at one side only, or
+- one fate's doing.
+
+Where things are:
+
+- Code: `js/imaiDepthPairing.js` (tests: `js/tests/imaiDepthPairing.test.js`) and
+  `scripts/imai-depth-pairing.mjs` (about 30 s).
+- Output: **`docs/depth-pairing/depth-pairing.json`**.
+
+**Reuse, exactly as asked.** Build 7's placement, its cyclic overlay of j < 2^K, its
+neighbour pairs, and its depth v = K − 1 − (j-block) of a circle point (for the
+coarser member this is v₂(|n| ± 1); j = 0 has v = K). Pairs are ordered with the
+**coarser member, the larger v, first**. No new pair set or depth was introduced.
+
+### Sanity checks (all passed)
+
+1. **K = 21:** overall agreement **0.63894** over **2,097,152** pairs. The
+   coarser-member marginal matches Build 7 **cell by cell, in counts**:
+   v = 1: 0.6841, v = 2: 0.7603, v = 3: 0.4471, v = 4: 0.4571, v = 5: 0.3661,
+   v = 6: 0.3694, v = 7: 0.3326, v = 8: 0.3322. ✔
+2. **K = 18:** overall agreement **0.62423** over 262,144 pairs, with the marginal again
+   matching cell by cell. ✔
+3. **Every pair is a Build 7 overlay pair:** the table's grand total equals Build 7's
+   pair count at both K. ✔
+4. **Hand-checked synthetic case** (Build 7's K = 3 example): the joint cells, per-fate
+   split and both baselines were worked out by hand in the test. ✔
+
+### What the table can and cannot show
+
+**The joint table is a single column, by construction.**
+
+- Build 7 proved that every overlay pair joins a **top-block point**, whose depth under
+  this definition is 0, with a coarser point. So every pair falls in a cell (v, 0).
+  The table has cells (1, 0), (2, 0), …, (K, 0) and nothing else, at both K.
+- **The min-depth marginal is identically v = 0** (all pairs). **The max-depth marginal
+  is exactly Build 7's coarser-member marginal.** The three views asked for collapse
+  into one.
+- **Each top-block point has exactly one v = 1 neighbour and one v ≥ 2 neighbour.** Of
+  |n| − 1 and |n| + 1, exactly one is ≡ 2 (mod 4). That is why the v = 1 cell holds
+  exactly 2^(K−1) pairs (1,048,576 at K = 21), one per top-block point.
+
+**K = 21, the column** (agreement, with the cell's own baselines):
+
+| cell (v_coarser, v_finer) | pairs | agreement | Σp² of the cell's fates | independence given each side's fates |
+|---|---|---|---|---|
+| (1, 0) | 1,048,576 | 0.6841 | 0.3337 | 0.3337 |
+| (2, 0) | 524,288 | **0.7603** | 0.3337 | 0.3337 |
+| (3, 0) | 262,144 | 0.4471 | 0.3337 | 0.3337 |
+| (4, 0) | 131,072 | 0.4571 | 0.3337 | 0.3337 |
+| (5, 0) | 65,536 | 0.3661 | 0.3337 | 0.3337 |
+| (6, 0) | 32,768 | 0.3694 | 0.3337 | 0.3337 |
+| (7, 0) | 16,384 | 0.3326 | 0.3336 | 0.3335 |
+| (8, 0) | 8,192 | 0.3322 | 0.3337 | 0.3337 |
+
+- **Cells thin out geometrically:** cell (v, 0) has 2^(K−v) pairs. At K = 21 the
+  cells from v = 12 on have ≤ 512 pairs, falling to 2 pairs at v = 20 and v = 21.
+  At K = 18, cells from v = 9 on have ≤ 512.
+- **The thin cells are listed in the JSON and not interpreted here.**
+- **K = 18 has the same shape:** 0.6714, 0.7484, 0.4294, 0.4346, 0.3408 and 0.3377 for
+  v = 1 to 6.
+
+### Is the peak one fate's doing? No.
+
+Agreement for pairs whose coarser member has depth v and fate f, against the share of
+fate f among the finer members at that depth (the agreement expected if the finer
+member were independent):
+
+| K = 21 | coarser fate −1 | coarser fate −5 | coarser fate −17 |
+|---|---|---|---|
+| v = 1 | 0.682 (vs 0.328) | 0.682 (vs 0.324) | 0.688 (vs 0.348) |
+| **v = 2** | **0.760 (vs 0.328)** | **0.759 (vs 0.324)** | **0.762 (vs 0.348)** |
+| v = 3 | 0.445 (vs 0.328) | 0.442 (vs 0.324) | 0.454 (vs 0.349) |
+| v = 4 | 0.456 (vs 0.329) | 0.452 (vs 0.324) | 0.463 (vs 0.348) |
+
+- The v = 2 peak, and its margin over v = 1, appear **equally for all three fates**.
+  The excess over the independence expectation at v = 2 is +0.432, +0.434 and +0.415.
+- K = 18 shows the same: at v = 2, 0.746, 0.750 and 0.750.
+- **No fate drives the peak.**
+
+### Answer, at its actual strength
+
+- **Not one fate's doing:** measured directly, and it holds at both K.
+- **Pairing effect or one-sided effect: this table cannot tell.**
+  - With Build 7's depth, the finer member always has depth 0.
+  - So the table is "one-sided" by construction, not as a finding. Every pair's
+    member-depth combination is (v, 0), and the peak is simply the (2, 0) cell.
+  - The question whether the finer member's own 2-adic structure takes part in the
+    pairing needs a different depth for the top-block member, for example v₂ of its
+    *other* neighbour's offset, or of 3|n| + 1.
+  - That would be a new definition. It was not introduced, as instructed, and is left
+    for Franklin to decide.
+- **One structural fact the table does add:** every top-block point has one v = 1 and
+  one v ≥ 2 neighbour. So the v = 1 versus v = 2 contrast compares the two different
+  neighbours of the *same* points, one on each side. The answer was already in Build
+  7's numbers, but the table makes the structure explicit.
