@@ -1,0 +1,653 @@
+{
+ "note": "Build 9 is Franklin's own question, not one of Imai's requests.",
+ "definitions": {
+  "fates": "L(n), 3n + 1, cycles -1 / -5 / -17; even integers carry the fate of their odd part",
+  "torus": "toroidal angle theta(n) (dyadic angle, Build 3), poloidal angle 2 pi (h mod H) / H with h = k(|n|), the cylinder height of Build 3 (dyadic block)",
+  "lattice": "odd negative n; horizontal neighbours: |n|, |n| + 2 in the same row (block); vertical neighbours: 2|n| - 1 and 2|n| + 1 in the row above (the two points nearest the angle of |n|, which falls on the even 2|n|)",
+  "spiral": "Ulam square spiral of j = -n, 4-neighbourhood, each unordered pair once"
+ },
+ "sanityChecks": {
+  "fateCounts16383": {
+   "observed": {
+    "-1": 2673,
+    "-5": 2667,
+    "-17": 2852
+   },
+   "passed": true
+  },
+  "F1_16383": {
+   "F1": 0.4293,
+   "pairs": 8191,
+   "passed": true
+  },
+  "climbSplit": {
+   "range": "odd n, 1 <= |n| <= 4095 (Build 3 range), 3n + 1",
+   "negativeOddSteps": {
+    "climbBy1": 683,
+    "climbBy2": 1365,
+    "shares": [
+     0.3335,
+     0.6665
+    ]
+   },
+   "positiveOddSteps_c0": {
+    "climbBy1": 683,
+    "climbBy2": 1365
+   },
+   "note": "climb = |change in height| on an odd step; 683 / 1365 of 2048 (x < 1/3 rule, Build 3)",
+   "passed": true
+  },
+  "syntheticSpiral": {
+   "location": "js/tests/imaiTorusSpiral.test.js",
+   "handCount": "17 of 40 grid pairs for j = 1..25",
+   "passed": "see test run"
+  },
+  "verticalEqualsAngularOverlay": {
+   "statement": "lattice vertical pairs (m, 2m +- 1), m in row 14, are the K = 15 overlay pairs of Build 7 with coarser j-block 13",
+   "lattice": {
+    "pairs": 16384,
+    "same": 10636
+   },
+   "angularFate": {
+    "pairs": 16384,
+    "same": 10636
+   },
+   "passed": true
+  }
+ },
+ "part1": {
+  "K15": {
+   "range": "odd n, 1 <= |n| <= 32767 (16384 points), heights 0..14",
+   "shares": {
+    "-1": 0.33069,
+    "-5": 0.32452,
+    "-17": 0.34479
+   },
+   "baselineSumSquares": 0.33355,
+   "cylinder": {
+    "pairs": 32752,
+    "same": 17609,
+    "agreement": 0.53765,
+    "horizontal": {
+     "pairs": 16369,
+     "same": 7189,
+     "agreement": 0.43918
+    },
+    "vertical": {
+     "pairs": 16383,
+     "same": 10420,
+     "agreement": 0.63603
+    },
+    "wrapPairs": 0
+   },
+   "torus": {
+    "H32": {
+     "pairs": 32752,
+     "same": 17609,
+     "agreement": 0.53765,
+     "horizontal": {
+      "pairs": 16369,
+      "same": 7189,
+      "agreement": 0.43918
+     },
+     "vertical": {
+      "pairs": 16383,
+      "same": 10420,
+      "agreement": 0.63603
+     },
+     "wrapPairs": 0,
+     "identicalToCylinder": true
+    },
+    "H64": {
+     "pairs": 32752,
+     "same": 17609,
+     "agreement": 0.53765,
+     "horizontal": {
+      "pairs": 16369,
+      "same": 7189,
+      "agreement": 0.43918
+     },
+     "vertical": {
+      "pairs": 16383,
+      "same": 10420,
+      "agreement": 0.63603
+     },
+     "wrapPairs": 0,
+     "identicalToCylinder": true
+    }
+   },
+   "byRow": {
+    "0": {
+     "horizontal": null,
+     "vertical": 1,
+     "pairs": {
+      "horizontal": 0,
+      "vertical": 1
+     }
+    },
+    "1": {
+     "horizontal": null,
+     "vertical": 0,
+     "pairs": {
+      "horizontal": 0,
+      "vertical": 2
+     }
+    },
+    "2": {
+     "horizontal": 1,
+     "vertical": 0.5,
+     "pairs": {
+      "horizontal": 1,
+      "vertical": 4
+     }
+    },
+    "3": {
+     "horizontal": 0,
+     "vertical": 0.375,
+     "pairs": {
+      "horizontal": 3,
+      "vertical": 8
+     }
+    },
+    "4": {
+     "horizontal": 0.2857,
+     "vertical": 0.4375,
+     "pairs": {
+      "horizontal": 7,
+      "vertical": 16
+     }
+    },
+    "5": {
+     "horizontal": 0.0667,
+     "vertical": 0.5313,
+     "pairs": {
+      "horizontal": 15,
+      "vertical": 32
+     }
+    },
+    "6": {
+     "horizontal": 0.2903,
+     "vertical": 0.5,
+     "pairs": {
+      "horizontal": 31,
+      "vertical": 64
+     }
+    },
+    "7": {
+     "horizontal": 0.1429,
+     "vertical": 0.6328,
+     "pairs": {
+      "horizontal": 63,
+      "vertical": 128
+     }
+    },
+    "8": {
+     "horizontal": 0.378,
+     "vertical": 0.6406,
+     "pairs": {
+      "horizontal": 127,
+      "vertical": 256
+     }
+    },
+    "9": {
+     "horizontal": 0.3961,
+     "vertical": 0.6523,
+     "pairs": {
+      "horizontal": 255,
+      "vertical": 512
+     }
+    },
+    "10": {
+     "horizontal": 0.4344,
+     "vertical": 0.6396,
+     "pairs": {
+      "horizontal": 511,
+      "vertical": 1024
+     }
+    },
+    "11": {
+     "horizontal": 0.4585,
+     "vertical": 0.6265,
+     "pairs": {
+      "horizontal": 1023,
+      "vertical": 2048
+     }
+    },
+    "12": {
+     "horizontal": 0.4191,
+     "vertical": 0.6372,
+     "pairs": {
+      "horizontal": 2047,
+      "vertical": 4096
+     }
+    },
+    "13": {
+     "horizontal": 0.4374,
+     "vertical": 0.6385,
+     "pairs": {
+      "horizontal": 4095,
+      "vertical": 8192
+     }
+    },
+    "14": {
+     "horizontal": 0.449,
+     "vertical": null,
+     "pairs": {
+      "horizontal": 8191,
+      "vertical": 0
+     }
+    }
+   },
+   "rowShares": {
+    "1": [
+     1,
+     0,
+     0
+    ],
+    "2": [
+     0,
+     1,
+     0
+    ],
+    "3": [
+     0.5,
+     0.5,
+     0
+    ],
+    "4": [
+     0.125,
+     0.25,
+     0.625
+    ],
+    "5": [
+     0.3125,
+     0.25,
+     0.4375
+    ],
+    "6": [
+     0.4688,
+     0.25,
+     0.2813
+    ],
+    "7": [
+     0.3906,
+     0.2969,
+     0.3125
+    ],
+    "8": [
+     0.3047,
+     0.3359,
+     0.3594
+    ],
+    "9": [
+     0.3086,
+     0.3203,
+     0.3711
+    ],
+    "10": [
+     0.3164,
+     0.3281,
+     0.3555
+    ],
+    "11": [
+     0.3262,
+     0.3262,
+     0.3477
+    ],
+    "12": [
+     0.3213,
+     0.3335,
+     0.3452
+    ],
+    "13": [
+     0.3298,
+     0.3223,
+     0.3479
+    ],
+    "14": [
+     0.3351,
+     0.3235,
+     0.3414
+    ]
+   }
+  },
+  "K18": {
+   "range": "odd n, 1 <= |n| <= 262143 (131072 points), heights 0..17",
+   "shares": {
+    "-1": 0.32944,
+    "-5": 0.32188,
+    "-17": 0.34868
+   },
+   "baselineSumSquares": 0.33372,
+   "cylinder": {
+    "pairs": 262125,
+    "same": 147745,
+    "agreement": 0.56364,
+    "horizontal": {
+     "pairs": 131054,
+     "same": 61548,
+     "agreement": 0.46964
+    },
+    "vertical": {
+     "pairs": 131071,
+     "same": 86197,
+     "agreement": 0.65764
+    },
+    "wrapPairs": 0
+   },
+   "torus": {
+    "H32": {
+     "pairs": 262125,
+     "same": 147745,
+     "agreement": 0.56364,
+     "horizontal": {
+      "pairs": 131054,
+      "same": 61548,
+      "agreement": 0.46964
+     },
+     "vertical": {
+      "pairs": 131071,
+      "same": 86197,
+      "agreement": 0.65764
+     },
+     "wrapPairs": 0,
+     "identicalToCylinder": true
+    },
+    "H64": {
+     "pairs": 262125,
+     "same": 147745,
+     "agreement": 0.56364,
+     "horizontal": {
+      "pairs": 131054,
+      "same": 61548,
+      "agreement": 0.46964
+     },
+     "vertical": {
+      "pairs": 131071,
+      "same": 86197,
+      "agreement": 0.65764
+     },
+     "wrapPairs": 0,
+     "identicalToCylinder": true
+    }
+   },
+   "byRow": {
+    "0": {
+     "horizontal": null,
+     "vertical": 1,
+     "pairs": {
+      "horizontal": 0,
+      "vertical": 1
+     }
+    },
+    "1": {
+     "horizontal": null,
+     "vertical": 0,
+     "pairs": {
+      "horizontal": 0,
+      "vertical": 2
+     }
+    },
+    "2": {
+     "horizontal": 1,
+     "vertical": 0.5,
+     "pairs": {
+      "horizontal": 1,
+      "vertical": 4
+     }
+    },
+    "3": {
+     "horizontal": 0,
+     "vertical": 0.375,
+     "pairs": {
+      "horizontal": 3,
+      "vertical": 8
+     }
+    },
+    "4": {
+     "horizontal": 0.2857,
+     "vertical": 0.4375,
+     "pairs": {
+      "horizontal": 7,
+      "vertical": 16
+     }
+    },
+    "5": {
+     "horizontal": 0.0667,
+     "vertical": 0.5313,
+     "pairs": {
+      "horizontal": 15,
+      "vertical": 32
+     }
+    },
+    "6": {
+     "horizontal": 0.2903,
+     "vertical": 0.5,
+     "pairs": {
+      "horizontal": 31,
+      "vertical": 64
+     }
+    },
+    "7": {
+     "horizontal": 0.1429,
+     "vertical": 0.6328,
+     "pairs": {
+      "horizontal": 63,
+      "vertical": 128
+     }
+    },
+    "8": {
+     "horizontal": 0.378,
+     "vertical": 0.6406,
+     "pairs": {
+      "horizontal": 127,
+      "vertical": 256
+     }
+    },
+    "9": {
+     "horizontal": 0.3961,
+     "vertical": 0.6523,
+     "pairs": {
+      "horizontal": 255,
+      "vertical": 512
+     }
+    },
+    "10": {
+     "horizontal": 0.4344,
+     "vertical": 0.6396,
+     "pairs": {
+      "horizontal": 511,
+      "vertical": 1024
+     }
+    },
+    "11": {
+     "horizontal": 0.4585,
+     "vertical": 0.6265,
+     "pairs": {
+      "horizontal": 1023,
+      "vertical": 2048
+     }
+    },
+    "12": {
+     "horizontal": 0.4191,
+     "vertical": 0.6372,
+     "pairs": {
+      "horizontal": 2047,
+      "vertical": 4096
+     }
+    },
+    "13": {
+     "horizontal": 0.4374,
+     "vertical": 0.6385,
+     "pairs": {
+      "horizontal": 4095,
+      "vertical": 8192
+     }
+    },
+    "14": {
+     "horizontal": 0.449,
+     "vertical": 0.6492,
+     "pairs": {
+      "horizontal": 8191,
+      "vertical": 16384
+     }
+    },
+    "15": {
+     "horizontal": 0.4572,
+     "vertical": 0.658,
+     "pairs": {
+      "horizontal": 16383,
+      "vertical": 32768
+     }
+    },
+    "16": {
+     "horizontal": 0.472,
+     "vertical": 0.665,
+     "pairs": {
+      "horizontal": 32767,
+      "vertical": 65536
+     }
+    },
+    "17": {
+     "horizontal": 0.4792,
+     "vertical": null,
+     "pairs": {
+      "horizontal": 65535,
+      "vertical": 0
+     }
+    }
+   },
+   "rowShares": {
+    "1": [
+     1,
+     0,
+     0
+    ],
+    "2": [
+     0,
+     1,
+     0
+    ],
+    "3": [
+     0.5,
+     0.5,
+     0
+    ],
+    "4": [
+     0.125,
+     0.25,
+     0.625
+    ],
+    "5": [
+     0.3125,
+     0.25,
+     0.4375
+    ],
+    "6": [
+     0.4688,
+     0.25,
+     0.2813
+    ],
+    "7": [
+     0.3906,
+     0.2969,
+     0.3125
+    ],
+    "8": [
+     0.3047,
+     0.3359,
+     0.3594
+    ],
+    "9": [
+     0.3086,
+     0.3203,
+     0.3711
+    ],
+    "10": [
+     0.3164,
+     0.3281,
+     0.3555
+    ],
+    "11": [
+     0.3262,
+     0.3262,
+     0.3477
+    ],
+    "12": [
+     0.3213,
+     0.3335,
+     0.3452
+    ],
+    "13": [
+     0.3298,
+     0.3223,
+     0.3479
+    ],
+    "14": [
+     0.3351,
+     0.3235,
+     0.3414
+    ],
+    "15": [
+     0.3353,
+     0.3185,
+     0.3461
+    ],
+    "16": [
+     0.3296,
+     0.3215,
+     0.3489
+    ],
+    "17": [
+     0.3276,
+     0.3223,
+     0.3502
+    ]
+   }
+  }
+ },
+ "part2": {
+  "range": "j = -n = 1..32767 (n = -1 .. -32767), every integer, evens by their odd part",
+  "orientation": "standard Ulam: 1 at the origin, 2 to the east, counter-clockwise",
+  "shares": {
+   "-1": 0.32847,
+   "-5": 0.32484,
+   "-17": 0.34669
+  },
+  "baselineSumSquares": 0.33361,
+  "gridAgreement": {
+   "pairs": 65171,
+   "same": 29573,
+   "agreement": 0.45378
+  },
+  "shuffledControl": {
+   "shuffles": 20,
+   "seed": 915,
+   "mean": 0.33352,
+   "min": 0.32981,
+   "max": 0.33701
+  },
+  "byPairType": {
+   "consecutive": {
+    "pairs": 32766,
+    "same": 19199,
+    "agreement": 0.58594,
+    "note": "grid neighbours that are consecutive integers j, j + 1"
+   },
+   "crossRing": {
+    "pairs": 32405,
+    "same": 10374,
+    "agreement": 0.32014,
+    "meanSeparation": 480,
+    "note": "grid neighbours on adjacent rings of the spiral"
+   }
+  },
+  "lineContrast": {
+   "note": "all consecutive pairs (j, j + 1), j = 1..J - 1, on the plain integer line",
+   "pairs": 32766,
+   "same": 19199,
+   "agreement": 0.58594
+  }
+ },
+ "naturalPeriod": "none found: heights are dyadic block indices (0..K-1), each used once; the per-row agreement and share series (byRow, rowShares) were inspected and show a trend with no repeat; with 14-17 rows a period could not be established in any case"
+}

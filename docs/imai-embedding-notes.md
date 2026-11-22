@@ -1524,3 +1524,135 @@ rough, since pairs are not independent.
    with |n| is attributable to that domain component. The pair-level residual (0.135)
    is large, clearly non-zero, and roughly constant over the largest blocks.
 4. **These splits depend on the window width** and should be quoted with it.
+
+---
+
+## Torus and spiral drawings of the fate partition (Nov 2026)
+
+**This build was Franklin's own question, not one of Imai's requests.** Would closing
+the Build 3 cylinder into a torus, or laying the integers on an Ulam spiral, show any
+organisation of the fate partition that the line and the circle do not?
+
+Where things are:
+
+- Code: `js/imaiTorusSpiral.js` (tests: `js/tests/imaiTorusSpiral.test.js`) and
+  `scripts/imai-torus-spiral.mjs` (about 4 s).
+- Outputs, all in **`docs/torus-spiral/`**: `torus-spiral.json`,
+  `torus-unwrapped-H32.png`, `torus-unwrapped-H64.png` and `spiral-ulam.png`.
+
+**Definitions.**
+
+- **Fates:** L(n) under 3n + 1, cycles −1, −5 and −17, from the unchanged fate table
+  (odd n, |n| ≤ 2¹⁸ − 1, all settled). An even integer carries its odd part's fate,
+  since even steps only halve.
+- **Torus.** This is Build 3's cylinder with its vertical coordinate wrapped:
+  - toroidal angle = the dyadic angle θ(n);
+  - height h = k(|n|), the dyadic block, which is the cylinder's height. An odd step
+    climbs +1 or +2 levels in it;
+  - poloidal angle = 2π (h mod H)/H.
+
+  I read "climb height" as this height coordinate.
+- **Lattice on the (θ, height) grid**, odd negative n only:
+  - *horizontal* neighbours are the angularly adjacent points of one row, i.e.
+    (|n|, |n| + 2) inside one block. A row covers half the circle, so it does not
+    wrap.
+  - *vertical* neighbours come from the row above, which has twice the angular
+    resolution. The angle of |n| falls exactly on the even 2|n|, so both odd points
+    2|n| − 1 and 2|n| + 1 are nearest, and both count.
+- **Spiral:** the Ulam square spiral of j = −n = 1 … 32,767, in standard orientation
+  (1 at the centre, 2 to its east, counter-clockwise). Neighbours are the four grid
+  neighbours, each unordered pair counted once.
+  - 32,767 = 181² + 6, so the outermost ring is almost empty. It shows as a nearly
+    blank right-hand column in the figure.
+
+### Sanity checks (all passed)
+
+1. **Fate counts** at |n| ≤ 16,383: −1: 2673, −5: 2667, −17: 2852. ✔
+2. **F(1)** = 0.4293 over 8,191 pairs. ✔
+3. **Build 3's climb split**, same range (odd n, |n| ≤ 4,095, 3n + 1): odd steps climb
+   +1 level in **683** cases and +2 in **1,365** cases, out of 2,048 (0.3335 / 0.6665).
+   That is exactly Build 3's counts. ✔
+4. **Hand-checked spiral:** the first 25 integers. The grid, fates and pair counts
+   were worked out by hand in the test: 17 of 40 grid pairs agree (10/20 horizontal,
+   7/20 vertical), 9 of 24 consecutive pairs and 8 of 16 cross-ring pairs. ✔
+5. **Cross-check against Build 7:** the vertical lattice pairs from row 14 to row 15
+   are exactly Build 7's overlay pairs at K = 15 with coarser block 13. Both give
+   **10,636 of 16,384**. ✔
+
+### Part 1: torus
+
+**Both ranges were reached:** |n| ≤ 2¹⁵ − 1 (heights 0–14) and |n| ≤ 2¹⁸ − 1 (heights
+0–17), in under a second, with no range cut.
+
+| range | H | lattice pairs | agreement | horizontal | vertical | baseline Σp² |
+|---|---|---|---|---|---|---|
+| \|n\| ≤ 2¹⁵ − 1 | cylinder (open) | 32,752 | 0.5377 | 0.4392 | 0.6360 | 0.3336 |
+| | 32 | 32,752 | 0.5377 | 0.4392 | 0.6360 | 0.3336 |
+| | 64 | 32,752 | 0.5377 | 0.4392 | 0.6360 | 0.3336 |
+| \|n\| ≤ 2¹⁸ − 1 | cylinder (open) | 262,125 | 0.5636 | 0.4696 | 0.6576 | 0.3337 |
+| | 32 | 262,125 | 0.5636 | 0.4696 | 0.6576 | 0.3337 |
+| | 64 | 262,125 | 0.5636 | 0.4696 | 0.6576 | 0.3337 |
+
+- **Closing the loop changes nothing, by construction.** The largest height in range
+  is 14 or 17, so h mod 32 = h mod 64 = h. Every point keeps its coordinates, no pair
+  is added across the wrap, and the torus numbers equal the cylinder's exactly (this
+  is tested).
+- **Only H ≤ 17 would wrap anything,** and then rows of different angular resolution
+  would be superimposed, for which this lattice is not defined. The code rejects those
+  H rather than invent neighbours. H = 18 would join the top row directly to row 0
+  and is also rejected.
+- **No natural period.** Heights are dyadic block indices, each used once. The per-row
+  series of agreement and fate shares (`byRow` and `rowShares` in the JSON) show a
+  steady trend and no repetition. With 15–18 rows, a period could not be established
+  in any case.
+- **The lattice agreement itself is not new.**
+  - Horizontal pairs are the within-block pairs (n, n + 2). Their agreement, 0.4696
+    at 2¹⁸ − 1, is the F(1) of earlier builds; per row it rises from 0.449 (row 14) to
+    0.479 (row 17).
+  - Vertical pairs (m, 2m ± 1) are Build 7's v = 1 overlay pairs, as the exact
+    cross-check shows. Their agreement rises with the row, from 0.649 to 0.665.
+  - Both sit well above the baseline of 0.334, but both were measured before.
+
+**Verdict: the torus adds no information.** For any wrap period above the largest
+height it is the cylinder, number for number. Below that the construction stops being
+a lattice. The cylinder's own lattice only regroups pairs already measured on the line
+and on Imai's circle.
+
+### Part 2: Ulam spiral
+
+| | value |
+|---|---|
+| grid agreement (65,171 adjacent pairs) | **0.4538** |
+| baseline Σp² (shares −1: 0.328, −5: 0.325, −17: 0.347) | 0.3336 |
+| shuffled control (same shares, 20 shuffles, seed 915) | **0.3335** (range 0.3298–0.3370) |
+
+The spiral agreement is far above both the baseline and the shuffled control, but it
+**decomposes completely into what the sequence already shows**:
+
+| pair type | pairs | agreement |
+|---|---|---|
+| consecutive integers j, j + 1 (all of them are grid-adjacent on the spiral) | 32,766 | 0.5859 |
+| cross-ring neighbours (mean separation 480) | 32,405 | 0.3201 |
+| *for contrast:* every consecutive pair on the plain line, j = 1 … 32,766 | 32,766 | 0.5859 (identical) |
+
+- **About half the spiral's grid pairs are consecutive integers.** Their agreement is,
+  necessarily, the plain-line agreement of consecutive integers.
+- **The other half pair integers about 480 apart, and agree slightly *below*
+  baseline** (0.3201 against 0.3336). That is about 5 naive standard errors, but the
+  pairs are not independent. It matches the dip below baseline at large separations
+  already reported for this small range in the F(r) section. It is not new.
+- **The visible streaks in `spiral-ulam.png` follow the spiral path itself.** They are
+  the consecutive-integer runs, which the earlier studies already measured as long
+  same-fate runs.
+
+**Verdict: the spiral shows nothing beyond the sequence itself.** Its grid agreement is
+a weighted average of consecutive-integer agreement and the slightly negative
+agreement at separations near 480. Neither is new, and the spiral adds no information
+about the fate partition.
+
+### In short
+
+Neither shape adds information. As with the sphere in Build 3, the torus is the
+cylinder redrawn, and the spiral is the integer sequence redrawn. The structure they
+display (agreement of neighbours, growing with |n|, and the 2-adic pairing behind the
+vertical neighbours) was already measured in Builds 4–8.
