@@ -61,3 +61,21 @@ def test_primes_below():
 def test_wss_residue_vs_exact_bigint(p):
     # Independent check: exact big-integer F_n reduced mod p^2.
     assert wss_residue(p) == naive_fib(p - legendre5(p)) % (p * p)
+
+
+def test_large_n_consistency_near_1e7():
+    # Addition identity at n ~ 10^7 modulo the square of the largest prime < 10^7.
+    m = 9999991 ** 2
+    a, b = 6_000_001, 3_999_990
+    lhs = fib_mod(a + b, m)
+    rhs = (fib_mod(a, m) * fib_mod(b + 1, m) + fib_mod(a - 1, m) * fib_mod(b, m)) % m
+    assert lhs == rhs
+
+
+def test_prime_count_below_1e7():
+    assert len(primes_below(10**7)) == 664579
+
+
+@pytest.mark.parametrize("p", [1000003, 2000003])
+def test_wss_residue_vs_exact_bigint_new_band(p):
+    assert wss_residue(p) == naive_fib(p - legendre5(p)) % (p * p)
