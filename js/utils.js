@@ -302,99 +302,106 @@ export function updateGoldStarVisibility(n, x, y, z, starId = 'goldStar') {
 export const updateGoldStar = updateGoldStarVisibility;
 export const updateGoldStarVisibilitySlicer = updateGoldStarVisibility;
 
+// ==========================================================
+// 9-net: an unfolded cube. Six 3x3 faces laid out as a cross,
+//
+//          [top]
+//   [left][front][right][back]
+//          [bottom]
+//
+// filled with the sequence in order (face by face, row by row), up to 54 numbers.
+// Restores the layout from before the 2025-08-17 refactor (cd11469).
+// ==========================================================
+export const FACE_SIZE = 30;  // side of one small square, at the default canvas size
+export const PADDING = 10;    // margin around the whole net
+export const STEP_SIZE = 3;   // squares per face side (3x3 faces)
+export const NINE_NET_FACES = [
+    { r: 0, c: 1, name: 'top' },
+    { r: 1, c: 0, name: 'left' },
+    { r: 1, c: 1, name: 'front' },
+    { r: 1, c: 2, name: 'right' },
+    { r: 1, c: 3, name: 'back' },
+    { r: 2, c: 1, name: 'bottom' },
+];
+export const NINE_NET_CAPACITY = NINE_NET_FACES.length * STEP_SIZE * STEP_SIZE; // 54
+export const NINE_NET_DRAW_WIDTH = (4 * STEP_SIZE * FACE_SIZE) + (2 * PADDING);  // 380
+export const NINE_NET_DRAW_HEIGHT = (3 * STEP_SIZE * FACE_SIZE) + (2 * PADDING); // 290
+
+/**
+ * Pure layout for the unfolded-cube 9-net: where each sequence number goes.
+ * @returns {Array<{x:number, y:number, size:number, face:string, index:number, value:(number|undefined)}>}
+ */
+export function nineNetCells(sequence, width = NINE_NET_DRAW_WIDTH, height = NINE_NET_DRAW_HEIGHT) {
+    // Scale squares so the 12-wide by 9-tall net fits the canvas, then centre it.
+    const size = Math.max(0, Math.min((width - 2 * PADDING) / (4 * STEP_SIZE), (height - 2 * PADDING) / (3 * STEP_SIZE)));
+    const offsetX = (width - 4 * STEP_SIZE * size) / 2;
+    const offsetY = (height - 3 * STEP_SIZE * size) / 2;
+    const cells = [];
+    let index = 0;
+    for (const face of NINE_NET_FACES) {
+        for (let row = 0; row < STEP_SIZE; row++) {
+            for (let col = 0; col < STEP_SIZE; col++) {
+                cells.push({
+                    x: offsetX + (face.c * STEP_SIZE + col) * size,
+                    y: offsetY + (face.r * STEP_SIZE + row) * size,
+                    size,
+                    face: face.name,
+                    index,
+                    value: index < sequence.length ? sequence[index] : undefined,
+                });
+                index++;
+            }
+        }
+    }
+    return cells;
+}
+
 export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mulColor) {
-    if (!canvas || !canvas.getContext('2d')) {
+    if (!canvas || !canvas.getContext || !canvas.getContext('2d')) {
         if (DEBUG_MODE) console.error("Canvas element not found for 9-net drawing.");
         return;
     }
     const ctx = canvas.getContext('2d');
-    const faceSize = canvas.width / 3;
-    let sequenceIndex = 0;
-    const gridPositions = [
-        { r: 1, c: 1, remainder: 0 }, { r: 0, c: 0, remainder: 1 }, { r: 0, c: 1, remainder: 2 },
-        { r: 0, c: 2, remainder: 3 }, { r: 1, c: 0, remainder: 4 }, { r: 1, c: 2, remainder: 5 },
-        { r: 2, c: 0, remainder: 6 }, { r: 2, c: 1, remainder: 7 }, { r: 2, c: 2, remainder: 8 }
-    ];
+    const seq = sequence || [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = `${faceSize * 0.4}px Inter, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.strokeStyle = "#4a5568";
-    ctx.lineWidth = 1;
-    for (let i = 1; i < 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * faceSize, 0);
-        ctx.lineTo(i * faceSize, canvas.height);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i * faceSize);
-        ctx.lineTo(canvas.width, i * faceSize);
-        ctx.stroke();
-    }
-    gridPositions.forEach(pos => {
-        const x = pos.c * faceSize;
-        const y = pos.r * faceSize;
-        let color = "#333";
-        let label = "";
-        if (sequenceIndex < sequence.length) {
-            const num = sequence[sequenceIndex];
-            color = (num % xVal === 0) ? divColor : mulColor;
-            label = num;
-            sequenceIndex++;
-        }
+    const cells = nineNetCells(seq, canvas.width, canvas.height);
+
+    for (const cell of cells) {
+        const hasValue = cell.value !== undefined;
+        const color = hasValue ? ((cell.value % xVal === 0) ? divColor : mulColor) : '#444';
         ctx.fillStyle = color;
-        ctx.fillRect(x, y, faceSize, faceSize);
-        ctx.strokeStyle = "#222";
+        ctx.fillRect(cell.x, cell.y, cell.size, cell.size);
+        ctx.strokeStyle = '#222';
         ctx.lineWidth = 1;
-        ctx.strokeRect(x, y, faceSize, faceSize);
-        if (label !== "") {
-            ctx.fillStyle = isLight(color) ? "#000" : "#fff";
-            ctx.fillText(label, x + faceSize / 2, y + faceSize / 2);
+        ctx.strokeRect(cell.x, cell.y, cell.size, cell.size);
+        if (hasValue) {
+            // Shrink the font for long numbers so they stay inside the square.
+            const digits = String(cell.value).length;
+            const fontSize = Math.max(6, Math.min(cell.size * 0.45, (cell.size * 1.7) / digits));
+            ctx.fillStyle = isLight(color) ? '#000' : '#fff';
+            ctx.font = `${fontSize}px Inter, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(cell.value), cell.x + cell.size / 2, cell.y + cell.size / 2);
         }
-    });
+    }
+
+    // Heavier outline around each cube face so the six faces read clearly.
+    const faceSide = (cells[0]?.size || 0) * STEP_SIZE;
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 2;
+    for (let f = 0; f < NINE_NET_FACES.length; f++) {
+        const first = cells[f * STEP_SIZE * STEP_SIZE];
+        ctx.strokeRect(first.x, first.y, faceSide, faceSide);
+    }
 }
 
 export function render9Net(canvas, sequence, divColor, mulColor, faceDefinitions = null, xVal = DEFAULT_X_DIVISOR) {
-    if (!canvas || !canvas.getContext('2d')) {
+    if (!canvas || !canvas.getContext || !canvas.getContext('2d')) {
         if (DEBUG_MODE) console.error("Canvas element not found for 9-net rendering.");
         return;
     }
-    const ctx = canvas.getContext('2d');
-    const gridSize = 3;
-    const faceSize = canvas.width / gridSize;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const defaultFaceMap = [
-        { row: 0, col: 0 }, { row: 0, col: 1 }, { row: 0, col: 2 },
-        { row: 1, col: 0 }, { row: 1, col: 1 }, { row: 1, col: 2 },
-        { row: 2, col: 0 }, { row: 2, col: 1 }, { row: 2, col: 2 }
-    ];
-    let sequenceIndex = 0;
-    for (let r = 0; r < gridSize; r++) {
-        for (let c = 0; c < gridSize; c++) {
-            const x = c * faceSize;
-            const y = r * faceSize;
-            let color = "#333";
-            let label = "";
-            if (sequenceIndex < sequence.length) {
-                const num = sequence[sequenceIndex];
-                color = (num % xVal === 0) ? divColor : mulColor;
-                label = num;
-                sequenceIndex++;
-            }
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, faceSize, faceSize);
-            ctx.strokeStyle = "#222";
-            ctx.lineWidth = 1;
-            ctx.strokeRect(x, y, faceSize, faceSize);
-            if (label !== "") {
-                ctx.fillStyle = isLight(color) ? "#000" : "#fff";
-                ctx.font = `${faceSize * 0.4}px Inter, sans-serif`;
-                ctx.textAlign = "center";
-                ctx.textBaseline = "middle";
-                ctx.fillText(label, x + faceSize / 2, y + faceSize / 2);
-            }
-        }
-    }
+    drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mulColor);
 }
 /*
 

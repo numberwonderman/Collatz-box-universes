@@ -7,6 +7,8 @@
             getUrlParams,
             DEFAULT_LINE_COLOR, // For divColor
             DEFAULT_NODE_COLOR, // For mulColor
+            NINE_NET_DRAW_WIDTH,
+            NINE_NET_DRAW_HEIGHT,
             isLight // Helper for text color
         } from './utils.js';
 
@@ -24,9 +26,6 @@
         let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
         let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
         const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
-        // 9-net canvases are square: drawNineNetCanvasSecondary uses width/3 for every cell.
-        const NINE_NET_DRAW_WIDTH = 300;
-        const NINE_NET_DRAW_HEIGHT = 300;
 
         // Default colors for the 9-net drawing from utils.js
         const divColor = DEFAULT_LINE_COLOR;

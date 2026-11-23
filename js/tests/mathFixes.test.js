@@ -52,3 +52,26 @@ describe('home page cycle runner', () => {
     expect(res.type).toBe('Converges to 1');
   });
 });
+
+describe('9-net is an unfolded cube', () => {
+  it('has six 3x3 faces in a cross: top, left, front, right, back, bottom', async () => {
+    const { nineNetCells, NINE_NET_CAPACITY, NINE_NET_DRAW_WIDTH, NINE_NET_DRAW_HEIGHT } = await import('../utils.js');
+    expect(NINE_NET_CAPACITY).toBe(54);
+    expect([NINE_NET_DRAW_WIDTH, NINE_NET_DRAW_HEIGHT]).toEqual([380, 290]);
+
+    const seq = Array.from({ length: 60 }, (_, i) => i + 1);
+    const cells = nineNetCells(seq, 380, 290); // 30px squares, 10px margin
+    expect(cells).toHaveLength(54);
+    const firstOf = (face) => cells.find(c => c.face === face);
+    // face origins in square units: top (3,0), left (0,3), front (3,3), right (6,3), back (9,3), bottom (3,6)
+    const origin = (face) => [(firstOf(face).x - 10) / 30, (firstOf(face).y - 10) / 30];
+    expect(origin('top')).toEqual([3, 0]);
+    expect(origin('left')).toEqual([0, 3]);
+    expect(origin('front')).toEqual([3, 3]);
+    expect(origin('right')).toEqual([6, 3]);
+    expect(origin('back')).toEqual([9, 3]);
+    expect(origin('bottom')).toEqual([3, 6]);
+    // filled in order, face by face; numbers past 54 don't fit
+    expect(cells.map(c => c.value)).toEqual(seq.slice(0, 54));
+  });
+});
