@@ -1,0 +1,50 @@
+============================= test session starts ==============================
+platform linux -- Python 3.13.18, pytest-9.1.1, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /home/user/Collatz-box-universes/terras-first-crossing-verify/independent
+plugins: anyio-4.15.1
+collecting ... collected 41 items
+
+tests/test_bounds.py::test_ln_enclosures_contain_true_values PASSED      [  2%]
+tests/test_bounds.py::test_first_convergents_by_hand PASSED              [  4%]
+tests/test_bounds.py::test_paper_convergents_and_mediant PASSED          [  7%]
+tests/test_bounds.py::test_sandwich_certifications PASSED                [  9%]
+tests/test_bounds.py::test_least_denominator_fraction_is_the_paper_bound PASSED [ 12%]
+tests/test_bounds.py::test_simplest_fraction_small_cases PASSED          [ 14%]
+tests/test_bounds.py::test_simplest_fraction_brute_force PASSED          [ 17%]
+tests/test_bounds.py::test_e_enclosures_match_paper PASSED               [ 19%]
+tests/test_bounds.py::test_G75 PASSED                                    [ 21%]
+tests/test_bounds.py::test_run_argument_75_closes_and_76_does_not PASSED [ 24%]
+tests/test_bounds.py::test_tail_holds_far_beyond_split PASSED            [ 26%]
+tests/test_bounds.py::test_tail_log_step PASSED                          [ 29%]
+tests/test_core.py::test_hand_orbits[3-1100-4-2-5-2] PASSED              [ 31%]
+tests/test_core.py::test_hand_orbits[5-10-2-1-1-4] PASSED                [ 34%]
+tests/test_core.py::test_hand_orbits[7-1110100-7-4-73-5] PASSED          [ 36%]
+tests/test_core.py::test_hand_orbits[59-1101100-7-4-85-38] PASSED        [ 39%]
+tests/test_core.py::test_hand_runs PASSED                                [ 41%]
+tests/test_core.py::test_run_formula_value_for_7 PASSED                  [ 43%]
+tests/test_core.py::test_first_crossing_word_predicate PASSED            [ 46%]
+tests/test_core.py::test_example4_classes PASSED                         [ 48%]
+tests/test_core.py::test_word_class_matches_brute_force PASSED           [ 51%]
+tests/test_core.py::test_descent_criterion_can_fail PASSED               [ 53%]
+tests/test_core.py::test_criterion_agrees_with_orbits_on_class_members PASSED [ 56%]
+tests/test_core.py::test_enumeration_matches_brute_force PASSED          [ 58%]
+tests/test_core.py::test_family_110 PASSED                               [ 60%]
+tests/test_core.py::test_lemma5_and_squares_small PASSED                 [ 63%]
+tests/test_core.py::test_check_seed_clean_on_small_range PASSED          [ 65%]
+tests/test_core.py::test_first_crossing_detects_planted_bad_data PASSED  [ 68%]
+tests/test_round2.py::test_hand_n7 PASSED                                [ 70%]
+tests/test_round2.py::test_hand_n59 PASSED                               [ 73%]
+tests/test_round2.py::test_checker_detects_a_non_realizer PASSED         [ 75%]
+tests/test_round2.py::test_composition_hand PASSED                       [ 78%]
+tests/test_round2.py::test_G_enclosure PASSED                            [ 80%]
+tests/test_round2.py::test_convergents_I_to_IV PASSED                    [ 82%]
+tests/test_round2.py::test_row0_by_hand PASSED                           [ 85%]
+tests/test_round2.py::test_all_rows_reproduce_both_chains PASSED         [ 87%]
+tests/test_round2.py::test_printed_lambdas_are_truncations PASSED        [ 90%]
+tests/test_round2.py::test_lower_bound PASSED                            [ 92%]
+tests/test_round2.py::test_tail PASSED                                   [ 95%]
+tests/test_round2.py::test_row_rejects_bad_input PASSED                  [ 97%]
+tests/test_round2.py::test_theorem8_closes PASSED                        [100%]
+
+============================== 41 passed in 0.22s ==============================
