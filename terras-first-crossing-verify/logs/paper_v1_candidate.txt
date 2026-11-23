@@ -1,0 +1,336 @@
+              Realizer Bounds and Repetition Constraints
+        at the First Coefficient Crossing in the 3x + 1 Problem
+                                        Elias De Jesús
+                                    Independent Researcher
+                                   ORCID 0009-0007-0190-9143
+
+                                         14 November 2026
+                                          Author review copy.
+
+
+                                                Abstract
+          Terras’s coefficient stopping time conjecture asks whether the shortcut Collatz orbit of
+      every integer n ≥ 2 lies below n when its coefficient ρk = 3d /2k first falls below one. Here
+      k counts shortcut steps and d counts their odd inputs. We prove that every eligible realizer
+      descends when the first-crossing word has at most 75 maximal runs of odd inputs. Any
+      counterexample requires at least 76 such runs, 10 439 860 591 steps and 6 586 818 670 odd
+      inputs. The proof uses a lower bound on the seed from the length of its odd runs, rational
+      approximations to log2 3, the verified range of Rozier and Terracol, and Rhin’s estimate
+      for a linear form in logarithms. We also prove descent for a family with arbitrarily many
+      odd runs. Two further restrictions narrow the remaining words. An initial square U U in
+      a failing word satisfies |U | < 35 log2 k. For a counterexample of shortest crossing length,
+      the reciprocal-sum estimate of Nikzad, Frinkle and Bagherzadeh gives a lower bound on
+      ρk whose value begins 0.9441733669 . . .. The open inequality compares the least eligible
+      starting value in each remaining parity class with an explicit threshold.
+
+
+1    What is being asked
+Write T (n) = (3n + 1)/2 at odd inputs and T (n) = n/2 at even inputs. Fix n ≥ 2. For
+the parity word w of its first k input states n, T (n), . . . , T k−1 (n), let d count the odd inputs.
+Induction gives
+                                     2k T k (n) = 3d n + Cw ,                                      (1)
+where the nonnegative integer Cw depends only on w. Write ρk = 3d /2k with ρ0 = 1. An odd
+step multiplies the coefficient by 3/2 and an even step halves it. Let τ (n) be the first k with
+ρk < 1, and let χ(n) be the first k with T k (n) < n. An empty defining set gives stopping time
+∞. Equation (1) gives τ (n) ≤ χ(n), so any failure of Terras’s conjecture τ (n) = χ(n) has finite
+k = τ (n) and T k (n) ≥ n [10, 2]. An even starting value descends at its first step, so a failure
+has odd n and d ≥ 1.
+    A first-crossing word has ρj ≥ 1 for every j < k and ρk < 1. Its last step is even, so
+ρk ∈ [1/2, 1). With d ≥ 1, this also gives 2k−1 ≤ 3d < 2k and k = ⌈d log2 3⌉ ≤ 2d. An odd run
+is a maximal block of consecutive odd input states.
+
+
+2    The signed comparator
+Dividing (1) by 2k gives the form we use throughout.
+Proposition 1. With Mw = Cw /3d ,
+
+             T k (n) = ρk (n + Mw ),               T k (n) < n ⇐⇒ n ρ−1
+                                                                          
+                                           so                        k − 1 > Mw .
+
+
+                                                   1
+Moreover, if the odd runs have lengths ℓ1 , . . . , ℓs and run i starts at time ti ,
+                                                s
+                                                X 1 − (2/3)ℓi
+                                        Mw =                             .                       (2)
+                                                             ρti
+                                                 i=1
+
+Proof. The first display is (1). For (2), each odd step at time j contributes 2j 3−dj+1 = 1/(3ρj )
+to Mw , where dj+1P counts odd steps through time j. Summing a run of ℓ consecutive odd steps
+from t gives 3ρ1 t r<ℓ (2/3)r = (1 − (2/3)ℓ )/ρt .
+
+   If a first-crossing word contains s ≥ 1 odd runs, every proper prefix has ρt ≥ 1, so each run
+contributes less than one and each odd step contributes at most 1/3. Thus
+
+                                       Mw < s,             Mw ≤ d/3.                             (3)
+
+The two bounds depend respectively on the number of runs and on the total number of odd
+inputs.
+Remark 2 (Testing all eligible realizers of a word). A length-k parity word specifies one residue
+class modulo 2k . Indeed, the two lifts of a given length-j class modulo 2j+1 have starting values
+that differ by 2j . Their images after j steps differ by 3dj , an odd integer, so exactly one lift
+has the prescribed next parity. For a first-crossing word, let r(w) be the least integer ≥ 2 in
+its class. Every eligible realizer descends if and only if r(w)(ρ−1k − 1) > Mw , since the left side
+increases with the seed. If a seed n fails, its endpoint satisfies 0 ≤ T k (n) − n < s by Proposition
+1 and (3).
+
+Example 3. The exact odd-to-odd valuation word (1, 2, 1, 3, 1) from [5, App. A.6(b)] has eight
+shortcut input bits 11011001 and an odd terminal state. The eight input bits give the class
+187 mod 256. Terminal oddness adds a ninth bit and selects 187 mod 512. Indeed, T 8 (187) =
+179, while the other lift, 443, has T 8 (443) = 179 + 35 = 422. The first coefficient crossing
+already occurs at step 7. Its prefix 1101100 gives the class 59 mod 128, and
+
+                                                (27 − 34 ) · 59 − 85
+                              59 − T 7 (59) =                        = 21.
+                                                        27
+Thus T 7 (59) = 38 and every eligible seed in 59 + 128Z descends at step 7. Within a period of
+512 there are four representatives of this crossing class, of which one realizes the full valuation
+word.
+
+
+3    Words with at most 75 odd runs
+Lemma 4 (run-length realizer bound). If an odd run starts at x and lasts ℓ steps, the endpoint
+plus one equals (3/2)ℓ (x+1), so 2ℓ | x+1. At each odd step x+1 is multiplied by 3/2, and at each
+even step it decreases. Writing Di for the number of odd steps before run i and L = log2 (n + 1),
+we get 2ℓi ≤ (n + 1)(3/2)Di , hence Di+1 ≤ L + αDi with α = log2 3, and therefore
+                                                                   s−1
+                                                                   X
+                                     d ≤ Gs L,             Gs =          α j.
+                                                                   j=0
+
+Theorem 5. Every eligible realizer of a first-crossing word with at most 75 odd runs descends
+at that crossing. Any counterexample to Terras’s conjecture has at least 76 odd runs, crossing
+time k ≥ 10 439 860 591 and odd-input count d ≥ 6 586 818 670.
+
+
+
+
+                                                       2
+Proof. Rozier and Terracol [9, Cor. 5.4] verify χ(n) = τ (n) for 2 ≤ n ≤ B with B = 28 · 1018 , so
+a failure has n > B. Put Λ = k ln 2−d ln 3 > 0. By Proposition 1 a failure gives (eΛ −1)n ≤ Mw ,
+hence with (3)
+                     0 < Λ < s/n < s/B,        0 < Λ/d < 1/(3n) < 1/(3B).                      (4)
+    The two large integers. Take the convergents of α = log2 3 of indices 20 and 19, respectively:
+
+         (a, b) = (9 809 721 694, 6 189 245 291),       (u, v) = (630 138 897, 397 573 379).
+
+One certifies a/b < α and (u/v) ln 2 − ln 3 > 1/(3B). With the second half of (4) this forces
+a/b < α < k/d < u/v. The determinant bu−av = 1 makes bk −ad and ud−vk positive integers,
+and expanding gives (k, d) = (ud − vk)(a, b) + (bk − ad)(u, v). Hence k ≥ a + u = 10 439 860 591
+and d ≥ b + v = 6 586 818 670; this pair is the convergent of index 21, the mediant of the two
+used, and it is the pair that occurs in Eliahou’s work on nontrivial cycle lengths [1].
+     Excluding at most 75 runs. Suppose now that s ≤ 75, so that Λ < 75/B. For p/q < α put e =
+q ln 3−p ln 2 > 0. Since k/d > α, qΛ+de = (qk −pd) ln 2 ≥ ln 2. Two pairs suffice, with certified
+enclosures eI ∈ (5.22, 5.24) · 10−18 at (p, q) = (9 881 527 843 552 324, 6 234 549 927 241 963) and
+eII ∈ (1.24, 1.25) · 10−19 at (p, q) = (6 724 555 128 221 608 268, 4 242 721 909 926 539 673). Pair I
+gives d > (0.69 − q · 75/B)/(5.24 · 10−18 ) > 1.26 · 1017 . If d < 261 < 2.31 · 1018 , pair II gives
+Λ > (0.69 − 2.31 · 1018 · 1.25 · 10−19 )/(4.25 · 1018 ) > 9 · 10−20 , hence n < 75/(9 · 10−20 ) and
+n + 1 < 270 ; Lemma 4 with G75 < 1.72 · 1015 then gives d < 70 · 1.72 · 1015 = 1.204 · 1017 ,
+contradicting d > 1.26 · 1017 .
+     The tail. For d ≥ 261 , Rhin’s effective estimate [8] (in the form used by [9, Prop. 6.3]) gives
+Λ ≥ k −13.3 , so n < 75(2d)13.3 and log2 (n + 1) < 7 + 14 log2 (2d). With 2j ≤ d < 2j+1 , Lemma
+4 forces 2j ≤ d < 1.72 · 1015 [ 7 + 14(j + 2) ]. At j = 61 the upper bound is 1.52908 · 1018 <
+261 . It stays below 2j by induction, since the bracket increases by 14 while 2j doubles. This
+contradiction excludes the remaining values of d.
+
+Remark 6 (Dependencies of Theorem 5). The Rozier–Terracol verification supplies the seed
+bound n > B. Combined with (4), the Farey interval then gives the two integer bounds. In
+the proof of Theorem 5, Rhin’s estimate enters only in the case d ≥ 261 . Rozier and Terracol
+[9, Rem. 5.5] credit Simons with proposing the classification by local maxima. Priority for the
+stated first-crossing bounds remains open.
+
+
+4    A family with arbitrarily many runs
+Proposition 7. Repeat the block 110 exactly h ≥ 1 times and append zeros up to the first
+coefficient crossing. Every eligible realizer descends at that crossing.
+Proof. One block acts by H(x) + 5 = 9(x + 5)/8, so −5 is its fixed point. The block’s full
+coefficient is 9/8 and its two nonempty proper-prefix coefficients are 3/2 and 9/4. Consequently
+the first crossing occurs among the appended zeros at k = ⌈h log2 9⌉ ≤ 4h. Iteration gives
+H h (n) + 5 = 9h (n + 5)/8h . Integrality implies 8h | n + 5, hence n ≥ 8h − 5. The normalized
+memory is 5(1 − (8/9)h ) < 5 and the appended zeros leave it unchanged.
+    For h ≤ 63, k ≤ 252 is below the crossing-length bound in Theorem 5. For h ≥ 64, Rhin’s
+estimate gives nΛ ≥ (8h − 5)/(4h)13.3 > 5. Indeed, 864 − 5 > 5 · 25614 , and ((h + 1)/h)14 ≤
+(65/64)14 < 8, so 8h − 5 > 5(4h)14 persists by induction. A failure requires nΛ < n(eΛ − 1) ≤
+Mw < 5, a contradiction.
+
+   The prefix (110)h and the completed word generally have different least seeds. Write m =
+k − 3h and n = 8h t − 5. All these n form the binary prefix class, since 23h = 8h is its exact
+modulus. Its least positive representative is 8h −5. To append m zeros we also need 2m | 9h t−5,
+the block endpoint. At h = 12 this gives k = 39, m = 3 and t ≡ 5 (mod 8). The prefix and
+completed-word least seeds are therefore 68 719 476 731 and 343 597 383 675, respectively.
+
+                                                    3
+5    A finite-word repetition bound
+Proposition 8. Let a first-crossing word from n begin with U U , where |U | = ℓ ≥ 1. Then
+(4/3)ℓ < n + 1. If the crossing fails to give descent, then
+
+                              log2 (n + 1)      14.3
+                         ℓ<                <            log2 k < 35 log2 k.
+                               log2 (4/3)    log2 (4/3)
+
+Proof. Set x = T ℓ (n). Both n and x start with U , so the parity-class congruence gives x ≡ n
+(mod 2ℓ ). Since ℓ < k, ρℓ ≥ 1. Equality would give 3dℓ = 2ℓ , impossible for ℓ ≥ 1. Thus
+x ≥ ρℓ n > n, so x − n is a positive multiple of 2ℓ . Equivalently 2ℓ (x − n) is a positive multiple
+of 22ℓ . At each step T (y) + 1 ≤ (3/2)(y + 1), whence
+
+                               2ℓ ≤ x − n < x + 1 ≤ (3/2)ℓ (n + 1).
+
+Dividing gives the first assertion, independently of whether the seed descends.
+    For a failure set Λ = k ln 2 − d ln 3 > 0. Then nΛ < n(eΛ − 1) ≤ Mw ≤ d/3 by Proposition 1
+and (3). Since k ≥ 2 and d ≤ k, Rhin’s bound [9, Prop. 6.3] gives Λ ≥ k −13.3 . It follows that
+n < (d/3)k 13.3 ≤ k 14.3 /3 and hence n + 1 < k 14.3 . Taking logarithms completes the proof, since
+14.3/ log2 (4/3) < 35.
+
+   The restriction concerns repetition inside a single finite first-crossing prefix. The periodic-
+approximation results in [3] concern infinite parity words.
+
+
+6    A restriction from reciprocal sums
+Write xj = T j (n) and form the product over the odd input values of the first k steps,
+                                         Y          1
+                                                       
+                                   Q=           1+       .
+                                                   3xj
+                                           0≤j<k
+                                           xj odd
+
+Multiplying the single-step factors gives xk /n = ρk Q. Hence Proposition 1 gives Q = 1+Mw /n.
+   Let D = 28 019 077 177 231 758 495. For any finite shortcut path with distinct inputs all
+exceeding D, let R be the sum of the reciprocals of its odd inputs. Nikzad, Frinkle and
+Bagherzadeh prove R < B0 in [7, Theorem 1A.1], where
+                                           45
+                                    B0 =       + 10−6 + 10−15 .
+                                           256
+Their proof gives a second rational upper bound by retaining the coefficient in (153) before the
+rounding in (154). Set
+               6 719 267            93 657 291 203 213              15
+         K=              ,     c=                      ,     B1 =      Kc + 10−6 + 10−15 .
+              13 693 680                   1015                      4
+Indeed, for each short gap bracket of total length m, (153) bounds the sum over its admissi-
+ble starting values by K2−m . The one-step balance bound (142) contributes   Pthe  factor 15/4.
+                                                                               1000 b    −m =
+Equation (164) bounds the weighted bracket count by the exact dyadic           m=61 Cm 2
+0.09365729120321290556 . . . < c. Adding the long-shell allowance from (139) and the boundary
+allowance from (149), as in (151)–(154), gives R < B1 < B0 . These equation numbers refer
+to [7]. The unpublished verification [6] independently reconstructs the high-path estimate and
+reports an exact reproduction of the finite count in (164).
+
+
+
+                                                    4
+Proposition 9. If a counterexample exists, let n have the least crossing length k among all
+counterexamples. For i = 0, 1 it satisfies
+
+                         0 < Λ = − ln ρk < Bi /3,       ρk > exp(−Bi /3).
+
+Proof. We use the external height record H(y) ≤ 2456 through D, reported in [7, eq. (34)].
+Here H counts ordinary Collatz operations to first arrival at 1. For 2 ≤ y ≤ D, this gives
+τ (y) ≤ χ(y) ≤ H(y) ≤ 2456, since shortcut steps combine ordinary operations. The lower
+bound on k in Theorem 5 therefore gives n > D. For 0 ≤ j < k, the prefix coefficient is at least
+one and its affine correction is nonnegative, so xj ≥ n > D.
+    If two of x0 , . . . , xk−1 coincided, the intervening segment would contain a cycle of length
+L < k. Let m be its minimum. One full turn from m has positive affine correction, since any
+positive cycle has an odd input. The return to m therefore forces its coefficient below one.
+Thus τ (m) ≤ L, while every value on the cycle is at least m, giving a failure of shorter crossing
+length. This proves that the k inputs are distinct. The high-path estimate applies even when
+the endpoint repeats an input. Finally xk ≥ n gives 1 ≤ ρk Q, and
+                                              1 X 1
+                                 Λ ≤ ln Q <          < Bi /3.
+                                              3   xj
+                                               0≤j<k
+                                               xj odd
+
+
+
+
+   In the coordinate − log2 ρk , the nominal first-crossing interval has length one. For each
+bound the surviving interval has length Bi /(3 ln 2). The values below are rounded for display.
+
+                         exp(−Bi /3) surviving width excluded width
+                     B0 0.9430895072    8.45334%       91.54666%
+                     B1 0.9441733669    8.28763%       91.71237%
+
+These percentages measure intervals of log coefficients. The restriction concerns a counterex-
+ample of minimal crossing length.
+
+
+7    The open question
+A shortest counterexample would have at least 76 odd runs, obey the coefficient bound in
+Proposition 9, and have no initial square whose period exceeds the bound in Proposition 8.
+For each remaining first-crossing word w, its coefficient and its additive correction are known
+exactly. The open estimate for its least eligible realizer r(w) is
+
+                                              Cw       Mw
+                                   r(w) >           = −1    .
+                                            2k − 3d  ρk − 1
+
+Equality already gives a counterexample. A lower bound for r(w) or an upper bound for the
+right side can certify a word if it preserves this strict inequality. The rational-shadow estimates
+of [4] supply bounds for individual blocks. Applying one to this question requires transporting
+it back to the starting seed and comparing it with the threshold of the actual first-crossing
+prefix.
+
+
+
+
+                                                5
+Reproducibility
+The companion verifier checks the numerical inequalities used in the proofs, recomputes the
+finite bracket count, and verifies the worked examples using integer and rational arithmetic. It
+lives in the companion repository https://github.com/innerlightr-wq/terras-first-crossing,
+with the verification code pinned at the immutable commit a93b1e8 (full hash a93b1e82d13fab7024c380ae3632
+Run the following command from the project root.
+python3 scripts/verify_crossing.py
+The script checks the numerical inequalities with integers and rationals, encloses ln 2 and ln 3
+by a 96-term series with a geometric tail, recomputes the finite bracket sum in (164) of [7],
+and encloses each exponential cutoff by alternating Taylor bounds. The SHA-256 digest of the
+verifier in this review copy begins f852c88311071a0d. The orbit and residue-class examples are
+finite checks. The proofs for arbitrary word lengths are in the text.
+    The finite seed verification of Rozier–Terracol, Rhin’s estimate, the high-path accounting
+of Nikzad–Frinkle–Bagherzadeh and the height record cited above are external inputs. The
+general case of Terras’s conjecture remains open.
+
+
+AI assistance and author responsibility
+The author directed this research and used Claude (Anthropic) and ChatGPT (OpenAI) for
+proof exploration and revision, cross-checking the reciprocal-sum estimates against the source
+paper, developing and testing the exact-arithmetic verifier, and drafting the manuscript. The
+author takes responsibility for the mathematical claims, their interpretation, and any errors.
+
+
+References
+ [1] Shalom Eliahou. The 3x + 1 problem: new lower bounds on nontrivial cycle lengths.
+     Discrete Mathematics, 118:45–56, 1993.
+ [2] Kazunobu Hikawa. Research notes on Terras’ coefficient stopping time problem I: Previous
+     results and open problems, 2026. English translation, November 2026; Japanese original,
+     Zenodo, 13 November 2026, DOI 10.5281/zenodo.24187839.
+ [3] Elias De Jesús. Beyond Sturmian words in the 3x + 1 periodicity conjecture: A periodic-
+     approximation and arithmetic-height bridge, 2026. Revision 5, 13 November 2026; Revision
+     4 deposited as Zenodo DOI 10.5281/zenodo.23070093.
+ [4] Elias De Jesús. Exact realizer congruences and rational-shadow bounds for Collatz words,
+     2026. Zenodo preprint, 31 October 2026. doi:10.5281/zenodo.23847289.
+ [5] Elias De Jesús. Exact realizer floors for one- and two-defect valuation words in the acceler-
+     ated 3x+1 map, 2026. Zenodo preprint, 22 October 2026. doi:10.5281/zenodo.23579193.
+ [6] Elias De Jesús. Independent verification of high-path reciprocal bounds for nonrepeating
+     Collatz trajectories, 2026. Unpublished manuscript, 3 November 2026.
+ [7] Behzad Nikzad, Karl Frinkle, and Fatemeh Bagherzadeh. On bounds for reciprocal
+     sums and residues in Collatz orbits, and their consequences, 2026. Hexagon preprint
+     2611.00033v1, https://hexagonmath.org/2611.00033v1.
+ [8] Georges Rhin. Approximants de Padé et mesures effectives d’irrationalité. In Séminaire
+     de Théorie des Nombres, Paris 1985–86, volume 71 of Progress in Mathematics, pages
+     155–164. Birkhäuser Boston, 1987.
+
+                                                6
+ [9] Olivier Rozier and Claude Terracol. Paradoxical behavior in Collatz sequences. Discrete
+     Mathematics, 349:115167, 2026. arXiv:2502.00948v5.
+
+[10] Riho Terras. A stopping time problem on the positive integers. Acta Arithmetica, 30:241–
+     252, 1976.
+
+
+
+
+                                             7
+

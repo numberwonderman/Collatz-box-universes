@@ -1,0 +1,45 @@
+External inputs taken as given: B = 28e18 (Rozier-Terracol Cor. 5.4);
+Rhin: Lambda >= k^-13.3 (as in Rozier-Terracol Prop. 6.3).
+
+== log enclosures (series sum 1/(k 2^k), sum 1/(k 3^k)) ==
+  [OK] widths  -- ln2 width 2.191809e-193, ln3 width 4.383619e-193
+
+== continued fraction of log2 3 (p_0/q_0 = 1/1) ==
+  partial quotients a_0..a_29: [1, 1, 1, 2, 2, 3, 1, 5, 2, 23, 2, 2, 1, 1, 55, 1, 4, 3, 1, 1, 15, 1, 9, 2, 5, 7, 1, 1, 4, 8]
+  convergent 19: 630138897/397573379
+  convergent 20: 9809721694/6189245291
+  convergent 21: 10439860591/6586818670
+
+== Farey sandwich (Theorem 6, 'The two large integers') ==
+  [OK] (a,b) = convergent 20 = (9809721694, 6189245291)
+  [OK] (u,v) = convergent 19 = (630138897, 397573379)
+  [OK] a/b < alpha
+  [OK] (u/v) ln2 - ln3 > 1/(3B)  -- margin 2.543190e-19
+  [OK] b u - a v = 1
+  [OK] a_21 = 1, so the mediant is convergent 21
+  [OK] least-denominator fraction in (alpha, alpha + 1/(3B ln2)) is certified  -- 10439860591/6586818670
+  [OK] k >= 10 439 860 591 and d >= 6 586 818 670
+
+== the run argument (Theorem 6, 'Excluding at most 75 runs' + 'The tail') ==
+  [OK] pair I is a convergent of alpha  -- index 32
+  [OK] pair II is a convergent of alpha  -- index 36
+  [OK] e_I in (5.22, 5.24)e-18  -- 5.228127e-18
+  [OK] e_II in (1.24, 1.25)e-19  -- 1.247181e-19
+  [OK] G_75 < 1.72e15  -- 1.715127e+15
+  [OK] pair I: d > 1.26e17 (exact: d > d_low)  -- 1.293862e+17
+  [OK] 2^61 < 2.31e18
+  [OK] pair II, d < 2^61: Lambda > 9e-20  -- 9.559116e-20
+  [OK] n < 75/Lambda gives n+1 <= 2^70
+  [OK] head: d <= 70 G_75 < 1.204e17 < d_low (contradiction)  -- 1.200589e+17
+  [OK] tail at j = 61: G_75 (7 + 14*63) < 2^61  -- 1.524748e+18 < 2.305843e+18
+  [OK] tail inequality also checked directly for 61 <= j < 3000
+
+== how far the same argument (same pairs, same split 2^61) reaches ==
+  s = 74: head closes (d <= 7.574874e+16 vs d > 1.294288e+17), tail closes
+  s = 75: head closes (d <= 1.200589e+17 vs d > 1.293862e+17), tail closes
+  s = 76: head FAILS  (d <= 1.902889e+17 vs d > 1.293436e+17), tail FAILS 
+  s = 77: head FAILS  (d <= 3.016007e+17 vs d > 1.293010e+17), tail FAILS 
+  [OK] largest s for which it closes is 75 (so the counterexample bound is >= 76 runs)  -- max s = 75
+
+0 failures
+exit=0

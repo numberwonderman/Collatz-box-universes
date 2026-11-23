@@ -1,0 +1,50 @@
+=== convergents of alpha = log2 3, with certified e = q ln3 - p ln2 > 0 ===
+  [PASS] alpha enclosed, 30 admissible convergents p/q < alpha 
+=== lower bound on d (pair I of the manuscript) ===
+  [PASS] pair I is a convergent of alpha 
+  [PASS] e_I in (5.22,5.24)e-18 (5.228127e-18, 5.228127e-18)
+  [PASS] d > 1.28e17 d >= 1.291307e+17
+=== the tail d >= 2^65 ===
+  [PASS] log2(81) <= 7 
+  [PASS] G_81 <= 2.7241e16 G_81 <= 2.724048e+16
+  [PASS] G_81[7+13.3(j+2)] <= 2^j for all 65 <= j <= 499 []
+  [PASS] j = 64 fails, so 2^65 is the least admissible split 
+=== the head d < 2^65: five-row bootstrap ===
+  row   r    H          lambda           d bound            target
+  [PASS] row 0 (r=0) has an admissible convergent 
+    0   0   73    8.860608e-21      1.988555e+18      2.044000e+18   (p,q)=(79641170620168673833,50247984153525417450)
+  [PASS] row 0: H = 73 <= target 75 and bound <= target 
+  [PASS] row 1 (r=2) has an admissible convergent 
+    1   2   71    1.049181e-19      7.698649e+17      7.810000e+17   (p,q)=(6724555128221608268,4242721909926539673)
+  [PASS] row 1: H = 71 <= target 72 and bound <= target 
+  [PASS] row 2 (r=3) has an admissible convergent 
+    2   3   71    1.407424e-19      4.857192e+17      4.930000e+17   (p,q)=(6724555128221608268,4242721909926539673)
+  [PASS] row 2: H = 71 <= target 72 and bound <= target 
+  [PASS] row 3 (r=4) has an admissible convergent 
+    3   4   74    1.490951e-19      3.193959e+17      3.200000e+17   (p,q)=(6724555128221608268,4242721909926539673)
+  [PASS] row 3: H = 74 <= target 74 and bound <= target 
+  [PASS] row 4 (r=7) has an admissible convergent 
+    4   7   68    6.320485e-19      7.370870e+16      7.380000e+16   (p,q)=(423372672964960618,267118416222671843)
+  [PASS] row 4: H = 68 <= target 68 and bound <= target 
+  [PASS] CONTRADICTION: final d bound < d lower bound 7.370870e+16 < 1.291307e+17
+=== the printed enclosures and the printed-ceiling consistency ===
+  [PASS] e_I in (261/50, 131/25)e-18 as printed e = 5.228127e-18
+  [PASS] e_II in (671/100, 168/25)e-21 as printed e = 6.719871e-21
+  [PASS] e_III in (31/25, 5/4)e-19 as printed e = 1.247181e-19
+  [PASS] e_IV in (41/25, 33/20)e-18 as printed e = 1.641584e-18
+  [PASS] the printed denominator 5.24e-18 is an upper bound for e_I and still gives d > 1.28e17 d >= 1.288381e+17
+  [PASS] row 4 lambda from the PRINTED ceiling d < 3.1940e17 exceeds 6.3202e-19 lambda = 6.3202346454e-19
+  [PASS] that lambda still yields H = 68 and the same final bound 
+  [PASS] the DISPLAYED rounded form (0.69 - q*81/B)/5.24e-18 also exceeds 1.28e17 d >= 1.282375e+17
+  [PASS] 0.69 is a valid lower bound for ln 2 
+=== Corollary: every counterexample is the least eligible seed of its class ===
+  [PASS] 14.3 log2 k < k for k = 128 (and the gap grows) 14.3*log2(128) = 100.1 < 128
+  [PASS] the crossing-length bound 10439860591 exceeds 128 
+  [PASS] the crossing step is EVEN for every odd n < 60000, so the last odd run is complete 0 exceptions
+
+31 checks, 31 passed, 0 failed
+
+real	0m0.067s
+user	0m0.063s
+sys	0m0.004s
+exit=0

@@ -1,0 +1,5 @@
+# The read-only clone is its own git repo; it is pinned by URL + commit + logs/clone_manifest.sha256
+# (https://github.com/innerlightr-wq/terras-first-crossing @ e295edc380265dbab5dc12df3a82d15731bd7f86)
+terras-first-crossing/
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,96 @@
+External mathematical inputs: Rozier--Terracol, Cor. 5.4 (verification
+through 28e18) and Prop. 6.3 (logarithmic form); NFB height record (34)
+through D for the gap above 28e18. These external results and
+the NFB finite-path accounting in section 12 are not reproved by this script.
+=== 1. the log enclosures are certified and tight ===
+  [PASS] L2 < ln2 < U2 and L3 < ln3 < U3, widths < 1e-40  -- 96 series terms + geometric tail, as the note prescribes
+
+=== 2. the Farey sandwich and the two large integers ===
+  [PASS] a/b < alpha, certified by b*L3 - a*U2 > 0  -- (a,b) = (9809721694, 6189245291) is convergent 20 of log2 3
+  [PASS] (u/v)ln2 - ln3 > 1/(3B), certified by u*L2/v - U3 > 1/(3B)  -- (u,v) = (630138897, 397573379) is convergent 19; B = 28e18
+  [PASS] the determinant b*u - a*v = 1  -- det = 1
+  [PASS] k >= a + u = 10,439,860,591  -- 10439860591
+  [PASS] d >= b + v = 6,586,818,670  -- 6586818670
+   (a+u, b+v) is convergent 21 of log2 3, i.e. the mediant of 19 and 20.
+   These are the two integers of Eliahou's cycle-length work.
+
+=== 3. the normalized memory bounds ===
+   M_w = sum over odd steps of 1/(3 rho_t); before a first crossing rho_t >= 1,
+   so each term <= 1/3 and each RUN contributes (1-(2/3)^l)/rho_t < 1.  Hence
+   both  M_w < s  (s runs)  and  M_w <= d/3  (d odd steps).
+  [PASS] all tested odd starts 3 <= n < 30000 reached a first crossing
+  [PASS] M_w < s on these first crossings
+  [PASS] M_w <= d/3 on these first crossings  -- this is the sharper bound the note's Farey step uses
+
+=== 4. the run-length realizer bound and G_75 ===
+  [PASS] U3/L2 < 317/200  -- alpha = log2 3 < 1.585
+  [PASS] G_75 <= sum_{h<75} (317/200)^h < 1.72e15  -- rational upper bound = 1.718063e+15
+
+=== 5. the two determinant pairs ===
+  [PASS] pair I: q ln3 - p ln2 enclosed in (5.22e-18, 5.24e-18)  -- enclosure (5.228127e-18, 5.228127e-18)
+  [PASS] pair I: p/q < alpha (so e > 0)
+  [PASS] pair II: q ln3 - p ln2 enclosed in (1.24e-19, 1.25e-19)  -- enclosure (1.247181e-19, 1.247181e-19)
+  [PASS] pair II: p/q < alpha (so e > 0)
+
+=== 6. the two-case contradiction for s <= 75 ===
+  [PASS] pair I forces d > 1.26e17  -- d > 1.2849e+17
+  [PASS] assuming d < 2^61, pair II forces Lambda > 9e-20  -- Lambda > 9.4412e-20
+  [PASS] hence n < 75/9e-20 and n+1 < 2^70  -- n < 8.3333e+20 < 2^70
+  [PASS] the realizer bound then gives d < 70 * 1.72e15 = 1.204e17, contradicting d > 1.26e17  -- 1.204e17 < 1.2849e+17
+
+=== 7. the remaining range d >= 2^61, via Rhin ===
+  [PASS] at j = 61: 1.72e15*(7+14(j+2)) = 1.52908e18 < 2^61  -- 1.529080e+18 < 2.305843e+18
+  [PASS] and the inequality persists for all j >= 61 (bracket +14 vs 2^j doubling)  -- the affine bracket grows by 14, less than its base value
+
+=== 8. the (110)^h family ===
+  [PASS] (110)^h has least realizer exactly 8^h - 5  -- h=1..5
+  [PASS] normalized memory 5(1-(8/9)^h) < 5 for every h  -- positive powers of a number in (0,1) remain in (0,1)
+  [PASS] h >= 64: 8^64 - 5 > 5 * 256^14
+  [PASS] and ((h+1)/h)^14 < 8 for h >= 64  -- 1 + 1/h decreases for h >= 64
+
+=== 9. the worked example ===
+  [PASS] 59 has parity word 1101100 and first crossing at k=7
+  [PASS] T^7(59) = 38, i.e. 59 - T^7(59) = 21
+  [PASS] 59 is the least realizer of 1101100
+  [PASS] raw word 1101100 has class 59 mod 128
+  [PASS] raw word 11011001 has class 187 mod 256
+  [PASS] raw word 110110011 has class 187 mod 512
+  [PASS] the other endpoint parity gives 443 mod 512 instead
+
+=== 10. the initial-square corollary (Beyond Sturmian, finite-word form) ===
+   For an initial square UU with |U| = l, x = T^l(n) has the same
+   l-bit prefix as n. The proper-prefix multiplier gives x > n.
+  [PASS] log2(4/3) enclosed in (0.415037499, 0.415037499)
+  [PASS] 14.3 / log2(4/3) < 35  -- 14.3/log2(4/3) = 34.454718
+  [PASS] strictly positive dividend divisible by 2^(2l) for all observed initial squares  -- 21748 squares for odd starts 3 <= n < 60000
+  [PASS] (4/3)^l < n+1 for all observed initial squares
+
+=== 11. the h = 12 regression (prefix floor vs completed-word least seed) ===
+  [PASS] the (110)^12 prefix class is 68719476731 mod 2^36
+  [PASS] the completed word has length 39, 24 odd steps and three appended zeros
+  [PASS] the completed word has least seed 343597383675 modulo 549755813888
+  [PASS] the completed seed first crosses at 39, reaching 176518460300
+  [PASS] the prefix least seed realizes the 36-bit prefix only, not its 39-bit extension
+
+=== 12. high-range reciprocal-sum cutoffs ===
+   Imported NFB hypotheses: distinct inputs > 28019077177231758495;
+   the endpoint is excluded. Imported analytic bounds: block weight
+   15/(4x), upper tail < 10^-6 and boundary contribution < 10^-15.
+   The Appendix 1D counting rule is recomputed below in integer arithmetic.
+  [PASS] rounded count agrees with independently reported Table 12 checkpoints
+  [PASS] the full finite count equals the reported exact certificate N/2^998
+  [PASS] the full finite count is below the manuscript ceiling c, and c < 3/32
+  [PASS] maximum retained reciprocal sum is 6719267/13693680
+  [PASS] the refined high-range reciprocal bound is strictly smaller than the coarse bound
+  [PASS] coarse cutoff lies strictly between 0.9430895072211041 and 0.9430895072211042
+  [PASS] coarse surviving and excluded log widths round to 8.45334% and 91.54666%
+  [PASS] refined cutoff lies strictly between 0.9441733669279807 and 0.9441733669279808
+  [PASS] refined surviving and excluded log widths round to 8.28763% and 91.71237%
+  [PASS] 0.9441733669 rounds DOWN and is safe with inclusive rho <= threshold
+
+51 checks, 51 passed, 0 failed [runtime 0.4 s]
+
+real	0m0.410s
+user	0m0.400s
+sys	0m0.008s
+exit=0
