@@ -1,0 +1,2825 @@
+{
+ "convention": "F_1 = F_2 = 1",
+ "anchors": [
+  {
+   "anchor": "F_17 = 1597 is prime",
+   "holds": true
+  },
+  {
+   "anchor": "F_23 = 28657 is prime",
+   "holds": true
+  },
+  {
+   "anchor": "F_29 = 514229 is prime",
+   "holds": true
+  },
+  {
+   "anchor": "F_19 = 4181 = 37 x 113 is composite",
+   "holds": true
+  },
+  {
+   "anchor": "F_5 = 5 divides F_20 = 6765 = 5 x 1353",
+   "holds": true
+  }
+ ],
+ "primality_method": {
+  "small": "n < 3.317e24: Miller-Rabin with prime bases 2..41 (proven deterministic in this range); after trial division by the first 20 primes",
+  "large": "Miller-Rabin with the first 20 prime bases as a compositeness filter (a witness proves compositeness); every survivor proven prime by PARI/GP isprime (APRCL) and an ECPP certificate from primecert verified by primecertisvalid",
+  "pari_version": "2.19.1",
+  "method_counts": {
+   "n < 2": 1,
+   "trial division": 5,
+   "deterministic Miller-Rabin (bases 2..41)": 25,
+   "Miller-Rabin witness": 264,
+   "PARI isprime (APRCL) + verified ECPP certificate": 9
+  }
+ },
+ "part1": {
+  "n_max": 2000,
+  "indices_tested": 304,
+  "note": "every prime p <= 2000 plus n = 4; F_2 = 1 is not prime",
+  "prime_indices": [
+   3,
+   4,
+   5,
+   7,
+   11,
+   13,
+   17,
+   23,
+   29,
+   43,
+   47,
+   83,
+   131,
+   137,
+   359,
+   431,
+   433,
+   449,
+   509,
+   569,
+   571
+  ],
+  "prime_index_digits": {
+   "3": 1,
+   "4": 1,
+   "5": 1,
+   "7": 2,
+   "11": 2,
+   "13": 3,
+   "17": 4,
+   "23": 5,
+   "29": 6,
+   "43": 9,
+   "47": 10,
+   "83": 17,
+   "131": 28,
+   "137": 29,
+   "359": 75,
+   "431": 90,
+   "433": 91,
+   "449": 94,
+   "509": 107,
+   "569": 119,
+   "571": 119
+  },
+  "seconds": 1.2,
+  "rows": [
+   {
+    "n": 2,
+    "digits": 1,
+    "prime": false,
+    "method": "n < 2"
+   },
+   {
+    "n": 3,
+    "digits": 1,
+    "prime": true,
+    "method": "trial division"
+   },
+   {
+    "n": 4,
+    "digits": 1,
+    "prime": true,
+    "method": "trial division"
+   },
+   {
+    "n": 5,
+    "digits": 1,
+    "prime": true,
+    "method": "trial division"
+   },
+   {
+    "n": 7,
+    "digits": 2,
+    "prime": true,
+    "method": "trial division"
+   },
+   {
+    "n": 11,
+    "digits": 2,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 13,
+    "digits": 3,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 17,
+    "digits": 4,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 19,
+    "digits": 4,
+    "prime": false,
+    "method": "trial division"
+   },
+   {
+    "n": 23,
+    "digits": 5,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 29,
+    "digits": 6,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 31,
+    "digits": 7,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 37,
+    "digits": 8,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 41,
+    "digits": 9,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 43,
+    "digits": 9,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 47,
+    "digits": 10,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 53,
+    "digits": 11,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 59,
+    "digits": 12,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 61,
+    "digits": 13,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 67,
+    "digits": 14,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 71,
+    "digits": 15,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 73,
+    "digits": 15,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 79,
+    "digits": 17,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 83,
+    "digits": 17,
+    "prime": true,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 89,
+    "digits": 19,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 97,
+    "digits": 20,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 101,
+    "digits": 21,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 103,
+    "digits": 22,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 107,
+    "digits": 23,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 109,
+    "digits": 23,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 113,
+    "digits": 24,
+    "prime": false,
+    "method": "deterministic Miller-Rabin (bases 2..41)"
+   },
+   {
+    "n": 127,
+    "digits": 27,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 131,
+    "digits": 28,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 137,
+    "digits": 29,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 139,
+    "digits": 29,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 149,
+    "digits": 31,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 151,
+    "digits": 32,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 157,
+    "digits": 33,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 163,
+    "digits": 34,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 167,
+    "digits": 35,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 173,
+    "digits": 36,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 179,
+    "digits": 38,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 181,
+    "digits": 38,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 191,
+    "digits": 40,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 193,
+    "digits": 40,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 197,
+    "digits": 41,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 199,
+    "digits": 42,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 211,
+    "digits": 44,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 223,
+    "digits": 47,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 227,
+    "digits": 48,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 229,
+    "digits": 48,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 233,
+    "digits": 49,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 239,
+    "digits": 50,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 241,
+    "digits": 51,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 251,
+    "digits": 53,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 257,
+    "digits": 54,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 263,
+    "digits": 55,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 269,
+    "digits": 56,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 271,
+    "digits": 57,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 277,
+    "digits": 58,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 281,
+    "digits": 59,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 283,
+    "digits": 59,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 293,
+    "digits": 61,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 307,
+    "digits": 64,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 311,
+    "digits": 65,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 313,
+    "digits": 66,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 317,
+    "digits": 66,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 331,
+    "digits": 69,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 337,
+    "digits": 71,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 347,
+    "digits": 73,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 349,
+    "digits": 73,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 353,
+    "digits": 74,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 359,
+    "digits": 75,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 367,
+    "digits": 77,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 373,
+    "digits": 78,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 379,
+    "digits": 79,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 383,
+    "digits": 80,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 389,
+    "digits": 81,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 397,
+    "digits": 83,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 401,
+    "digits": 84,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 409,
+    "digits": 86,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 419,
+    "digits": 88,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 421,
+    "digits": 88,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 431,
+    "digits": 90,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 433,
+    "digits": 91,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 439,
+    "digits": 92,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 443,
+    "digits": 93,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 449,
+    "digits": 94,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 457,
+    "digits": 96,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 461,
+    "digits": 96,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 463,
+    "digits": 97,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 467,
+    "digits": 98,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 479,
+    "digits": 100,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 487,
+    "digits": 102,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 491,
+    "digits": 103,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 499,
+    "digits": 104,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 503,
+    "digits": 105,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 509,
+    "digits": 107,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 521,
+    "digits": 109,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 523,
+    "digits": 109,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 541,
+    "digits": 113,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 547,
+    "digits": 114,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 557,
+    "digits": 117,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 563,
+    "digits": 118,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 569,
+    "digits": 119,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 571,
+    "digits": 119,
+    "prime": true,
+    "method": "PARI isprime (APRCL) + verified ECPP certificate"
+   },
+   {
+    "n": 577,
+    "digits": 121,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 587,
+    "digits": 123,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 593,
+    "digits": 124,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 599,
+    "digits": 125,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 601,
+    "digits": 126,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 607,
+    "digits": 127,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 613,
+    "digits": 128,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 617,
+    "digits": 129,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 619,
+    "digits": 130,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 631,
+    "digits": 132,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 641,
+    "digits": 134,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 643,
+    "digits": 135,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 647,
+    "digits": 135,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 653,
+    "digits": 137,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 659,
+    "digits": 138,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 661,
+    "digits": 138,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 673,
+    "digits": 141,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 677,
+    "digits": 142,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 683,
+    "digits": 143,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 691,
+    "digits": 145,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 701,
+    "digits": 147,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 709,
+    "digits": 148,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 719,
+    "digits": 150,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 727,
+    "digits": 152,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 733,
+    "digits": 153,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 739,
+    "digits": 155,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 743,
+    "digits": 155,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 751,
+    "digits": 157,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 757,
+    "digits": 158,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 761,
+    "digits": 159,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 769,
+    "digits": 161,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 773,
+    "digits": 162,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 787,
+    "digits": 165,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 797,
+    "digits": 167,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 809,
+    "digits": 169,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 811,
+    "digits": 170,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 821,
+    "digits": 172,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 823,
+    "digits": 172,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 827,
+    "digits": 173,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 829,
+    "digits": 173,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 839,
+    "digits": 175,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 853,
+    "digits": 178,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 857,
+    "digits": 179,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 859,
+    "digits": 180,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 863,
+    "digits": 181,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 877,
+    "digits": 183,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 881,
+    "digits": 184,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 883,
+    "digits": 185,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 887,
+    "digits": 186,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 907,
+    "digits": 190,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 911,
+    "digits": 191,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 919,
+    "digits": 192,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 929,
+    "digits": 194,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 937,
+    "digits": 196,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 941,
+    "digits": 197,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 947,
+    "digits": 198,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 953,
+    "digits": 199,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 967,
+    "digits": 202,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 971,
+    "digits": 203,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 977,
+    "digits": 204,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 983,
+    "digits": 206,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 991,
+    "digits": 207,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 997,
+    "digits": 209,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1009,
+    "digits": 211,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1013,
+    "digits": 212,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1019,
+    "digits": 213,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1021,
+    "digits": 214,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1031,
+    "digits": 216,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1033,
+    "digits": 216,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1039,
+    "digits": 217,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1049,
+    "digits": 219,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1051,
+    "digits": 220,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1061,
+    "digits": 222,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1063,
+    "digits": 222,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1069,
+    "digits": 224,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1087,
+    "digits": 227,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1091,
+    "digits": 228,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1093,
+    "digits": 229,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1097,
+    "digits": 229,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1103,
+    "digits": 231,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1109,
+    "digits": 232,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1117,
+    "digits": 234,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1123,
+    "digits": 235,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1129,
+    "digits": 236,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1151,
+    "digits": 241,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1153,
+    "digits": 241,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1163,
+    "digits": 243,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1171,
+    "digits": 245,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1181,
+    "digits": 247,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1187,
+    "digits": 248,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1193,
+    "digits": 249,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1201,
+    "digits": 251,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1213,
+    "digits": 254,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1217,
+    "digits": 254,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1223,
+    "digits": 256,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1229,
+    "digits": 257,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1231,
+    "digits": 257,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1237,
+    "digits": 259,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1249,
+    "digits": 261,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1259,
+    "digits": 263,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1277,
+    "digits": 267,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1279,
+    "digits": 267,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1283,
+    "digits": 268,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1289,
+    "digits": 270,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1291,
+    "digits": 270,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1297,
+    "digits": 271,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1301,
+    "digits": 272,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1303,
+    "digits": 272,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1307,
+    "digits": 273,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1319,
+    "digits": 276,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1321,
+    "digits": 276,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1327,
+    "digits": 277,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1361,
+    "digits": 285,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1367,
+    "digits": 286,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1373,
+    "digits": 287,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1381,
+    "digits": 289,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1399,
+    "digits": 293,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1409,
+    "digits": 295,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1423,
+    "digits": 298,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1427,
+    "digits": 298,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1429,
+    "digits": 299,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1433,
+    "digits": 300,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1439,
+    "digits": 301,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1447,
+    "digits": 303,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1451,
+    "digits": 303,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1453,
+    "digits": 304,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1459,
+    "digits": 305,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1471,
+    "digits": 308,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1481,
+    "digits": 310,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1483,
+    "digits": 310,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1487,
+    "digits": 311,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1489,
+    "digits": 311,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1493,
+    "digits": 312,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1499,
+    "digits": 313,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1511,
+    "digits": 316,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1523,
+    "digits": 318,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1531,
+    "digits": 320,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1543,
+    "digits": 323,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1549,
+    "digits": 324,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1553,
+    "digits": 325,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1559,
+    "digits": 326,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1567,
+    "digits": 328,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1571,
+    "digits": 328,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1579,
+    "digits": 330,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1583,
+    "digits": 331,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1597,
+    "digits": 334,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1601,
+    "digits": 335,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1607,
+    "digits": 336,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1609,
+    "digits": 336,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1613,
+    "digits": 337,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1619,
+    "digits": 339,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1621,
+    "digits": 339,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1627,
+    "digits": 340,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1637,
+    "digits": 342,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1657,
+    "digits": 346,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1663,
+    "digits": 348,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1667,
+    "digits": 349,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1669,
+    "digits": 349,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1693,
+    "digits": 354,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1697,
+    "digits": 355,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1699,
+    "digits": 355,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1709,
+    "digits": 357,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1721,
+    "digits": 360,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1723,
+    "digits": 360,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1733,
+    "digits": 362,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1741,
+    "digits": 364,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1747,
+    "digits": 365,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1753,
+    "digits": 367,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1759,
+    "digits": 368,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1777,
+    "digits": 372,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1783,
+    "digits": 373,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1787,
+    "digits": 374,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1789,
+    "digits": 374,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1801,
+    "digits": 377,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1811,
+    "digits": 379,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1823,
+    "digits": 381,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1831,
+    "digits": 383,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1847,
+    "digits": 386,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1861,
+    "digits": 389,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1867,
+    "digits": 390,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1871,
+    "digits": 391,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1873,
+    "digits": 392,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1877,
+    "digits": 392,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1879,
+    "digits": 393,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1889,
+    "digits": 395,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1901,
+    "digits": 397,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1907,
+    "digits": 399,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1913,
+    "digits": 400,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1931,
+    "digits": 404,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1933,
+    "digits": 404,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1949,
+    "digits": 407,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1951,
+    "digits": 408,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1973,
+    "digits": 412,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1979,
+    "digits": 414,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1987,
+    "digits": 415,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1993,
+    "digits": 417,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1997,
+    "digits": 417,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   },
+   {
+    "n": 1999,
+    "digits": 418,
+    "prime": false,
+    "method": "Miller-Rabin witness 2"
+   }
+  ]
+ },
+ "part2": {
+  "p_max": 500,
+  "composite_count": 77,
+  "violation_count": 0,
+  "violations": [],
+  "class_counts": {
+   "+1": 28,
+   "-1": 49
+  },
+  "trial_division_bound": 1000000,
+  "factoring_tools": "trial division; GMP-ECM (ecm binary); PARI factor (factor_proven=1) as fallback",
+  "rows": [
+   {
+    "p": 19,
+    "digits": 4,
+    "smallest_prime_factor": "37",
+    "spf_digits": 2,
+    "q_mod_p": 18,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 31,
+    "digits": 7,
+    "smallest_prime_factor": "557",
+    "spf_digits": 3,
+    "q_mod_p": 30,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 37,
+    "digits": 8,
+    "smallest_prime_factor": "73",
+    "spf_digits": 2,
+    "q_mod_p": 36,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 41,
+    "digits": 9,
+    "smallest_prime_factor": "2789",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 53,
+    "digits": 11,
+    "smallest_prime_factor": "953",
+    "spf_digits": 3,
+    "q_mod_p": 52,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 59,
+    "digits": 12,
+    "smallest_prime_factor": "353",
+    "spf_digits": 3,
+    "q_mod_p": 58,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 61,
+    "digits": 13,
+    "smallest_prime_factor": "4513",
+    "spf_digits": 4,
+    "q_mod_p": 60,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 67,
+    "digits": 14,
+    "smallest_prime_factor": "269",
+    "spf_digits": 3,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 71,
+    "digits": 15,
+    "smallest_prime_factor": "6673",
+    "spf_digits": 4,
+    "q_mod_p": 70,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 73,
+    "digits": 15,
+    "smallest_prime_factor": "9375829",
+    "spf_digits": 7,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.02
+   },
+   {
+    "p": 79,
+    "digits": 17,
+    "smallest_prime_factor": "157",
+    "spf_digits": 3,
+    "q_mod_p": 78,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 89,
+    "digits": 19,
+    "smallest_prime_factor": "1069",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 97,
+    "digits": 20,
+    "smallest_prime_factor": "193",
+    "spf_digits": 3,
+    "q_mod_p": 96,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 101,
+    "digits": 21,
+    "smallest_prime_factor": "743519377",
+    "spf_digits": 9,
+    "q_mod_p": 100,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.03
+   },
+   {
+    "p": 103,
+    "digits": 22,
+    "smallest_prime_factor": "519121",
+    "spf_digits": 6,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 107,
+    "digits": 23,
+    "smallest_prime_factor": "1247833",
+    "spf_digits": 7,
+    "q_mod_p": 106,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.02
+   },
+   {
+    "p": 109,
+    "digits": 23,
+    "smallest_prime_factor": "827728777",
+    "spf_digits": 9,
+    "q_mod_p": 108,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.01
+   },
+   {
+    "p": 113,
+    "digits": 24,
+    "smallest_prime_factor": "677",
+    "spf_digits": 3,
+    "q_mod_p": 112,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 127,
+    "digits": 27,
+    "smallest_prime_factor": "27941",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 139,
+    "digits": 29,
+    "smallest_prime_factor": "277",
+    "spf_digits": 3,
+    "q_mod_p": 138,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 149,
+    "digits": 31,
+    "smallest_prime_factor": "110557",
+    "spf_digits": 6,
+    "q_mod_p": 148,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 151,
+    "digits": 32,
+    "smallest_prime_factor": "5737",
+    "spf_digits": 4,
+    "q_mod_p": 150,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 157,
+    "digits": 33,
+    "smallest_prime_factor": "313",
+    "spf_digits": 3,
+    "q_mod_p": 156,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 163,
+    "digits": 34,
+    "smallest_prime_factor": "977",
+    "spf_digits": 3,
+    "q_mod_p": 162,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 167,
+    "digits": 35,
+    "smallest_prime_factor": "18104700793",
+    "spf_digits": 11,
+    "q_mod_p": 166,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.01
+   },
+   {
+    "p": 173,
+    "digits": 36,
+    "smallest_prime_factor": "1639343785721",
+    "spf_digits": 13,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.01
+   },
+   {
+    "p": 179,
+    "digits": 38,
+    "smallest_prime_factor": "21481",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 181,
+    "digits": 38,
+    "smallest_prime_factor": "8689",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 191,
+    "digits": 40,
+    "smallest_prime_factor": "4870723671313",
+    "spf_digits": 13,
+    "q_mod_p": 190,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.09
+   },
+   {
+    "p": 193,
+    "digits": 40,
+    "smallest_prime_factor": "9465278929",
+    "spf_digits": 10,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.09
+   },
+   {
+    "p": 197,
+    "digits": 41,
+    "smallest_prime_factor": "15761",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 199,
+    "digits": 42,
+    "smallest_prime_factor": "397",
+    "spf_digits": 3,
+    "q_mod_p": 198,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 211,
+    "digits": 44,
+    "smallest_prime_factor": "22504837",
+    "spf_digits": 8,
+    "q_mod_p": 210,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.05
+   },
+   {
+    "p": 223,
+    "digits": 47,
+    "smallest_prime_factor": "4013",
+    "spf_digits": 4,
+    "q_mod_p": 222,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 227,
+    "digits": 48,
+    "smallest_prime_factor": "23609",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 229,
+    "digits": 48,
+    "smallest_prime_factor": "457",
+    "spf_digits": 3,
+    "q_mod_p": 228,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 233,
+    "digits": 49,
+    "smallest_prime_factor": "139801",
+    "spf_digits": 6,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 239,
+    "digits": 50,
+    "smallest_prime_factor": "10037",
+    "spf_digits": 5,
+    "q_mod_p": 238,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 241,
+    "digits": 51,
+    "smallest_prime_factor": "11042621",
+    "spf_digits": 8,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.08
+   },
+   {
+    "p": 251,
+    "digits": 53,
+    "smallest_prime_factor": "582416774750273",
+    "spf_digits": 15,
+    "q_mod_p": 250,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.18
+   },
+   {
+    "p": 257,
+    "digits": 54,
+    "smallest_prime_factor": "5653",
+    "spf_digits": 4,
+    "q_mod_p": 256,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 263,
+    "digits": 55,
+    "smallest_prime_factor": "4733",
+    "spf_digits": 4,
+    "q_mod_p": 262,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 269,
+    "digits": 56,
+    "smallest_prime_factor": "5381",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 271,
+    "digits": 57,
+    "smallest_prime_factor": "449187076348273",
+    "spf_digits": 15,
+    "q_mod_p": 270,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.26
+   },
+   {
+    "p": 277,
+    "digits": 58,
+    "smallest_prime_factor": "505471005740691524853293621",
+    "spf_digits": 27,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 14.56
+   },
+   {
+    "p": 281,
+    "digits": 59,
+    "smallest_prime_factor": "174221",
+    "spf_digits": 6,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 283,
+    "digits": 59,
+    "smallest_prime_factor": "10753",
+    "spf_digits": 5,
+    "q_mod_p": 282,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 293,
+    "digits": 61,
+    "smallest_prime_factor": "64390759997",
+    "spf_digits": 11,
+    "q_mod_p": 292,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.13
+   },
+   {
+    "p": 307,
+    "digits": 64,
+    "smallest_prime_factor": "613",
+    "spf_digits": 3,
+    "q_mod_p": 306,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 311,
+    "digits": 65,
+    "smallest_prime_factor": "837833",
+    "spf_digits": 6,
+    "q_mod_p": 310,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.01
+   },
+   {
+    "p": 313,
+    "digits": 66,
+    "smallest_prime_factor": "1877",
+    "spf_digits": 4,
+    "q_mod_p": 312,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 317,
+    "digits": 66,
+    "smallest_prime_factor": "1307309",
+    "spf_digits": 7,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 169.53
+   },
+   {
+    "p": 331,
+    "digits": 69,
+    "smallest_prime_factor": "29129",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 337,
+    "digits": 71,
+    "smallest_prime_factor": "673",
+    "spf_digits": 3,
+    "q_mod_p": 336,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 347,
+    "digits": 73,
+    "smallest_prime_factor": "324097",
+    "spf_digits": 6,
+    "q_mod_p": 346,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 349,
+    "digits": 73,
+    "smallest_prime_factor": "1358309",
+    "spf_digits": 7,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.32
+   },
+   {
+    "p": 353,
+    "digits": 74,
+    "smallest_prime_factor": "736357",
+    "spf_digits": 6,
+    "q_mod_p": 352,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.01
+   },
+   {
+    "p": 367,
+    "digits": 77,
+    "smallest_prime_factor": "733",
+    "spf_digits": 3,
+    "q_mod_p": 366,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 373,
+    "digits": 78,
+    "smallest_prime_factor": "2237",
+    "spf_digits": 4,
+    "q_mod_p": 372,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 379,
+    "digits": 79,
+    "smallest_prime_factor": "757",
+    "spf_digits": 3,
+    "q_mod_p": 378,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 383,
+    "digits": 80,
+    "smallest_prime_factor": "1639241",
+    "spf_digits": 7,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 89.97
+   },
+   {
+    "p": 389,
+    "digits": 81,
+    "smallest_prime_factor": "2333",
+    "spf_digits": 4,
+    "q_mod_p": 388,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 397,
+    "digits": 83,
+    "smallest_prime_factor": "135263838653434038307643992992133441",
+    "spf_digits": 36,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 200.09
+   },
+   {
+    "p": 401,
+    "digits": 84,
+    "smallest_prime_factor": "13885829",
+    "spf_digits": 8,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.19
+   },
+   {
+    "p": 409,
+    "digits": 86,
+    "smallest_prime_factor": "4909",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 419,
+    "digits": 88,
+    "smallest_prime_factor": "11623061",
+    "spf_digits": 8,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.29
+   },
+   {
+    "p": 421,
+    "digits": 88,
+    "smallest_prime_factor": "11789",
+    "spf_digits": 5,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 439,
+    "digits": 92,
+    "smallest_prime_factor": "877",
+    "spf_digits": 3,
+    "q_mod_p": 438,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 443,
+    "digits": 93,
+    "smallest_prime_factor": "8861",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 457,
+    "digits": 96,
+    "smallest_prime_factor": "6397",
+    "spf_digits": 4,
+    "q_mod_p": 456,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 461,
+    "digits": 96,
+    "smallest_prime_factor": "26737",
+    "spf_digits": 5,
+    "q_mod_p": 460,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 463,
+    "digits": 97,
+    "smallest_prime_factor": "2777",
+    "spf_digits": 4,
+    "q_mod_p": 462,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 467,
+    "digits": 98,
+    "smallest_prime_factor": "73330281865487664068079924400662001093",
+    "spf_digits": 38,
+    "q_mod_p": 466,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 1732.03
+   },
+   {
+    "p": 479,
+    "digits": 100,
+    "smallest_prime_factor": "2637373",
+    "spf_digits": 7,
+    "q_mod_p": 478,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 65.58
+   },
+   {
+    "p": 487,
+    "digits": 102,
+    "smallest_prime_factor": "1949",
+    "spf_digits": 4,
+    "q_mod_p": 1,
+    "class": "+1",
+    "method": "trial division",
+    "seconds": 0.0
+   },
+   {
+    "p": 491,
+    "digits": 103,
+    "smallest_prime_factor": "141600090215093",
+    "spf_digits": 15,
+    "q_mod_p": 490,
+    "class": "-1",
+    "method": "complete factorisation into proven primes (GMP-ECM)",
+    "seconds": 0.42
+   },
+   {
+    "p": 499,
+    "digits": 104,
+    "smallest_prime_factor": "997",
+    "spf_digits": 3,
+    "q_mod_p": 498,
+    "class": "-1",
+    "method": "trial division",
+    "seconds": 0.0
+   }
+  ]
+ },
+ "part3": {
+  "gaps": [
+   {
+    "from": 3,
+    "to": 4,
+    "gap": 1
+   },
+   {
+    "from": 4,
+    "to": 5,
+    "gap": 1
+   },
+   {
+    "from": 5,
+    "to": 7,
+    "gap": 2
+   },
+   {
+    "from": 7,
+    "to": 11,
+    "gap": 4
+   },
+   {
+    "from": 11,
+    "to": 13,
+    "gap": 2
+   },
+   {
+    "from": 13,
+    "to": 17,
+    "gap": 4
+   },
+   {
+    "from": 17,
+    "to": 23,
+    "gap": 6
+   },
+   {
+    "from": 23,
+    "to": 29,
+    "gap": 6
+   },
+   {
+    "from": 29,
+    "to": 43,
+    "gap": 14
+   },
+   {
+    "from": 43,
+    "to": 47,
+    "gap": 4
+   },
+   {
+    "from": 47,
+    "to": 83,
+    "gap": 36
+   },
+   {
+    "from": 83,
+    "to": 131,
+    "gap": 48
+   },
+   {
+    "from": 131,
+    "to": 137,
+    "gap": 6
+   },
+   {
+    "from": 137,
+    "to": 359,
+    "gap": 222
+   },
+   {
+    "from": 359,
+    "to": 431,
+    "gap": 72
+   },
+   {
+    "from": 431,
+    "to": 433,
+    "gap": 2
+   },
+   {
+    "from": 433,
+    "to": 449,
+    "gap": 16
+   },
+   {
+    "from": 449,
+    "to": 509,
+    "gap": 60
+   },
+   {
+    "from": 509,
+    "to": 569,
+    "gap": 60
+   },
+   {
+    "from": 569,
+    "to": 571,
+    "gap": 2
+   }
+  ],
+  "largest_gap": 222,
+  "largest_gap_at": [
+   {
+    "from": 137,
+    "to": 359,
+    "gap": 222
+   }
+  ],
+  "count_le_2000": 21,
+  "count_le_500": 18
+ },
+ "tests": {
+  "fibprimes_module": {
+   "passed": 11,
+   "failed": 0,
+   "summary": "11 passed in 0.12s"
+  },
+  "full_suite": {
+   "passed": 565,
+   "failed": 0,
+   "summary": "565 passed in 54.13s"
+  }
+ }
+}
