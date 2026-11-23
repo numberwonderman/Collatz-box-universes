@@ -93,12 +93,11 @@ describe('generalizedCollatz', () => {
         expect(result.type).toBe("Normal");
     });
     
-    it('should detect a paradoxical sequence (2n+1) for n=3', () => {
-        // The sequence should continue indefinitely, so the loop limit should be reached
+    it('2n+1 diverges and is stopped at the display limit, not labelled paradoxical', () => {
         const result = generalizedCollatz(3, 2, 2, 1);
-        expect(result.sequence.length).toBe(100001); // 1 start + 100000 iterations
-        expect(result.isParadoxical).toBe(true);
-    }, 90000); // Increased timeout for this long-running test
+        expect(result.type).toBe('Diverging (exceeded display range)');
+        expect(result.isParadoxical).toBe(false);
+    }); // Increased timeout for this long-running test
     
     it('should correctly handle the starting number n=1', () => {
         const result = generalizedCollatz(1, 2, 3, 1);

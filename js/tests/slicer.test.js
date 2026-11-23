@@ -5,13 +5,7 @@ import {
   applyAndDrawFilters,
   updateGoldStarVisibilitySlicer
 } from '../slicer.js'; // Fixed double slash
-import * as collatzLogic from '../collatzLogic.js';
 import * as utils from '../utils.js';
-
-// Mock calculateCollatzSequence to control output for generateBoxUniverses
-vi.mock('../collatzLogic.js', () => ({
-  calculateCollatzSequence: vi.fn()
-}));
 
 // Minimal DOM setup for inputs
 beforeEach(() => {
@@ -45,43 +39,24 @@ beforeEach(() => {
 });
 
 describe('generateBoxUniverses', () => {
-  it('generates universes within given ranges and respects x !== 0', () => {
-    // Mock calculateCollatzSequence to return valid results
-    collatzLogic.calculateCollatzSequence.mockImplementation((n, maxIter, x, y, z) => ({
-      type: "Converges to 1",
-      sequence: [n, 1],
-      steps: 1,
-      minVal: 1,
-      maxVal: n,
-      sumVal: n + 1,
-      avgVal: (n + 1) / 2,
-      stdDev: 0.5
-    }));
-
+  it('skips x === 0 and keeps valid universes', () => {
     const universes = generateBoxUniverses(1, 1, 0, 1, 1, 1, 1, 1);
-    // x=0 should skip that universe
     expect(universes.length).toBe(1);
     expect(universes[0].X).toBe(1);
+  });
 
-    const universes2 = generateBoxUniverses(1, 1, 1, 1, 1, 1, 1, 1);
-    expect(universes2.length).toBe(1);
-    expect(universes2[0].N).toBe(1);
+  it('passes (n, x, y, z) to the engine in the right order', () => {
+    // Regression: the slicer used to call calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z),
+    // which silently ran X=1000, Y=x, Z=y.
+    const [u] = generateBoxUniverses(27, 27, 2, 2, 3, 3, 1, 1);
+    expect(u.type).toBe('Converges to 1');
+    expect(u.steps).toBe(111);
+    expect(u.maxVal).toBe(9232);
+    expect(u.sequence.slice(0, 4)).toEqual([27, 82, 41, 124]);
   });
 
   it('limits the number of universes generated to 100', () => {
-    collatzLogic.calculateCollatzSequence.mockReturnValue({
-      type: "Converges to 1",
-      sequence: [1, 1],
-      steps: 1,
-      minVal: 1,
-      maxVal: 1,
-      sumVal: 2,
-      avgVal: 1,
-      stdDev: 0
-    });
-
     const universes = generateBoxUniverses(1, 10, 1, 10, 1, 10, 1, 10);
-    // The max number allowed is 100
     expect(universes.length).toBeLessThanOrEqual(100);
   });
 });

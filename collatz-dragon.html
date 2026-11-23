@@ -85,10 +85,10 @@
             </div>
 
             <div class="flex flex-col sm:flex-row gap-4 mb-6">
-                <button id="generateBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                <button id="drawButton" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                     Generate Collatz Dragon
                 </button>
-                <button id="clearBtn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                <button id="clearButton" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
                     Clear Canvas
                 </button>
             </div>
@@ -114,16 +114,15 @@
         </div>
 
         <!-- Canvas for Visualization -->
-        <canvas id="collatzCanvas" class="w-full aspect-[4/3]"></canvas>
+        <canvas id="collatz-canvas" class="w-full aspect-[4/3]"></canvas>
 
         <!-- Statistics Display -->
         <div class="mt-8 p-6 bg-gray-700 rounded-lg shadow-inner border border-gray-600">
             <h2 class="text-2xl font-bold text-indigo-300 mb-4">Sequence Statistics</h2>
-            <p id="statsOutput" class="text-gray-3
-    00 text-lg">No sequence generated yet.</p>
+            <p id="statsOutput" class="text-gray-300 text-lg">No sequence generated yet.</p>
         </div>
     </div>
 
-    \\<script type="module" src="./js/collatz-dragon.js"></script>
+    <script type="module" src="./js/collatz-dragon.js"></script>
 </body>
 </html>

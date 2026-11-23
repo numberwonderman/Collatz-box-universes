@@ -2,27 +2,31 @@
 
         // Import functions and constants from utils.js
         import {
-            
+            calculateCollatzSequence,
             drawNineNetCanvasSecondary,
             getUrlParams,
             DEFAULT_LINE_COLOR, // For divColor
             DEFAULT_NODE_COLOR, // For mulColor
-            FACE_SIZE,
-            PADDING,
-            STEP_SIZE,
-            NINE_NET_DRAW_WIDTH,
-            NINE_NET_DRAW_HEIGHT,
             isLight // Helper for text color
         } from './utils.js';
-import { calculateCollatzSequence } from './collatzLogic.js';
 
         // === Slideshow Animation Logic ===
+        // slicer.html uses a <select id="animationAxis">; radial-animator.html uses radio buttons.
+        function getAnimationAxis() {
+            const select = document.getElementById('animationAxis');
+            if (select) return select.value;
+            const radio = document.querySelector('input[name="animationAxisRadio"]:checked');
+            return radio ? radio.value : 'N';
+        }
         let slideshowInterval;
         let isSlideshowPlaying = false;
         let currentAnimationValue;
         let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
         let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
         const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
+        // 9-net canvases are square: drawNineNetCanvasSecondary uses width/3 for every cell.
+        const NINE_NET_DRAW_WIDTH = 300;
+        const NINE_NET_DRAW_HEIGHT = 300;
 
         // Default colors for the 9-net drawing from utils.js
         const divColor = DEFAULT_LINE_COLOR;
@@ -88,7 +92,7 @@ import { calculateCollatzSequence } from './collatzLogic.js';
                     toggleSlideshowButton.textContent = 'Stop Slideshow';
                     isSlideshowPlaying = true;
 
-                    const axis = animationAxisSelect.value;
+                    const axis = getAnimationAxis();
                     // Initialize currentAnimationValue to the min of the selected axis
                     if (axis === 'N') {
                         currentAnimationValue = parseInt(nMinInput.value);
@@ -110,7 +114,7 @@ import { calculateCollatzSequence } from './collatzLogic.js';
 
         // Function to perform one step of the animation
         function animationStep() {
-            const axis = animationAxisSelect.value;
+            const axis = getAnimationAxis();
             let minVal, maxVal, inputElement;
 
             if (axis === 'N') {
@@ -153,7 +157,7 @@ import { calculateCollatzSequence } from './collatzLogic.js';
                     if (x === 0) continue;
                     for (let y = yMin; y <= yMax && generatedCount < maxUniversesToGenerate; y++) {
                         for (let z = zMin; z <= zMax && generatedCount < maxUniversesToGenerate; z++) {
-                            const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+                            const result = calculateCollatzSequence(n, x, y, z, MAX_ITERATIONS); // Use calculateCollatzSequence
                             if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") { // Ensure valid parameters
                                 tempUniverses.push({
                                     N: n, X: x, Y: y, Z: z,
@@ -394,7 +398,7 @@ import { calculateCollatzSequence } from './collatzLogic.js';
                 if (zMinInput) zMinInput.value = z;
                 if (zMaxInput) zMaxInput.value = z;
 
-                const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+                const result = calculateCollatzSequence(n, x, y, z, MAX_ITERATIONS); // Use calculateCollatzSequence
                 if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
                     displayMainUniverse({ N: n, X: x, Y: y, Z: z, ...result });
                     if (nineNetCanvas) nineNetCanvas.style.display = 'block'; // Ensure main canvas is visible
@@ -448,7 +452,7 @@ import { calculateCollatzSequence } from './collatzLogic.js';
                 const currentZ = zMatch ? parseInt(zMatch[1]) : NaN;
 
                 if (!isNaN(currentN) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && nineNetCanvas.style.display !== 'none') {
-                    const result = calculateCollatzSequence(currentN, MAX_ITERATIONS, currentX, currentY, currentZ);
+                    const result = calculateCollatzSequence(currentN, currentX, currentY, currentZ, MAX_ITERATIONS);
                     if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
                         drawNineNetCanvasSecondary(nineNetCanvas, result.sequence, currentX, divColor, mulColor);
                     }
