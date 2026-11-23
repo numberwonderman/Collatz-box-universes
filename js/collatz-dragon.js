@@ -1,3 +1,5 @@
+import { generateLinkURL as hubLinkURL } from './utils.js';
+
 // Exported for testing
 export function initializeCanvas() {
     const canvas = document.getElementById('collatz-canvas');
@@ -132,4 +134,16 @@ document.addEventListener('DOMContentLoaded', () => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         }
     });
+
+    // "Open in ..." buttons carry the current N, X, Y, Z over to the other tools.
+    const links = { linkSlicer: 'slicer2d', linkSlicer3D: 'slicer3d_fps', linkBoxViewer: 'boxviewer', linkIndex: 'index' };
+    for (const [id, key] of Object.entries(links)) {
+        const button = document.getElementById(id);
+        if (!button) continue;
+        button.addEventListener('click', () => {
+            const params = getParameters();
+            const query = params && key !== 'index' ? { n: params.N, x: params.X, y: params.Y, z: params.Z } : {};
+            window.location.href = hubLinkURL(key, query);
+        });
+    }
 });

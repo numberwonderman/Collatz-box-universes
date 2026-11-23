@@ -40,13 +40,32 @@ describe('generalizedCollatz', () => {
         expect(result.isParadoxical).toBe(false);
     });
 
-test('should detect a paradoxical sequence (2n+1) for n=3', () => {
-    // This rule (2n+1) causes the number to grow indefinitely.
-    // The loop cap is lowered here to 10,000 iterations to shorten the test.
-    const result = generalizedCollatz(3, 2, 2, 1, 10000); // assuming generalizedCollatz accepts a maxIteration param
-    expect(result.sequence.length).toBe(10001);
+test('2n+1 diverges: stopped at the display limit, not labelled paradoxical', () => {
+    // 2n+1 keeps n odd forever, so the coefficient Y^q/X^(j-q) = 2^j never drops below 1.
+    const result = generalizedCollatz(3, 2, 2, 1, 10000);
+    expect(result.type).toBe('Diverging (exceeded display range)');
+    expect(result.isParadoxical).toBe(false);
+    expect(result.sequence.every(Number.isFinite)).toBe(true);
+});
+
+test('5n+1 from 13 is paradoxical (cycle 13 -> 66 -> ... -> 26 -> 13, 5^3/2^7 < 1)', () => {
+    const result = generalizedCollatz(13, 2, 5, 1);
+    expect(result.type).toBe('Cycle Detected');
     expect(result.isParadoxical).toBe(true);
-}, 15000); // Lower timeout to 15 seconds for the shorter test
+});
+
+test('3n-1 from 5 is detected as a cycle instead of running to the iteration cap', () => {
+    const result = generalizedCollatz(5, 2, 3, -1);
+    expect(result.type).toBe('Cycle Detected');
+    expect(result.steps).toBeLessThan(10);
+});
+
+test('standard Collatz n=3 is not paradoxical (tau = sigma = 6)', () => {
+    const result = generalizedCollatz(3, 2, 3, 1);
+    expect(result.coefficientStoppingTime_tau).toBe(6);
+    expect(result.stoppingTime).toBe(6);
+    expect(result.isParadoxical).toBe(false);
+}); // Lower timeout to 15 seconds for the shorter test
 
 
     test('should correctly handle the starting number n=1', () => {

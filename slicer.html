@@ -171,7 +171,7 @@
         <p class="sequence-stddev-info text-gray-400 text-sm mb-2" id="sequenceStdDevInfo"></p>
         <div class="sequence-numbers" id="sequenceNumbers"></div>
 
-        <canvas id="nineNetCanvas" width="380" height="290"></canvas>
+        <canvas id="nineNetCanvas" width="300" height="300"></canvas>
 
         <div class="color-display">
             <span class="text-lg">Divisible:</span>
@@ -249,16 +249,6 @@
         </div>
 
 
- <script type="module" src="./js/slicer.js" >// vitest.config.js
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  test: {
-    // This setting tells Vitest to run tests sequentially, one after another.
-    // It's helpful for reducing memory usage by not loading all tests at once.
-    threads: false,
-  },
-});</script>
     <script type="module">
     // Import functions and constants from utils.js
     import {
@@ -267,11 +257,6 @@ export default defineConfig({
         getUrlParams,
         DEFAULT_LINE_COLOR, // For divColor
         DEFAULT_NODE_COLOR, // For mulColor
-        FACE_SIZE,
-        PADDING,
-        STEP_SIZE,
-        NINE_NET_DRAW_WIDTH,
-        NINE_NET_DRAW_HEIGHT,
         isLight // Helper for text color
     } from './js/utils.js';
 
@@ -283,6 +268,9 @@ export default defineConfig({
     let allBoxUniverses = []; // Stores all generated universes for bulk display/slideshow
     let filteredBoxUniverses = []; // Currently displayed universes (if filtering was applied)
     const MAX_ITERATIONS = 1000; // Max iterations for sequence calculation
+        // 9-net canvases are square: drawNineNetCanvasSecondary uses width/3 for every cell.
+        const NINE_NET_DRAW_WIDTH = 300;
+        const NINE_NET_DRAW_HEIGHT = 300;
 
     // Default colors for the 9-net drawing from utils.js
     const divColor = DEFAULT_LINE_COLOR;
@@ -427,7 +415,7 @@ export default defineConfig({
                 if (x === 0) continue;
                 for (let y = yMin; y <= yMax && generatedCount < maxUniversesToGenerate; y++) {
                     for (let z = zMin; z <= zMax && generatedCount < maxUniversesToGenerate; z++) {
-                        const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+                        const result = calculateCollatzSequence(n, x, y, z, MAX_ITERATIONS); // Use calculateCollatzSequence
                         if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") { // Ensure valid parameters
                             tempUniverses.push({
                                 N: n, X: x, Y: y, Z: z,
@@ -715,7 +703,7 @@ export default defineConfig({
             if (zMinInput) zMinInput.value = z;
             if (zMaxInput) zMaxInput.value = z;
 
-            const result = calculateCollatzSequence(n, MAX_ITERATIONS, x, y, z); // Use calculateCollatzSequence
+            const result = calculateCollatzSequence(n, x, y, z, MAX_ITERATIONS); // Use calculateCollatzSequence
             if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
                 displayMainUniverse({ N: n, X: x, Y: y, Z: z, ...result });
                 if (nineNetCanvas) nineNetCanvas.style.display = 'block'; // Ensure main canvas is visible
@@ -769,7 +757,7 @@ export default defineConfig({
             const currentZ = zMatch ? parseInt(zMatch[1]) : NaN;
 
             if (!isNaN(currentN) && !isNaN(currentX) && !isNaN(currentY) && !isNaN(currentZ) && nineNetCanvas.style.display !== 'none') {
-                const result = calculateCollatzSequence(currentN, MAX_ITERATIONS, currentX, currentY, currentZ);
+                const result = calculateCollatzSequence(currentN, currentX, currentY, currentZ, MAX_ITERATIONS);
                 if (result.type !== "error" && result.type !== "Invalid Parameters (X is 0)") {
                     drawNineNetCanvasSecondary(nineNetCanvas, result.sequence, currentX, divColor, mulColor);
                 }

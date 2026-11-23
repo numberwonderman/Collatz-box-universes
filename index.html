@@ -147,7 +147,7 @@
       </button>
 
       <div id="singleNineNetContainer" class="flex justify-center items-center mb-6">
-        <canvas id="singleNineNetCanvas" width="380" height="290"
+        <canvas id="singleNineNetCanvas" width="300" height="300"
                 class="rounded-md border border-blue-700 bg-black/20"></canvas>
       </div>
 
@@ -236,34 +236,5 @@
   <!-- Your app logic -->
   <script type="module" src="./js/index.js"></script>
 
-  <!-- Cycle Catalog wiring (safe if modules missing) -->
-  <script type="module" src="./js/index.js">
-    const scanBtn = document.getElementById('scanBtn');
-    const scanStatus = document.getElementById('scanStatus');
-    const out = document.getElementById('catalogOut');
-
-    if (scanBtn) {
-      scanBtn.addEventListener('click', async () => {
-        out.textContent = '';
-        scanStatus.textContent = 'Scanning… this can take a moment.';
-        try {
-          const { catalogCycles } = await import('./js/cycleCatalog.js');
-          // Hook to your actual engine; keep placeholder if not present.
-          const runSequence = async (start, params, maxSteps) => {
-            if (window.MyCollatz?.run) return window.MyCollatz.run(start, params, maxSteps);
-            // Minimal fallback expects your engine elsewhere
-            throw new Error('Sequence engine (window.MyCollatz.run) not found.');
-          };
-          const starts = Array.from({ length: 5000 }, (_, i) => BigInt(i + 1));
-          const rows = await catalogCycles({ starts, signature: 'binary' }, runSequence);
-          out.textContent = JSON.stringify(rows, null, 2);
-          scanStatus.textContent = 'Done.';
-        } catch (err) {
-          scanStatus.textContent = 'Error.';
-          out.textContent = (err && err.stack) ? err.stack : String(err);
-        }
-      });
-    }
-  </script>
 </body>
         </html>

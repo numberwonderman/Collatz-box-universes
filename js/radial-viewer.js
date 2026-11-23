@@ -96,6 +96,10 @@ export function generalizedCollatz(startN, x_param, y_param, z_param, maxIterati
     const BIGINT_Y = BigInt(y_param);
     const BIGINT_Z = BigInt(z_param);
 
+    // Values past this can't be shown as JS Numbers (they'd become Infinity), so stop there.
+    const DISPLAY_LIMIT = BigInt(Number.MAX_SAFE_INTEGER) ** 19n; // ~1e300
+    const seen = new Set([initialN]);
+
     while (current !== 1n && steps < maxIterations) {
         if (current % BIGINT_X === 0n) {
             current = current / BIGINT_X;
@@ -107,7 +111,10 @@ export function generalizedCollatz(startN, x_param, y_param, z_param, maxIterati
 
         if (current <= 0n) {
             type = "Reached Non-Positive Value";
-            isParadoxical = true;
+            break;
+        }
+        if (current > DISPLAY_LIMIT) {
+            type = "Diverging (exceeded display range)";
             break;
         }
         sequence.push(Number(current));
@@ -120,10 +127,26 @@ export function generalizedCollatz(startN, x_param, y_param, z_param, maxIterati
         if (stoppingTime === Infinity && current < initialN) {
             stoppingTime = steps;
         }
-        const currentCoefficient = (Number(BIGINT_Y) ** yPlusZ_operations) / (Number(BIGINT_X) ** steps);
-        if (coefficientStoppingTime_tau === Infinity && currentCoefficient < 1) {
+        // Coefficient after j steps of the (non-shortcut) map is Y^q / X^(j-q): only the
+        // j-q division steps divide by X. Compared as logs so it can't overflow to NaN.
+        const logCoefficient = yPlusZ_operations * Math.log(Math.abs(y_param)) - (steps - yPlusZ_operations) * Math.log(Math.abs(x_param));
+        if (coefficientStoppingTime_tau === Infinity && logCoefficient < 0) {
             coefficientStoppingTime_tau = steps;
         }
+
+        if (current !== 1n && seen.has(current)) {
+            type = "Cycle Detected";
+            paradoxicalOccurrences.push({ value: Number(current), step: steps, reason: "Cycle detected" });
+            break;
+        }
+        seen.add(current);
+    }
+
+    // Terras' sense (same test as utils.js): the coefficient Y^q/X^j has dropped below 1
+    // while the value has not yet dropped below the start, i.e. tau < sigma.
+    if (coefficientStoppingTime_tau !== Infinity && coefficientStoppingTime_tau < stoppingTime) {
+        isParadoxical = true;
+        paradoxicalOccurrences.push({ step: coefficientStoppingTime_tau, reason: "Coefficient < 1 before value fell below start" });
     }
 
     if (current === 1n) {
@@ -134,9 +157,8 @@ export function generalizedCollatz(startN, x_param, y_param, z_param, maxIterati
         } else {
             type = "Converges to 1";
         }
-    } else if (steps >= maxIterations) {
-        type = "Paradoxical";
-        isParadoxical = true;
+    } else if (type === "Unknown" && steps >= maxIterations) {
+        type = "Max Iterations Reached";
     }
 
     const mean = Number(sumVal) / sequence.length;
@@ -338,7 +360,7 @@ function initialize() {
     const urlParams = new URLSearchParams(window.location.search);
     DOMElements.startNumberInput.value = parseInt(urlParams.get('n'), 10) || 10;
     DOMElements.xValueInput.value = parseInt(urlParams.get('x'), 10) || 2;
-    DOMEElements.yValueInput.value = parseInt(urlParams.get('y'), 10) || 3;
+    DOMElements.yValueInput.value = parseInt(urlParams.get('y'), 10) || 3;
     DOMElements.zValueInput.value = parseInt(urlParams.get('z'), 10) || 1;
     const modulusFromURL = parseInt(urlParams.get('modulus'), 10);
     DOMElements.modulusValueInput.value = isNaN(modulusFromURL) ? canvasDefaults.defaultModulus : Math.max(2, modulusFromURL);

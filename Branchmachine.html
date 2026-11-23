@@ -24,9 +24,9 @@
   <canvas id="treeCanvas" width="800" height="600"></canvas>
 
   <script type="module">
-    import { IncrementalTree } from './incrementalEncoding.js'; // Adjust path as needed
-    import { layoutTree } from './layoutTree.js'; // Must implement layoutTree function
-    import { drawTree } from './treeRenderer.js'; // Must implement drawTree function
+    import { IncrementalTree } from './js/incrementalEncoding.js'; // Adjust path as needed
+    import { layoutTree } from './js/layoutTree.js'; // Must implement layoutTree function
+    import { drawTree } from './js/treeRenderer.js'; // Must implement drawTree function
 
     function buildSampleTree(root, depthLimit) {
       const T = new IncrementalTree(root);

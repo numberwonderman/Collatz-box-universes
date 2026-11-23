@@ -66,7 +66,8 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
     let paradoxicalOccurrences = [];
     let firstDescentStep = 'N/A';
     let stoppingTime_t = 'N/A';
-    
+    let tau = 'N/A'; // coefficient stopping time: first j with Y^q / X^(j-q) < 1
+
     const exploreNegativeNumbers = getExplorationSetting();
 
     if (x_param === 0) {
@@ -89,11 +90,23 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
         if (firstDescentStep === 'N/A' && current < startN) {
             firstDescentStep = steps;
         }
+
+        // Paradoxical (Terras): coefficient Y^q / X^(j-q) < 1 while the value is still >= startN.
+        // Only the j-q division steps divide by X. Logs avoid overflow on long runs.
+        if (tau === 'N/A' && Math.abs(x_param) > 1 && y_param !== 0) {
+            const logCoefficient = odd_operations * Math.log(Math.abs(y_param)) - (steps - odd_operations) * Math.log(Math.abs(x_param));
+            if (logCoefficient < 0) {
+                tau = steps; // coefficient stopping time
+                if (firstDescentStep === 'N/A' && Number.isFinite(current) && current >= startN) {
+                    paradoxicalOccurrences.push({ value: current, step: steps, reason: "Coefficient < 1 while value >= start" });
+                }
+            }
+        }
         
         // This check handles numbers that grow too large or go to zero
         if (!Number.isFinite(current) || Math.abs(current) > Number.MAX_SAFE_INTEGER || (!exploreNegativeNumbers && current <= 0)) {
             let errorType = "Exceeded Max Safe Integer";
-            if (current <= 0) errorType = "Reached Non-Positive Value";
+            if (!exploreNegativeNumbers && current <= 0) errorType = "Reached Non-Positive Value";
             
             const finalSum = calculateSum(sequence);
             const finalMean = calculateMean(sequence);
@@ -101,19 +114,13 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
 
             return {
                 startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
-                avgVal: finalMean, stdDev: finalStdDev, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
+                avgVal: finalMean, stdDev: finalStdDev, type: errorType, converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: tau, oddSteps_q: odd_operations, paradoxicalOccurrences, firstDescentStep
             };
         }
 
         // This check handles cycles
         if (sequence.includes(current)) {
             paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle detected" });
-            const q_cycle = odd_operations;
-            const j_cycle = steps;
-            const coefficient = (y_param ** q_cycle) / (x_param ** j_cycle);
-            if (coefficient < 1 && current >= startN) {
-                paradoxicalOccurrences.push({ value: current, step: steps, reason: "Cycle meets paradoxical definition" });
-            }
             
             const finalSum = calculateSum(sequence);
             const finalMean = calculateMean(sequence);
@@ -121,7 +128,7 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
 
             return {
                 startN, sequence: sequence, steps: steps, maxVal: maxVal, minVal: minVal, sumVal: finalSum,
-                avgVal: finalMean, stdDev: finalStdDev, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: odd_operations, paradoxicalOccurrences, firstDescentStep
+                avgVal: finalMean, stdDev: finalStdDev, type: "Cycle Detected", converges_to_1: false, stoppingTime_t, coefficientStoppingTime_tau: tau, oddSteps_q: odd_operations, paradoxicalOccurrences, firstDescentStep
             };
         }
 
@@ -147,7 +154,7 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
             avgVal: finalMean, stdDev: finalStdDev, type: "Converges to 1", converges_to_1: true,
             x_param: x_param, y_param: y_param, z_param: z_param,
             stoppingTime_t: stoppingTime_t,
-            coefficientStoppingTime_tau: odd_operations,
+            coefficientStoppingTime_tau: tau, oddSteps_q: odd_operations,
             paradoxicalOccurrences: paradoxicalOccurrences,
             firstDescentStep: firstDescentStep
         };
@@ -161,7 +168,7 @@ export function calculateCollatzSequence(startN, x_param, y_param, z_param, maxI
             avgVal: finalMean, stdDev: finalStdDev, type: "Max Iterations Reached", converges_to_1: false,
             x_param: x_param, y_param: y_param, z_param: z_param,
             stoppingTime_t: 'N/A',
-            coefficientStoppingTime_tau: odd_operations,
+            coefficientStoppingTime_tau: tau, oddSteps_q: odd_operations,
             paradoxicalOccurrences: paradoxicalOccurrences,
             firstDescentStep: firstDescentStep
         };
@@ -180,6 +187,9 @@ export function formatSequenceOutput(sequence) {
 }
 
 export function hexToRgb(hex) {
+    if (/^#[0-9a-f]{3}$/i.test(hex)) {
+        hex = '#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3];
+    }
     const r = parseInt(hex.substring(1, 3), 16);
     const g = parseInt(hex.substring(3, 5), 16);
     const b = parseInt(hex.substring(5, 7), 16);
@@ -244,7 +254,7 @@ export function saveToHistory(data) {
         <p class="text-blue-300 text-sm">Steps: ${data.steps} | Type: ${data.type}</p>
         <p class="text-blue-300 text-sm">Range: [${data.minVal} to ${data.maxVal}] | Avg: ${data.avgVal.toFixed(2)}</p>
         <p class="text-blue-300 text-xs mt-2">
-            **Stopping Times**: t=${data.stoppingTime_t || 'N/A'} | τ=${data.coefficientStoppingTime_tau || 'N/A'}
+            <strong>Stopping Times</strong>: t=${data.stoppingTime_t ?? 'N/A'} | τ=${data.coefficientStoppingTime_tau ?? 'N/A'}
         </p>
     `;
     historyItem.innerHTML = itemHtml;
@@ -344,7 +354,7 @@ export function drawNineNetCanvasSecondary(canvas, sequence, xVal, divColor, mul
     });
 }
 
-export function render9Net(canvas, sequence, divColor, mulColor, faceDefinitions = null) {
+export function render9Net(canvas, sequence, divColor, mulColor, faceDefinitions = null, xVal = DEFAULT_X_DIVISOR) {
     if (!canvas || !canvas.getContext('2d')) {
         if (DEBUG_MODE) console.error("Canvas element not found for 9-net rendering.");
         return;
@@ -367,7 +377,7 @@ export function render9Net(canvas, sequence, divColor, mulColor, faceDefinitions
             let label = "";
             if (sequenceIndex < sequence.length) {
                 const num = sequence[sequenceIndex];
-                color = (num % DEFAULT_X_DIVISOR === 0) ? divColor : mulColor;
+                color = (num % xVal === 0) ? divColor : mulColor;
                 label = num;
                 sequenceIndex++;
             }
@@ -404,8 +414,11 @@ export function drawNecklaceCanvas(canvas, data) {
     let necklaceStartIndex = -1;
     if (isCycle) {
       // Find the index where the sequence repeats
-      for (let i = 0; i < sequence.length - 1; i++) {
-        if (sequence[i] === sequence[sequence.length - 1]) {
+      // The repeated value isn't pushed onto the sequence; it's recorded in paradoxicalOccurrences.
+      const cycleEntry = (data.paradoxicalOccurrences || []).find(o => o.reason === "Cycle detected");
+      const repeated = cycleEntry ? cycleEntry.value : sequence[sequence.length - 1];
+      for (let i = 0; i < sequence.length; i++) {
+        if (sequence[i] === repeated) {
           necklaceStartIndex = i;
           break;
         }
@@ -441,7 +454,7 @@ export function drawNecklaceCanvas(canvas, data) {
         // Draw the node (a circle)
         ctx.beginPath();
         ctx.arc(nodeX, nodeY, nodeRadius, 0, 2 * Math.PI);
-        ctx.fillStyle = (i >= necklaceStartIndex && isCycle) ? '#34d399' : '#fb923c'; // Green for necklace, orange for chain
+        ctx.fillStyle = (isCycle && necklaceStartIndex >= 0 && i >= necklaceStartIndex) ? '#34d399' : '#fb923c'; // Green for necklace, orange for chain
         ctx.fill();
         ctx.strokeStyle = '#f00';
         ctx.lineWidth = 2;
