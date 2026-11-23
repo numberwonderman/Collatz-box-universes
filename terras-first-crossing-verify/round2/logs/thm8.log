@@ -1,0 +1,86 @@
+Inputs taken as given: B = 28e18 (Rozier-Terracol Cor. 5.4); Rhin Lambda >= k^-13.3.
+
+== the four convergents and their e = q ln3 - p ln2 ==
+  [OK] I: convergent index 32, p/q < alpha, e in printed (5.22e-18, 5.24e-18)  -- e = 5.228126615e-18
+  [OK] II: convergent index 40, p/q < alpha, e in printed (6.71e-21, 6.72e-21)  -- e = 6.719870644e-21
+  [OK] III: convergent index 36, p/q < alpha, e in printed (1.24e-19, 1.25e-19)  -- e = 1.247181409e-19
+  [OK] IV: convergent index 34, p/q < alpha, e in printed (1.64e-18, 1.65e-18)  -- e = 1.641584451e-18
+
+== lower bound from convergent I (needs Lambda < 81/B) ==
+  [OK] exact enclosures: d > d_low > 1.28e17  -- 1.291307e+17
+  [OK] printed form (0.69 - q 81/B)/5.24e-18 > 1.28e17  -- 1.282375e+17
+  [OK] 0.69 < ln 2
+  [OK] G_81 < 2.7241e16  -- 2.719007e+16
+
+== head, chained from the my exact ceilings ==
+  row  r  conv   ceiling in        lambda (mine)    printed    H mine/pr  new ceiling (mine)  printed     bits of slack  binding
+  0    0  II     3.68935e+19    8.860608e-21   8.8606e-21   73/73     1.984875e+18   1.9886e+18   0.0471        initial
+  1    2  III    1.98487e+18    1.050263e-19   1.0491e-19   71/71     7.684766e+17   7.6987e+17   0.0060        selected
+  2    3  III    7.68477e+17    1.407833e-19   1.4074e-19   71/71     4.848548e+17   4.8572e+17   0.0262        selected
+  3    4  III    4.84855e+17    1.491205e-19   1.4909e-19   74/74     3.188350e+17   3.1940e+17   0.6197        selected
+  4    7  IV     3.18835e+17    6.354955e-19   6.3202e-19   68/68     7.358449e+16   7.3709e+16   0.6206        selected
+  [OK] row 0: lambda > r/B (Lemma 6 hypothesis)  -- 8.8606e-21 vs 0.0000e+00
+  [OK] row 0: H = printed H
+  [OK] row 0: printed new ceiling >= recomputed (safe rounding)  -- 1.98860e+18 >= 1.984875e+18
+  [OK] row 1: lambda > r/B (Lemma 6 hypothesis)  -- 1.0503e-19 vs 7.1429e-20
+  [OK] row 1: H = printed H
+  [OK] row 1: printed new ceiling >= recomputed (safe rounding)  -- 7.69870e+17 >= 7.684766e+17
+  [OK] row 2: lambda > r/B (Lemma 6 hypothesis)  -- 1.4078e-19 vs 1.0714e-19
+  [OK] row 2: H = printed H
+  [OK] row 2: printed new ceiling >= recomputed (safe rounding)  -- 4.85720e+17 >= 4.848548e+17
+  [OK] row 3: lambda > r/B (Lemma 6 hypothesis)  -- 1.4912e-19 vs 1.4286e-19
+  [OK] row 3: H = printed H
+  [OK] row 3: printed new ceiling >= recomputed (safe rounding)  -- 3.19400e+17 >= 3.188350e+17
+  [OK] row 4: lambda > r/B (Lemma 6 hypothesis)  -- 6.3550e-19 vs 2.5000e-19
+  [OK] row 4: H = printed H
+  [OK] row 4: printed new ceiling >= recomputed (safe rounding)  -- 7.37090e+16 >= 7.358449e+16
+  [OK] exact chain: final ceiling < d_low (contradiction)  -- 7.358449e+16 < 1.291307e+17
+
+== head, chained from the printed ceiling of the row above ==
+  row  r  conv   ceiling in        lambda (mine)    printed    H mine/pr  new ceiling (mine)  printed     bits of slack  binding
+  0    0  II     3.68935e+19    8.860608e-21   8.8606e-21   73/73     1.984875e+18   1.9886e+18   0.0471        initial
+  1    2  III    1.98860e+18    1.049168e-19   1.0491e-19   71/71     7.684766e+17   7.6987e+17   0.0013        selected
+  2    3  III    7.69870e+17    1.407423e-19   1.4074e-19   71/71     4.848548e+17   4.8572e+17   0.0245        selected
+  3    4  III    4.85720e+17    1.490951e-19   1.4909e-19   74/74     3.188350e+17   3.1940e+17   0.6138        selected
+  4    7  IV     3.19400e+17    6.320235e-19   6.3202e-19   68/68     7.358449e+16   7.3709e+16   0.6076        selected
+  [OK] row 0: lambda > r/B (Lemma 6 hypothesis)  -- 8.8606e-21 vs 0.0000e+00
+  [OK] row 0: H = printed H
+  [OK] row 0: printed lambda <= recomputed lambda (safe rounding)
+  [OK] row 0: printed new ceiling >= recomputed (safe rounding)  -- 1.98860e+18 >= 1.984875e+18
+  [OK] row 1: lambda > r/B (Lemma 6 hypothesis)  -- 1.0492e-19 vs 7.1429e-20
+  [OK] row 1: H = printed H
+  [OK] row 1: printed lambda <= recomputed lambda (safe rounding)
+  [OK] row 1: printed new ceiling >= recomputed (safe rounding)  -- 7.69870e+17 >= 7.684766e+17
+  [OK] row 2: lambda > r/B (Lemma 6 hypothesis)  -- 1.4074e-19 vs 1.0714e-19
+  [OK] row 2: H = printed H
+  [OK] row 2: printed lambda <= recomputed lambda (safe rounding)
+  [OK] row 2: printed new ceiling >= recomputed (safe rounding)  -- 4.85720e+17 >= 4.848548e+17
+  [OK] row 3: lambda > r/B (Lemma 6 hypothesis)  -- 1.4910e-19 vs 1.4286e-19
+  [OK] row 3: H = printed H
+  [OK] row 3: printed lambda <= recomputed lambda (safe rounding)
+  [OK] row 3: printed new ceiling >= recomputed (safe rounding)  -- 3.19400e+17 >= 3.188350e+17
+  [OK] row 4: lambda > r/B (Lemma 6 hypothesis)  -- 6.3202e-19 vs 2.5000e-19
+  [OK] row 4: H = printed H
+  [OK] row 4: printed lambda <= recomputed lambda (safe rounding)
+  [OK] row 4: printed new ceiling >= recomputed (safe rounding)  -- 7.37090e+16 >= 7.358449e+16
+  [OK] printed chain: final ceiling < d_low (contradiction)  -- 7.358449e+16 < 1.291307e+17
+
+== the 'three of the five rows' remark after Lemma 6: sign of lambda - (r+1)/B ==
+  row 0 (r=0): negative (-2.685e-20)   [r = 0 row has no selected starts]
+  row 1 (r=2): negative (-2.226e-21)
+  row 2 (r=3): negative (-2.115e-21)
+  row 3 (r=4): negative (-2.948e-20)
+  row 4 (r=7): positive (3.463e-19)
+
+== tail d >= 2^65 ==
+  [OK] log step: 81 x^13.3 + 1 <= 2^7 x^13.3
+  [OK] G_81 (7 + 13.3*67) < 2^65  -- 2.44194e+19 (printed 2.44647e+19)
+  [OK] printed 2.44647e19 < 2^65
+  [OK] j = 64 fails, so 2^65 is the first dyadic split
+  [OK] induction step valid (13.3 G_81 <= left side)
+  [OK] checked directly for 65 <= j < 3000
+  note: 2.7241e16 * 898.1 = 2.44651e+19; the printed 2.44647e19 matches G_81 ~ 2.724048e16 instead (both are < 2^65).
+  [OK] Theorem 8 closes for s <= 81 (head + tail)
+
+0 failures
+exit=0

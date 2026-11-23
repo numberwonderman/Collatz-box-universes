@@ -1,0 +1,3 @@
+# third-party downloads, pinned by sha256 in VERIFICATION-81.md
+sources/*.pdf
+sources/*.html
